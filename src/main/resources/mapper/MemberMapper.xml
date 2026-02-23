@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.demo2.mapper.MemberMapper">
+
+    <select id="findAll" resultType="com.example.demo2.model.Member">
+        SELECT id, name FROM member
+    </select>
+
+    <select id="findById" resultType="com.example.demo2.model.Member">
+        SELECT id, name FROM member WHERE id = #{id}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO member(name) VALUES(#{name})
+    </insert>
+
+    <update id="update">
+        UPDATE member SET name = #{name} WHERE id = #{id}
+    </update>
+
+    <delete id="delete">
+        DELETE FROM member WHERE id = #{id}
+    </delete>
+
+</mapper>
