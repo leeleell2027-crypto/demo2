@@ -4,19 +4,23 @@
 <mapper namespace="com.example.demo2.mapper.MemberMapper">
 
     <select id="findAll" resultType="com.example.demo2.model.Member">
-        SELECT id, name FROM member
+        SELECT id, name, username, password FROM member
     </select>
 
     <select id="findById" resultType="com.example.demo2.model.Member">
-        SELECT id, name FROM member WHERE id = #{id}
+        SELECT id, name, username, password FROM member WHERE id = #{id}
+    </select>
+
+    <select id="findByUsername" resultType="com.example.demo2.model.Member">
+        SELECT id, name, username, password FROM member WHERE username = #{username}
     </select>
 
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO member(name) VALUES(#{name})
+        INSERT INTO member(name, username, password) VALUES(#{name}, #{username}, #{password})
     </insert>
 
     <update id="update">
-        UPDATE member SET name = #{name} WHERE id = #{id}
+        UPDATE member SET name = #{name}, username = #{username}, password = #{password} WHERE id = #{id}
     </update>
 
     <delete id="delete">

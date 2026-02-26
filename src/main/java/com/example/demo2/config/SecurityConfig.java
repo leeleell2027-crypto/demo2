@@ -25,18 +25,24 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
-                .sessionManagement(session ->
-                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                )
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                 .authorizeHttpRequests(auth -> auth
+                        .dispatcherTypeMatchers(jakarta.servlet.DispatcherType.FORWARD,
+                                jakarta.servlet.DispatcherType.ERROR)
+                        .permitAll()
                         .requestMatchers(
+                                "/",
+                                "/login2",
+                                "/init-data",
                                 "/auth/login",
+                                "/style.css",
+                                "/script.js",
+                                "/static/**",
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
-                                "/swagger-ui.html"
-                        ).permitAll()
-                        .anyRequest().authenticated()
-                )
+                                "/swagger-ui.html")
+                        .permitAll()
+                        .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
@@ -47,4 +53,3 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 }
-

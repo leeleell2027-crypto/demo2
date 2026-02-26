@@ -10,6 +10,8 @@ public interface MemberMapper {
 
     Member findById(Integer id);
 
+    Member findByUsername(String username);
+
     int insert(Member member);
 
     int update(Member member);

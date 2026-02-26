@@ -19,6 +19,10 @@ public class MemberService {
         return memberMapper.findById(id);
     }
 
+    public Member getMemberByUsername(String username) {
+        return memberMapper.findByUsername(username);
+    }
+
     public void saveMember(Member member) {
         if (member.getId() == null) {
             memberMapper.insert(member);

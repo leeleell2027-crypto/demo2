@@ -1,8 +1,11 @@
 package com.example.demo2.controller;
 
+import com.example.demo2.model.Member;
 import com.example.demo2.security.JwtTokenProvider;
+import com.example.demo2.service.MemberService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -13,16 +16,22 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
 
     private final JwtTokenProvider jwtTokenProvider;
+    private final MemberService memberService;
+    private final PasswordEncoder passwordEncoder;
 
-    public AuthController(JwtTokenProvider jwtTokenProvider) {
+    public AuthController(JwtTokenProvider jwtTokenProvider, MemberService memberService,
+            PasswordEncoder passwordEncoder) {
         this.jwtTokenProvider = jwtTokenProvider;
+        this.memberService = memberService;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
-        // 데모용: 실제로는 DB 사용자 조회 + 비밀번호 검사 필요
-        if ("user".equals(request.getUsername()) && "password".equals(request.getPassword())) {
-            String token = jwtTokenProvider.createToken(request.getUsername());
+        Member member = memberService.getMemberByUsername(request.getUsername());
+
+        if (member != null && passwordEncoder.matches(request.getPassword(), member.getPassword())) {
+            String token = jwtTokenProvider.createToken(member.getUsername());
             return ResponseEntity.ok(new LoginResponse(token));
         }
 
@@ -66,4 +75,3 @@ public class AuthController {
         }
     }
 }
-
