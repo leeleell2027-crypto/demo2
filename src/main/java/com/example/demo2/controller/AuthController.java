@@ -32,7 +32,7 @@ public class AuthController {
 
         if (member != null && passwordEncoder.matches(request.getPassword(), member.getPassword())) {
             String token = jwtTokenProvider.createToken(member.getUsername());
-            return ResponseEntity.ok(new LoginResponse(token));
+            return ResponseEntity.ok(new LoginResponse(token, member.getName()));
         }
 
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
@@ -61,9 +61,11 @@ public class AuthController {
 
     public static class LoginResponse {
         private String token;
+        private String name;
 
-        public LoginResponse(String token) {
+        public LoginResponse(String token, String name) {
             this.token = token;
+            this.name = name;
         }
 
         public String getToken() {
@@ -72,6 +74,14 @@ public class AuthController {
 
         public void setToken(String token) {
             this.token = token;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
         }
     }
 }
