@@ -36,6 +36,8 @@ public class SecurityConfig {
                                 "/login2",
                                 "/init-data",
                                 "/auth/login",
+                                "/auth/logout",
+                                "/auth/me",
                                 "/style.css",
                                 "/script.js",
                                 "/static/**",

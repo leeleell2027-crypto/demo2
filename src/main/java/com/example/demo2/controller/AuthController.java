@@ -3,13 +3,17 @@ package com.example.demo2.controller;
 import com.example.demo2.model.Member;
 import com.example.demo2.security.JwtTokenProvider;
 import com.example.demo2.service.MemberService;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/auth")
@@ -27,15 +31,50 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
+    public ResponseEntity<?> login(@RequestBody LoginRequest request, HttpServletResponse response) {
         Member member = memberService.getMemberByUsername(request.getUsername());
 
         if (member != null && passwordEncoder.matches(request.getPassword(), member.getPassword())) {
             String token = jwtTokenProvider.createToken(member.getUsername());
-            return ResponseEntity.ok(new LoginResponse(token, member.getName()));
+
+            // Cookie 설정
+            Cookie cookie = new Cookie("token", token);
+            cookie.setHttpOnly(true);
+            cookie.setSecure(false); // 로컬 환경이므로 false, 운영에서는 true 권장
+            cookie.setPath("/");
+            cookie.setMaxAge(3600); // 1시간
+            response.addCookie(cookie);
+
+            Map<String, String> body = new HashMap<>();
+            body.put("name", member.getName());
+            return ResponseEntity.ok(body);
         }
 
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(HttpServletResponse response) {
+        Cookie cookie = new Cookie("token", null);
+        cookie.setHttpOnly(true);
+        cookie.setPath("/");
+        cookie.setMaxAge(0);
+        response.addCookie(cookie);
+        return ResponseEntity.ok("Logged out");
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<?> getCurrentUser() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getName())) {
+            Member member = memberService.getMemberByUsername(auth.getName());
+            if (member != null) {
+                Map<String, String> body = new HashMap<>();
+                body.put("name", member.getName());
+                return ResponseEntity.ok(body);
+            }
+        }
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
 
     public static class LoginRequest {

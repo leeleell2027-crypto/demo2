@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('Login script initialized');
+    console.log('Login script initialized (Cookie-based)');
 
     const loginSection = document.getElementById('loginSection');
     const profileSection = document.getElementById('profileSection');
@@ -14,13 +14,18 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
 
-    // 초기 상태 확인
-    const checkStatus = () => {
-        const token = localStorage.getItem('token');
-        const name = localStorage.getItem('userName');
-        if (token && name) {
-            showProfile(name);
-        } else {
+    // 초기 상태 확인 (서버의 /auth/me 활용)
+    const checkStatus = async () => {
+        try {
+            const response = await fetch('/auth/me');
+            if (response.ok) {
+                const data = await response.json();
+                showProfile(data.name);
+            } else {
+                showLogin();
+            }
+        } catch (error) {
+            console.error('Status check error:', error);
             showLogin();
         }
     };
@@ -60,25 +65,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: JSON.stringify({ username, password }),
             });
 
-            console.log('Response status:', response.status);
-
             if (response.ok) {
                 const data = await response.json();
-                console.log('Login response data:', data);
-
-                localStorage.setItem('token', data.token);
-                localStorage.setItem('userName', data.name);
-
+                console.log('Login successful');
                 showProfile(data.name);
             } else {
                 const errorText = await response.text();
-                console.error('Login failed response:', errorText);
+                console.error('Login failed:', errorText);
                 messageDiv.textContent = 'Login Failed: ' + (errorText || 'Unknown error');
                 messageDiv.classList.add('error');
             }
         } catch (error) {
             console.error('Fetch error:', error);
-            messageDiv.textContent = 'An error occurred. Check console for details.';
+            messageDiv.textContent = 'An error occurred. Check console.';
             messageDiv.classList.add('error');
         } finally {
             loginBtn.disabled = false;
@@ -86,10 +85,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    logoutBtn.addEventListener('click', () => {
+    logoutBtn.addEventListener('click', async () => {
         console.log('Logging out');
-        localStorage.removeItem('token');
-        localStorage.removeItem('userName');
+        try {
+            await fetch('/auth/logout', { method: 'POST' });
+        } catch (error) {
+            console.error('Logout error:', error);
+        }
         showLogin();
     });
 
