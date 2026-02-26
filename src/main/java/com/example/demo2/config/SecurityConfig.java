@@ -32,6 +32,7 @@ public class SecurityConfig {
                         .permitAll()
                         .requestMatchers(
                                 "/",
+                                "/login",
                                 "/login2",
                                 "/init-data",
                                 "/auth/login",
