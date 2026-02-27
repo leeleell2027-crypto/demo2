@@ -1,3 +1,5 @@
+"use client";
+
 import React from 'react';
 import { motion } from 'framer-motion';
 import { User, LogOut, ShieldCheck, Mail, Calendar } from 'lucide-react';
@@ -14,7 +16,6 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout }) => {
             onLogout();
         } catch (error) {
             console.error('Logout failed', error);
-            // Even if server call fails, clear local state
             onLogout();
         }
     };

@@ -10,7 +10,7 @@
   --text-muted: #94a3b8;
   --error: #ef4444;
   --success: #10b981;
-  
+
   font-family: 'Outfit', system-ui, -apple-system, sans-serif;
   line-height: 1.5;
   font-weight: 400;
@@ -37,10 +37,9 @@ body {
   align-items: center;
   justify-content: center;
   overflow-x: hidden;
-}
-
-#root {
-  width: 100%;
+  margin: 0;
+  background: var(--bg-gradient);
+  color: var(--text-main);
 }
 
 .glass-card {
@@ -77,8 +76,15 @@ input:focus {
 
 /* Animations */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .animate-fade-in {

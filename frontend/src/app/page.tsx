@@ -1,13 +1,14 @@
-import { useState, useEffect } from 'react'
-import LoginPage from './components/LoginPage'
-import ProfilePage from './components/ProfilePage'
-import './App.css'
+"use client";
+
+import { useState, useEffect } from 'react';
+import LoginPage from '@/components/LoginPage';
+import ProfilePage from '@/components/ProfilePage';
 
 interface User {
   name: string;
 }
 
-function App() {
+export default function Home() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -34,21 +35,19 @@ function App() {
 
   if (loading) {
     return (
-      <div className="app-container">
-        <div className="loader">Loading...</div>
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', width: '100vw' }}>
+        <div className="animate-fade-in" style={{ color: 'var(--text-muted)' }}>인증 확인 중...</div>
       </div>
     );
   }
 
   return (
-    <div className="app-container">
+    <main style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', width: '100vw', padding: '20px' }}>
       {user ? (
         <ProfilePage user={user} onLogout={() => setUser(null)} />
       ) : (
         <LoginPage onLoginSuccess={(userData) => setUser(userData)} />
       )}
-    </div>
-  )
+    </main>
+  );
 }
-
-export default App
