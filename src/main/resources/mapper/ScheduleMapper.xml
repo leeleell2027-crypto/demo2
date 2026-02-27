@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.demo2.mapper.ScheduleMapper">
+
+    <select id="findByMemberName" resultType="com.example.demo2.model.Schedule">
+        SELECT id, member_name, title, description, schedule_date, created_at 
+        FROM schedules 
+        WHERE member_name = #{memberName}
+        ORDER BY schedule_date ASC
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO schedules(member_name, title, description, schedule_date) 
+        VALUES(#{memberName}, #{title}, #{description}, #{scheduleDate})
+    </insert>
+
+    <delete id="delete">
+        DELETE FROM schedules WHERE id = #{id}
+    </delete>
+
+</mapper>

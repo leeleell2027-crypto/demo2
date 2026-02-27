@@ -2,7 +2,8 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { User, LogOut, ShieldCheck, Mail, Calendar, Hash, BadgeCheck } from 'lucide-react';
+import { User, LogOut, ShieldCheck, Mail, Calendar, Hash, BadgeCheck, Image as ImageIcon } from 'lucide-react';
+import Link from 'next/link';
 
 interface ProfilePageProps {
     user: { name: string };
@@ -113,39 +114,94 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout }) => {
                 ))}
             </div>
 
-            {/* Logout Button (Bottom) */}
-            <button
-                onClick={handleLogout}
-                style={{
-                    width: '100%',
-                    background: 'rgba(255, 255, 255, 0.05)',
-                    color: 'var(--text-main)',
-                    padding: '16px',
-                    borderRadius: '14px',
-                    border: '1px solid var(--glass-border)',
-                    fontWeight: 600,
-                    fontSize: '1rem',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '10px',
-                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
-                }}
-                onMouseEnter={(e) => {
-                    e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)';
-                    e.currentTarget.style.borderColor = 'rgba(239, 68, 68, 0.3)';
-                    e.currentTarget.style.color = '#fCA5A5';
-                }}
-                onMouseLeave={(e) => {
-                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
-                    e.currentTarget.style.borderColor = 'var(--glass-border)';
-                    e.currentTarget.style.color = 'var(--text-main)';
-                }}
-            >
-                <LogOut size={20} />
-                로그아웃 하기
-            </button>
-        </motion.div>
+            {/* Navigation Buttons */}
+            <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '12px' }}>
+                <div style={{ display: 'flex', gap: '12px', width: '100%' }}>
+                    <Link href="/calendar" style={{ flex: 1 }}>
+                        <motion.button
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            style={{
+                                width: '100%',
+                                background: 'var(--primary)',
+                                color: 'white',
+                                padding: '14px',
+                                borderRadius: '12px',
+                                border: 'none',
+                                fontWeight: 600,
+                                fontSize: '0.9rem',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '8px',
+                                cursor: 'pointer',
+                                boxShadow: '0 8px 16px rgba(99, 102, 241, 0.2)'
+                            }}
+                        >
+                            <Calendar size={18} />
+                            달력 확인
+                        </motion.button>
+                    </Link>
+                    <Link href="/gallery" style={{ flex: 1 }}>
+                        <motion.button
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            style={{
+                                width: '100%',
+                                background: 'rgba(255, 255, 255, 0.05)',
+                                color: 'var(--primary)',
+                                padding: '14px',
+                                borderRadius: '12px',
+                                border: '1px solid var(--primary)',
+                                fontWeight: 600,
+                                fontSize: '0.9rem',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '8px',
+                                cursor: 'pointer'
+                            }}
+                        >
+                            <ImageIcon size={18} />
+                            갤러리
+                        </motion.button>
+                    </Link>
+                </div>
+
+                <button
+                    onClick={handleLogout}
+                    style={{
+                        width: '100%',
+                        background: 'rgba(255, 255, 255, 0.05)',
+                        color: 'var(--text-main)',
+                        padding: '16px',
+                        borderRadius: '14px',
+                        border: '1px solid var(--glass-border)',
+                        fontWeight: 600,
+                        fontSize: '1rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '10px',
+                        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                        cursor: 'pointer'
+                    }}
+                    onMouseEnter={(e) => {
+                        e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)';
+                        e.currentTarget.style.borderColor = 'rgba(239, 68, 68, 0.3)';
+                        e.currentTarget.style.color = '#fCA5A5';
+                    }}
+                    onMouseLeave={(e) => {
+                        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
+                        e.currentTarget.style.borderColor = 'var(--glass-border)';
+                        e.currentTarget.style.color = 'var(--text-main)';
+                    }}
+                >
+                    <LogOut size={20} />
+                    로그아웃 하기
+                </button>
+            </div>
+        </motion.div >
     );
 };
 
