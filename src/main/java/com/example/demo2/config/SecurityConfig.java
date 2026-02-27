@@ -1,6 +1,8 @@
 package com.example.demo2.config;
 
+import com.example.demo2.security.CustomOAuth2UserService;
 import com.example.demo2.security.JwtAuthenticationFilter;
+import com.example.demo2.security.JwtTokenProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -16,9 +18,15 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final CustomOAuth2UserService customOAuth2UserService;
+    private final JwtTokenProvider jwtTokenProvider;
 
-    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
+    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter,
+            CustomOAuth2UserService customOAuth2UserService,
+            JwtTokenProvider jwtTokenProvider) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+        this.customOAuth2UserService = customOAuth2UserService;
+        this.jwtTokenProvider = jwtTokenProvider;
     }
 
     @Bean
@@ -38,6 +46,8 @@ public class SecurityConfig {
                                 "/auth/login",
                                 "/auth/logout",
                                 "/auth/me",
+                                "/oauth2/**",
+                                "/login/oauth2/code/instagram",
                                 "/style.css",
                                 "/script.js",
                                 "/static/**",
@@ -46,6 +56,22 @@ public class SecurityConfig {
                                 "/swagger-ui.html")
                         .permitAll()
                         .anyRequest().authenticated())
+                .oauth2Login(oauth -> oauth
+                        .loginPage("/login2")
+                        .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
+                        .successHandler((request, response, authentication) -> {
+                            String username = authentication.getName();
+                            String token = jwtTokenProvider.createToken(username);
+
+                            jakarta.servlet.http.Cookie cookie = new jakarta.servlet.http.Cookie("token", token);
+                            cookie.setHttpOnly(true);
+                            cookie.setSecure(false);
+                            cookie.setPath("/");
+                            cookie.setMaxAge(3600);
+                            response.addCookie(cookie);
+
+                            response.sendRedirect("/login2");
+                        }))
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

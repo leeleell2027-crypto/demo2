@@ -17,11 +17,14 @@ document.addEventListener('DOMContentLoaded', () => {
     // 초기 상태 확인 (서버의 /auth/me 활용)
     const checkStatus = async () => {
         try {
+            console.log('Checking auth status...');
             const response = await fetch('/auth/me');
             if (response.ok) {
                 const data = await response.json();
+                console.log('Auth status: logged in as', data.name);
                 showProfile(data.name);
             } else {
+                console.log('Auth status: not logged in');
                 showLogin();
             }
         } catch (error) {

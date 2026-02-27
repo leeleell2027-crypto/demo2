@@ -29,6 +29,12 @@
                         <button type="submit" id="loginBtn">Sign In</button>
                     </form>
                     <div id="message" class="message"></div>
+
+                    <div style="margin-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1.5rem;">
+                        <a href="/oauth2/authorization/instagram" class="instagram-btn" style="text-decoration: none;">
+                            Continue with Instagram
+                        </a>
+                    </div>
                 </div>
 
                 <div id="profileSection" style="display: none; text-align: center;">

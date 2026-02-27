@@ -154,3 +154,22 @@ button:active {
     border-color: #ef4444;
     color: #ef4444;
 }
+
+.instagram-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 0.75rem;
+    background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+    color: white;
+    border-radius: 0.75rem;
+    font-weight: 600;
+    font-size: 0.875rem;
+    transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.instagram-btn:hover {
+    transform: translateY(-1px);
+    opacity: 0.9;
+}
