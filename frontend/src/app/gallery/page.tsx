@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Image as ImageIcon, Plus, Home, X, Upload, Calendar, Tag, FileText } from 'lucide-react';
+import { Image as ImageIcon, Plus, Home, X, Upload, Calendar, Tag, FileText, ReceiptText } from 'lucide-react';
 import Link from 'next/link';
 
 interface Board {
@@ -25,6 +25,7 @@ const GalleryPage = () => {
     const [showModal, setShowModal] = useState(false);
     const [selectedBoard, setSelectedBoard] = useState<Board | null>(null);
     const [loading, setLoading] = useState(false);
+    const [activeView, setActiveView] = useState<'gallery' | 'table'>('gallery');
 
     // Form states
     const [title, setTitle] = useState('');
@@ -139,129 +140,301 @@ const GalleryPage = () => {
                             <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Showcasing {totalCount} premium moments</p>
                         </div>
                     </div>
+                    <div style={{ display: 'flex', gap: '12px' }}>
+                        <Link href="/transactions">
+                            <motion.button
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                style={{ background: 'rgba(255,255,255,0.05)', color: 'white', border: '1px solid var(--glass-border)', padding: '12px 24px', borderRadius: '14px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}
+                            >
+                                <ReceiptText size={20} /> View Transactions
+                            </motion.button>
+                        </Link>
+                        <motion.button
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            onClick={() => setShowModal(true)}
+                            style={{ background: 'var(--primary)', color: 'white', border: 'none', padding: '12px 24px', borderRadius: '14px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', boxShadow: '0 10px 15px -3px rgba(99, 102, 241, 0.3)' }}
+                        >
+                            <Plus size={20} /> Upload Image
+                        </motion.button>
+                    </div>
+                </div>
+
+                {/* Navigation Bar */}
+                <div style={{ marginBottom: '40px', display: 'flex', gap: '12px', position: 'sticky', top: '20px', zIndex: 10 }}>
                     <motion.button
-                        whileHover={{ scale: 1.05 }}
+                        whileHover={{ scale: 1.05, background: activeView === 'gallery' ? 'var(--primary)' : 'rgba(255,255,255,0.1)' }}
                         whileTap={{ scale: 0.95 }}
-                        onClick={() => setShowModal(true)}
-                        style={{ background: 'var(--primary)', color: 'white', border: 'none', padding: '12px 24px', borderRadius: '14px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', boxShadow: '0 10px 15px -3px rgba(99, 102, 241, 0.3)' }}
+                        onClick={() => setActiveView('gallery')}
+                        style={{
+                            background: activeView === 'gallery' ? 'var(--primary)' : 'rgba(255,255,255,0.05)',
+                            color: 'white',
+                            padding: '10px 24px',
+                            borderRadius: '12px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            border: activeView === 'gallery' ? 'none' : '1px solid var(--glass-border)',
+                            cursor: 'pointer',
+                            backdropFilter: 'blur(12px)',
+                            fontWeight: 700,
+                            boxShadow: activeView === 'gallery' ? '0 8px 20px -5px rgba(99, 102, 241, 0.4)' : 'none',
+                            transition: 'all 0.3s ease'
+                        }}
                     >
-                        <Plus size={20} /> Upload Image
+                        <ImageIcon size={18} style={{ color: activeView === 'gallery' ? 'white' : 'var(--primary)' }} /> Gallery View
+                    </motion.button>
+                    <motion.button
+                        whileHover={{ scale: 1.05, background: activeView === 'table' ? 'var(--primary)' : 'rgba(255,255,255,0.1)' }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => setActiveView('table')}
+                        style={{
+                            background: activeView === 'table' ? 'var(--primary)' : 'rgba(255,255,255,0.05)',
+                            color: 'white',
+                            padding: '10px 24px',
+                            borderRadius: '12px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            border: activeView === 'table' ? 'none' : '1px solid var(--glass-border)',
+                            cursor: 'pointer',
+                            backdropFilter: 'blur(12px)',
+                            fontWeight: 700,
+                            boxShadow: activeView === 'table' ? '0 8px 20px -5px rgba(99, 102, 241, 0.4)' : 'none',
+                            transition: 'all 0.3s ease'
+                        }}
+                    >
+                        <ReceiptText size={18} style={{ color: activeView === 'table' ? 'white' : 'var(--primary)' }} /> Table View
                     </motion.button>
                 </div>
 
-                {/* Grid */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '24px', marginBottom: '40px' }}>
-                    {displayItems.map((item, index) => (
-                        <motion.div
-                            key={item.id !== -1 ? item.id : `empty-${index}`}
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: index * 0.05 }}
-                            whileHover={item.id !== -1 ? { scale: 1.02, y: -5 } : {}}
-                            onClick={() => item.id !== -1 && setSelectedBoard(item)}
-                            className="glass-card"
-                            style={{
-                                height: '340px',
-                                position: 'relative',
-                                overflow: 'hidden',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                opacity: item.id === -1 ? 0.4 : 1,
-                                border: item.id === -1 ? '1px dashed rgba(255,255,255,0.1)' : '1px solid var(--glass-border)',
-                                cursor: item.id === -1 ? 'default' : 'pointer'
-                            }}
-                        >
-                            {item.id !== -1 ? (
-                                <>
-                                    <div style={{ height: '200px', width: '100%', overflow: 'hidden', background: 'rgba(255,255,255,0.05)' }}>
-                                        <img src={item.imageUrl} alt={item.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                    </div>
-                                    <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
-                                        <h3 style={{ fontSize: '1.1rem', fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.title}</h3>
-                                        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                                            {item.category1 && <span className="badge">{item.category1}</span>}
-                                            {item.category2 && <span className="badge" style={{ background: 'rgba(139, 92, 246, 0.1)', color: '#a78bfa', border: '1px solid rgba(139, 92, 246, 0.2)' }}>{item.category2}</span>}
-                                        </div>
-                                        <div style={{ marginTop: 'auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                                            <span>{item.eventDate}</span>
-                                            <span>ID: {item.id}</span>
-                                        </div>
-                                    </div>
-                                </>
-                            ) : (
-                                <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(255,255,255,0.1)' }}>
-                                    <ImageIcon size={48} />
-                                </div>
-                            )}
-                        </motion.div>
-                    ))}
-                </div>
+            </div>
 
-                {/* Pagination Controls */}
-                {totalPages > 1 && (
-                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '12px', marginTop: '40px' }}>
-                        <motion.button
-                            whileHover={{ scale: 1.1 }}
-                            whileTap={{ scale: 0.9 }}
-                            disabled={currentPage === 0}
-                            onClick={() => setCurrentPage(p => p - 1)}
-                            style={{
-                                background: 'rgba(255,255,255,0.05)',
-                                color: currentPage === 0 ? 'rgba(255,255,255,0.2)' : 'white',
-                                border: '1px solid var(--glass-border)',
-                                padding: '10px 16px',
-                                borderRadius: '10px',
-                                cursor: currentPage === 0 ? 'default' : 'pointer'
-                            }}
-                        >
-                            Previous
-                        </motion.button>
-
-                        <div style={{ display: 'flex', gap: '8px' }}>
-                            {Array.from({ length: totalPages }).map((_, i) => (
-                                <motion.button
-                                    key={i}
-                                    whileHover={{ scale: 1.1 }}
-                                    onClick={() => setCurrentPage(i)}
-                                    style={{
-                                        width: '40px',
-                                        height: '40px',
-                                        borderRadius: '10px',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        fontWeight: 700,
-                                        cursor: 'pointer',
-                                        background: currentPage === i ? 'var(--primary)' : 'rgba(255,255,255,0.05)',
-                                        color: 'white',
-                                        border: currentPage === i ? 'none' : '1px solid var(--glass-border)',
-                                        boxShadow: currentPage === i ? '0 4px 12px rgba(99, 102, 241, 0.4)' : 'none'
-                                    }}
-                                >
-                                    {i + 1}
-                                </motion.button>
-                            ))}
+            {/* Conditional Rendering of Views */}
+            <AnimatePresence mode="wait">
+                {activeView === 'gallery' ? (
+                    <motion.div
+                        key="gallery"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -20 }}
+                        transition={{ duration: 0.3 }}
+                    >
+                        {/* 4x4 Grid View */}
+                        <div id="gallery-section" style={{ marginBottom: '60px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
+                                <ImageIcon size={20} style={{ color: 'var(--primary)' }} />
+                                <h2 style={{ fontSize: '1.5rem', fontWeight: 700 }}>Featured Gallery</h2>
+                            </div>
+                            <div style={{
+                                display: 'grid',
+                                gridTemplateColumns: 'repeat(4, 1fr)',
+                                gap: '24px',
+                                perspective: '1000px'
+                            }}>
+                                {displayItems.map((item, index) => (
+                                    <motion.div
+                                        key={item.id !== -1 ? item.id : `empty-${index}`}
+                                        initial={{ opacity: 0, scale: 0.9 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        transition={{ delay: index * 0.05 }}
+                                        whileHover={{
+                                            scale: 1.05,
+                                            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.4)',
+                                            zIndex: 1
+                                        }}
+                                        onClick={() => item.id !== -1 && setSelectedBoard(item)}
+                                        style={{
+                                            aspectRatio: '1/1',
+                                            borderRadius: '20px',
+                                            overflow: 'hidden',
+                                            background: 'rgba(255,255,255,0.03)',
+                                            border: '1px solid var(--glass-border)',
+                                            cursor: item.id !== -1 ? 'pointer' : 'default',
+                                            position: 'relative',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center'
+                                        }}
+                                    >
+                                        {item.id !== -1 ? (
+                                            <>
+                                                <img
+                                                    src={item.imageUrl}
+                                                    alt={item.title}
+                                                    style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'filter 0.3s ease' }}
+                                                    className="grid-image"
+                                                />
+                                                <motion.div
+                                                    initial={{ opacity: 0 }}
+                                                    whileHover={{ opacity: 1 }}
+                                                    style={{
+                                                        position: 'absolute',
+                                                        inset: 0,
+                                                        background: 'linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 60%)',
+                                                        display: 'flex',
+                                                        flexDirection: 'column',
+                                                        justifyContent: 'flex-end',
+                                                        padding: '20px',
+                                                        color: 'white'
+                                                    }}
+                                                >
+                                                    <p style={{ fontWeight: 700, fontSize: '1rem', marginBottom: '4px' }}>{item.title}</p>
+                                                    <div style={{ display: 'flex', gap: '6px' }}>
+                                                        {item.category1 && <span style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.7)' }}>#{item.category1}</span>}
+                                                        {item.category2 && <span style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.7)' }}>#{item.category2}</span>}
+                                                    </div>
+                                                </motion.div>
+                                            </>
+                                        ) : (
+                                            <ImageIcon size={32} style={{ opacity: 0.1 }} />
+                                        )}
+                                    </motion.div>
+                                ))}
+                            </div>
+                        </div>
+                    </motion.div>
+                ) : (
+                    <motion.div
+                        key="table"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -20 }}
+                        transition={{ duration: 0.3 }}
+                    >
+                        {/* Table Layout */}
+                        <div id="table-section" style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
+                            <ReceiptText size={20} style={{ color: 'var(--primary)' }} />
+                            <h2 style={{ fontSize: '1.5rem', fontWeight: 700 }}>Management List</h2>
                         </div>
 
-                        <motion.button
-                            whileHover={{ scale: 1.1 }}
-                            whileTap={{ scale: 0.9 }}
-                            disabled={currentPage === totalPages - 1}
-                            onClick={() => setCurrentPage(p => p + 1)}
-                            style={{
-                                background: 'rgba(255,255,255,0.05)',
-                                color: currentPage === totalPages - 1 ? 'rgba(255,255,255,0.2)' : 'white',
-                                border: '1px solid var(--glass-border)',
-                                padding: '10px 16px',
-                                borderRadius: '10px',
-                                cursor: currentPage === totalPages - 1 ? 'default' : 'pointer'
-                            }}
-                        >
-                            Next
-                        </motion.button>
-                    </div>
+                        <div className="glass-card" style={{ overflow: 'hidden', padding: 0, borderRadius: '20px', border: '1px solid var(--glass-border)', marginBottom: '40px' }}>
+                            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+                                <thead style={{ background: 'rgba(255,255,255,0.05)', color: 'var(--text-muted)', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                    <tr>
+                                        <th style={{ padding: '20px 24px' }}>ID</th>
+                                        <th style={{ padding: '20px 24px' }}>Thumbnail</th>
+                                        <th style={{ padding: '20px 24px' }}>Title</th>
+                                        <th style={{ padding: '20px 24px' }}>Event Date</th>
+                                        <th style={{ padding: '20px 24px' }}>Categories</th>
+                                        <th style={{ padding: '20px 24px' }}>Created At</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {boards.map((item, index) => (
+                                        <motion.tr
+                                            key={item.id}
+                                            initial={{ opacity: 0, x: -20 }}
+                                            animate={{ opacity: 1, x: 0 }}
+                                            transition={{ delay: index * 0.03 }}
+                                            whileHover={{ background: 'rgba(255,255,255,0.03)' }}
+                                            onClick={() => setSelectedBoard(item)}
+                                            style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', cursor: 'pointer', transition: 'background 0.2s' }}
+                                        >
+                                            <td style={{ padding: '16px 24px', fontSize: '0.9rem', color: 'var(--text-muted)' }}>#{item.id}</td>
+                                            <td style={{ padding: '16px 24px' }}>
+                                                <div style={{ width: '50px', height: '50px', borderRadius: '10px', overflow: 'hidden', border: '1px solid var(--glass-border)' }}>
+                                                    <img src={item.imageUrl} alt={item.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                                </div>
+                                            </td>
+                                            <td style={{ padding: '16px 24px', fontWeight: 600 }}>{item.title}</td>
+                                            <td style={{ padding: '16px 24px' }}>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.9rem' }}>
+                                                    <Calendar size={14} style={{ color: 'var(--primary)' }} />
+                                                    {item.eventDate}
+                                                </div>
+                                            </td>
+                                            <td style={{ padding: '16px 24px' }}>
+                                                <div style={{ display: 'flex', gap: '6px' }}>
+                                                    {item.category1 && <span className="badge-sm">{item.category1}</span>}
+                                                    {item.category2 && <span className="badge-sm" style={{ background: 'rgba(139, 92, 246, 0.1)', color: '#a78bfa' }}>{item.category2}</span>}
+                                                </div>
+                                            </td>
+                                            <td style={{ padding: '16px 24px', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                                                {new Date(item.createdAt).toLocaleDateString()}
+                                            </td>
+                                        </motion.tr>
+                                    ))}
+                                    {boards.length === 0 && (
+                                        <tr>
+                                            <td colSpan={6} style={{ padding: '100px 0', textAlign: 'center', color: 'var(--text-muted)' }}>
+                                                <ImageIcon size={48} style={{ opacity: 0.2, marginBottom: '16px' }} />
+                                                <p>No boards found. Upload your first image!</p>
+                                            </td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </motion.div>
                 )}
-            </div>
+            </AnimatePresence>
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '12px', marginTop: '40px' }}>
+                    <motion.button
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                        disabled={currentPage === 0}
+                        onClick={() => setCurrentPage(p => p - 1)}
+                        style={{
+                            background: 'rgba(255,255,255,0.05)',
+                            color: currentPage === 0 ? 'rgba(255,255,255,0.2)' : 'white',
+                            border: '1px solid var(--glass-border)',
+                            padding: '10px 16px',
+                            borderRadius: '10px',
+                            cursor: currentPage === 0 ? 'default' : 'pointer'
+                        }}
+                    >
+                        Previous
+                    </motion.button>
+
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                        {Array.from({ length: totalPages }).map((_, i) => (
+                            <motion.button
+                                key={i}
+                                whileHover={{ scale: 1.1 }}
+                                onClick={() => setCurrentPage(i)}
+                                style={{
+                                    width: '40px',
+                                    height: '40px',
+                                    borderRadius: '10px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    fontWeight: 700,
+                                    cursor: 'pointer',
+                                    background: currentPage === i ? 'var(--primary)' : 'rgba(255,255,255,0.05)',
+                                    color: 'white',
+                                    border: currentPage === i ? 'none' : '1px solid var(--glass-border)',
+                                    boxShadow: currentPage === i ? '0 4px 12px rgba(99, 102, 241, 0.4)' : 'none'
+                                }}
+                            >
+                                {i + 1}
+                            </motion.button>
+                        ))}
+                    </div>
+
+                    <motion.button
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                        disabled={currentPage === totalPages - 1}
+                        onClick={() => setCurrentPage(p => p + 1)}
+                        style={{
+                            background: 'rgba(255,255,255,0.05)',
+                            color: currentPage === totalPages - 1 ? 'rgba(255,255,255,0.2)' : 'white',
+                            border: '1px solid var(--glass-border)',
+                            padding: '10px 16px',
+                            borderRadius: '10px',
+                            cursor: currentPage === totalPages - 1 ? 'default' : 'pointer'
+                        }}
+                    >
+                        Next
+                    </motion.button>
+                </div>
+            )}
 
             {/* Upload Modal */}
             <AnimatePresence>
@@ -442,6 +615,31 @@ const GalleryPage = () => {
                     font-size: 0.75rem;
                     font-weight: 600;
                     border: 1px solid rgba(99, 102, 241, 0.2);
+                }
+                .badge-sm {
+                    background: rgba(99, 102, 241, 0.1);
+                    color: var(--primary);
+                    padding: 2px 8px;
+                    border-radius: 6px;
+                    font-size: 0.7rem;
+                    font-weight: 600;
+                    border: 1px solid rgba(99, 102, 241, 0.2);
+                }
+                .grid-image {
+                    filter: brightness(0.9) contrast(1.1);
+                }
+                :global(.grid-image:hover) {
+                    filter: brightness(1.1) contrast(1.1);
+                }
+                @media (max-width: 1024px) {
+                    div[style*="gridTemplateColumns: repeat(4, 1fr)"] {
+                        grid-template-columns: repeat(2, 1fr) !important;
+                    }
+                }
+                @media (max-width: 640px) {
+                    div[style*="gridTemplateColumns: repeat(4, 1fr)"] {
+                        grid-template-columns: repeat(1, 1fr) !important;
+                    }
                 }
             `}</style>
         </main >

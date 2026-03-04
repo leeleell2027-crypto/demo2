@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.demo2.mapper.TransactionMapper">
+
+    <select id="findAll" resultType="com.example.demo2.model.Transaction">
+        SELECT * 
+        FROM transactions 
+        ORDER BY date DESC, time DESC
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO transactions (
+            date, time, card, merchant, amount_krw, amount_usd, 
+            payment_method, merchant_info, discount, points, 
+            status, due_date, approval_no
+        ) VALUES (
+            #{date}, #{time}, #{card}, #{merchant}, #{amountKrw}, #{amountUsd}, 
+            #{paymentMethod}, #{merchantInfo}, #{discount}, #{points}, 
+            #{status}, #{dueDate}, #{approvalNo}
+        )
+    </insert>
+
+</mapper>

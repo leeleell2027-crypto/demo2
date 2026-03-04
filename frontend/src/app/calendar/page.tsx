@@ -77,6 +77,28 @@ const CalendarPage = () => {
         }
     };
 
+    const HOLIDAYS: { [key: string]: string } = {
+        '2026-01-01': '신정',
+        '2026-02-16': '설날 연휴',
+        '2026-02-17': '설날',
+        '2026-02-18': '설날 연휴',
+        '2026-02-19': '대체공휴일',
+        '2026-03-01': '삼일절',
+        '2026-03-02': '대체공휴일',
+        '2026-05-05': '어린이날',
+        '2026-05-24': '부처님 오신 날',
+        '2026-05-25': '대체공휴일',
+        '2026-06-06': '현충일',
+        '2026-08-15': '광복절',
+        '2026-09-24': '추석 연휴',
+        '2026-09-25': '추석',
+        '2026-09-26': '추석 연휴',
+        '2026-09-28': '대체공휴일',
+        '2026-10-03': '개천절',
+        '2026-10-09': '한글날',
+        '2026-12-25': '성탄절'
+    };
+
     const daysInMonth = (year: number, month: number) => new Date(year, month + 1, 0).getDate();
     const firstDayOfMonth = (year: number, month: number) => new Date(year, month, 1).getDay();
 
@@ -87,11 +109,15 @@ const CalendarPage = () => {
     const days = [];
 
     for (let i = 0; i < offset; i++) {
-        days.push(<div key={`empty-${i}`} style={{ height: '60px' }}></div>);
+        days.push(<div key={`empty-${i}`} style={{ height: '70px' }}></div>);
     }
 
     for (let d = 1; d <= daysInMonth(year, month); d++) {
         const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+        const currentDayOfWeek = new Date(year, month, d).getDay();
+        const holidayName = HOLIDAYS[dateStr];
+        const isSunday = currentDayOfWeek === 0;
+        const isHoliday = !!holidayName;
         const isToday = today.toISOString().split('T')[0] === dateStr;
         const daySchedules = schedules.filter(s => s.scheduleDate === dateStr);
 
@@ -104,7 +130,7 @@ const CalendarPage = () => {
                     setShowModal(true);
                 }}
                 style={{
-                    height: '70px',
+                    height: '85px',
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
@@ -113,12 +139,24 @@ const CalendarPage = () => {
                     cursor: 'pointer',
                     position: 'relative',
                     border: isToday ? '1px solid var(--primary)' : '1px solid transparent',
-                    background: isToday ? 'rgba(99, 102, 241, 0.05)' : 'transparent'
+                    background: isToday ? 'rgba(99, 102, 241, 0.05)' : 'transparent',
+                    padding: '4px'
                 }}
             >
-                <span style={{ fontSize: '1rem', fontWeight: isToday ? 700 : 400, color: isToday ? 'var(--primary)' : 'var(--text-main)' }}>
-                    {d}
-                </span>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
+                    <span style={{
+                        fontSize: '1rem',
+                        fontWeight: (isToday || isHoliday) ? 700 : 400,
+                        color: (isSunday || isHoliday) ? '#ef4444' : (isToday ? 'var(--primary)' : 'var(--text-main)')
+                    }}>
+                        {d}
+                    </span>
+                    {holidayName && (
+                        <span style={{ fontSize: '0.65rem', color: '#ef4444', fontWeight: 600, textAlign: 'center', lineHeight: 1 }}>
+                            {holidayName}
+                        </span>
+                    )}
+                </div>
                 <div style={{ display: 'flex', gap: '2px', marginTop: '4px', flexWrap: 'wrap', justifyContent: 'center' }}>
                     {daySchedules.map((_, i) => (
                         <div key={i} style={{ width: '4px', height: '4px', borderRadius: '50%', background: 'var(--primary)' }}></div>
