@@ -9,6 +9,33 @@
         ORDER BY date DESC, time DESC
     </select>
 
+    <select id="count" resultType="int">
+        SELECT COUNT(*) FROM transactions
+        <where>
+            <if test="searchDate != null and searchDate != ''">
+                AND date LIKE CONCAT('%', #{searchDate}, '%')
+            </if>
+            <if test="searchMerchant != null and searchMerchant != ''">
+                AND merchant LIKE CONCAT('%', #{searchMerchant}, '%')
+            </if>
+        </where>
+    </select>
+
+    <select id="findPaged" resultType="com.example.demo2.model.Transaction">
+        SELECT * 
+        FROM transactions 
+        <where>
+            <if test="searchDate != null and searchDate != ''">
+                AND date LIKE CONCAT('%', #{searchDate}, '%')
+            </if>
+            <if test="searchMerchant != null and searchMerchant != ''">
+                AND merchant LIKE CONCAT('%', #{searchMerchant}, '%')
+            </if>
+        </where>
+        ORDER BY date DESC, time DESC
+        LIMIT #{size} OFFSET #{offset}
+    </select>
+
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO transactions (
             date, time, card, merchant, amount_krw, amount_usd, 

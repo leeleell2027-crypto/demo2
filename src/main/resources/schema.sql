@@ -44,5 +44,20 @@ CREATE TABLE IF NOT EXISTS member (
     email VARCHAR(100) DEFAULT NULL,
     username VARCHAR(255) DEFAULT NULL,
     password VARCHAR(255) DEFAULT NULL,
-    role VARCHAR(50) DEFAULT NULL
+    role VARCHAR(50) DEFAULT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
+
+CREATE TABLE IF NOT EXISTS `holiday` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `holiday_date` date NOT NULL,
+  `name` varchar(100) NOT NULL,
+  `is_recurring` tinyint(1) NOT NULL DEFAULT 0,
+  `created_at` timestamp NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_holiday_date` (`holiday_date`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+ALTER TABLE `holiday` ADD COLUMN IF NOT EXISTS `is_recurring` tinyint(1) NOT NULL DEFAULT 0 AFTER `name`;

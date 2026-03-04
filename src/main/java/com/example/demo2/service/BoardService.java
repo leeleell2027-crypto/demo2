@@ -30,6 +30,26 @@ public class BoardService {
     }
 
     public void createBoard(Board board, MultipartFile imageFile) throws IOException {
+        String imageUrl = saveImage(imageFile);
+        if (imageUrl != null) {
+            board.setImageUrl(imageUrl);
+        }
+        boardMapper.insert(board);
+    }
+
+    public void updateBoard(Board board, MultipartFile imageFile) throws IOException {
+        if (imageFile != null && !imageFile.isEmpty()) {
+            String imageUrl = saveImage(imageFile);
+            board.setImageUrl(imageUrl);
+        }
+        boardMapper.update(board);
+    }
+
+    public void deleteBoard(Long id) {
+        boardMapper.delete(id);
+    }
+
+    private String saveImage(MultipartFile imageFile) throws IOException {
         if (imageFile != null && !imageFile.isEmpty()) {
             // 폴더 생성
             File uploadDir = new File(uploadPath);
@@ -52,9 +72,8 @@ public class BoardService {
             imageFile.transferTo(fileToSave);
 
             // 이미지 URL 설정 (클라이언트 접근용)
-            board.setImageUrl("/api/images/" + savedFilename);
+            return "/api/images/" + savedFilename;
         }
-
-        boardMapper.insert(board);
+        return null;
     }
 }

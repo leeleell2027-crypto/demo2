@@ -30,29 +30,53 @@ const TransactionsContent = () => {
     const [transactions, setTransactions] = useState<Transaction[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [searchTerm, setSearchTerm] = useState('');
+    const [searchDate, setSearchDate] = useState('');
+    const [searchMerchant, setSearchMerchant] = useState('');
     const [viewMode, setViewMode] = useState<'table' | 'calendar'>('table');
     const [currentMonth, setCurrentMonth] = useState(new Date());
+    const [holidays, setHolidays] = useState<any[]>([]);
+
+    // Pagination state
+    const [page, setPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(0);
+    const [total, setTotal] = useState(0);
+    const [pageSize] = useState(10);
 
     useEffect(() => {
         if (dateParam) {
-            setSearchTerm(dateParam);
+            setSearchDate(dateParam);
         }
     }, [dateParam]);
 
     useEffect(() => {
         const fetchTransactions = async () => {
+            setLoading(true);
             try {
-                const response = await fetch('/api/transactions');
-                if (!response.ok) {
-                    throw new Error('Failed to fetch transactions');
-                }
-                const data = await response.json();
+                if (viewMode === 'calendar') {
+                    const [transactionRes, holidayRes] = await Promise.all([
+                        fetch('/api/transactions'),
+                        fetch('/api/holidays/all')
+                    ]);
 
-                // If the data is empty and we want some initial data for demonstration, 
-                // we'll keep it empty and let the user seed it or we can add a seed endpoint later.
-                // For now, let's just use the data from the API.
-                setTransactions(data);
+                    if (!transactionRes.ok || !holidayRes.ok) {
+                        throw new Error('Failed to fetch data');
+                    }
+
+                    const transactionData = await transactionRes.json();
+                    const holidayData = await holidayRes.json();
+
+                    setTransactions(transactionData);
+                    setHolidays(holidayData);
+                    setTotal(transactionData.length);
+                    setTotalPages(1);
+                } else {
+                    const response = await fetch(`/api/transactions/paged?page=${page}&size=${pageSize}&searchDate=${encodeURIComponent(searchDate)}&searchMerchant=${encodeURIComponent(searchMerchant)}`);
+                    if (!response.ok) throw new Error('Failed to fetch paginated transactions');
+                    const data = await response.json();
+                    setTransactions(data.transactions);
+                    setTotal(data.total);
+                    setTotalPages(data.totalPages);
+                }
                 setLoading(false);
             } catch (err) {
                 console.error('Error fetching transactions:', err);
@@ -62,21 +86,28 @@ const TransactionsContent = () => {
         };
 
         fetchTransactions();
-    }, []);
+    }, [page, pageSize, viewMode, searchDate, searchMerchant]);
 
     const filteredTransactions = useMemo(() => {
         return transactions.filter(t => {
-            const searchLower = (searchTerm || '').toLowerCase();
-            const merchantMatch = (t.merchant || '').toLowerCase().includes(searchLower);
-            const dateMatch = (t.date || '').includes(searchTerm);
-            const approvalMatch = (t.approvalNo || '').toLowerCase().includes(searchLower);
-            return merchantMatch || dateMatch || approvalMatch;
+            const dateMatch = !searchDate || (t.date || '').includes(searchDate);
+            const merchantMatch = !searchMerchant || (t.merchant || '').toLowerCase().includes(searchMerchant.toLowerCase());
+            const matchesSearch = dateMatch && merchantMatch;
+
+            if (viewMode === 'calendar') {
+                const transDate = new Date(t.date);
+                const isSameMonth = transDate.getFullYear() === currentMonth.getFullYear() &&
+                    transDate.getMonth() === currentMonth.getMonth();
+                return matchesSearch && isSameMonth;
+            }
+
+            return matchesSearch;
         });
-    }, [transactions, searchTerm]);
+    }, [transactions, searchDate, searchMerchant, viewMode, currentMonth]);
 
     const stats = useMemo(() => {
         if (filteredTransactions.length === 0) {
-            return { total: 0, avgMonthly: 0, max: 0, points: 0 };
+            return { total: 0, avgMonthly: 0, dailyAvg: 0, max: 0, points: 0 };
         }
 
         const total = filteredTransactions.reduce((sum, t) => sum + Number(String(t.amountKrw).replace(/,/g, '') || 0), 0);
@@ -89,8 +120,11 @@ const TransactionsContent = () => {
         const months = new Set(filteredTransactions.map(t => t.date.substring(0, 7)));
         const avgMonthly = months.size > 0 ? total / months.size : 0;
 
-        return { total, avgMonthly, max, points };
-    }, [filteredTransactions]);
+        const daysInSelectedMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0).getDate();
+        const dailyAvg = total / daysInSelectedMonth;
+
+        return { total, avgMonthly, dailyAvg, max, points };
+    }, [filteredTransactions, currentMonth, viewMode]);
 
     const formatCurrency = (value: number) => {
         return new Intl.NumberFormat('ko-KR', { style: 'decimal' }).format(Math.floor(value));
@@ -131,7 +165,10 @@ const TransactionsContent = () => {
                             <Table size={18} /> Table
                         </button>
                         <button
-                            onClick={() => setViewMode('calendar')}
+                            onClick={() => {
+                                setViewMode('calendar');
+                                setSearchDate('');
+                            }}
                             style={{
                                 display: 'flex',
                                 alignItems: 'center',
@@ -151,20 +188,44 @@ const TransactionsContent = () => {
                     </div>
 
                     <div style={{ display: 'flex', gap: '12px' }}>
+                        {viewMode === 'table' && (
+                            <div style={{ position: 'relative' }}>
+                                <Calendar size={18} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+                                <input
+                                    type="text"
+                                    placeholder="Date (YYYY-MM-DD)"
+                                    value={searchDate}
+                                    onChange={(e) => setSearchDate(e.target.value)}
+                                    style={{
+                                        background: 'rgba(255,255,255,0.03)',
+                                        border: '1px solid var(--glass-border)',
+                                        padding: '12px 16px 12px 44px',
+                                        borderRadius: '12px',
+                                        color: 'white',
+                                        width: '200px',
+                                        fontSize: '0.95rem',
+                                        outline: 'none',
+                                        transition: 'border-color 0.2s',
+                                    }}
+                                    onFocus={(e) => e.target.style.borderColor = 'var(--primary)'}
+                                    onBlur={(e) => e.target.style.borderColor = 'var(--glass-border)'}
+                                />
+                            </div>
+                        )}
                         <div style={{ position: 'relative' }}>
                             <Search size={18} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
                             <input
                                 type="text"
-                                placeholder="Search merchant, date, or approval no..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
+                                placeholder="Search merchant..."
+                                value={searchMerchant}
+                                onChange={(e) => setSearchMerchant(e.target.value)}
                                 style={{
                                     background: 'rgba(255,255,255,0.03)',
                                     border: '1px solid var(--glass-border)',
                                     padding: '12px 16px 12px 44px',
                                     borderRadius: '12px',
                                     color: 'white',
-                                    width: '320px',
+                                    width: '280px',
                                     fontSize: '0.95rem',
                                     outline: 'none',
                                     transition: 'border-color 0.2s',
@@ -176,7 +237,11 @@ const TransactionsContent = () => {
                         <motion.button whileHover={{ scale: 1.05 }} style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid var(--glass-border)', color: 'white', padding: '12px 20px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontWeight: 600 }}>
                             <Filter size={18} /> Filter
                         </motion.button>
-                        <motion.button whileHover={{ scale: 1.05 }} style={{ background: 'var(--primary)', border: 'none', color: 'white', padding: '12px 24px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontWeight: 700, boxShadow: '0 10px 15px -3px rgba(99, 102, 241, 0.3)' }}>
+                        <motion.button
+                            whileHover={{ scale: 1.05 }}
+                            style={{ background: 'var(--primary)', border: 'none', color: 'white', padding: '12px 24px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontWeight: 700, boxShadow: '0 10px 15px -3px rgba(99, 102, 241, 0.3)' }}
+                            onClick={() => window.location.reload()}
+                        >
                             <Download size={18} /> Export
                         </motion.button>
                     </div>
@@ -185,10 +250,10 @@ const TransactionsContent = () => {
                 {/* Statistics Cards */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px', marginBottom: '40px' }}>
                     {[
-                        { label: 'Total Spending', value: `${formatCurrency(stats.total)} 원`, icon: <ReceiptText size={20} />, color: '#6366f1' },
-                        { label: 'Avg Monthly', value: `${formatCurrency(stats.avgMonthly)} 원`, icon: <Calendar size={20} />, color: '#10b981' },
-                        { label: 'Max Transaction', value: `${formatCurrency(stats.max)} 원`, icon: <MapPin size={20} />, color: '#f59e0b' },
-                        { label: 'Total Points', value: `${formatCurrency(stats.points)} P`, icon: <CreditCard size={20} />, color: '#ec4899' },
+                        { label: viewMode === 'calendar' ? 'Monthly Total' : 'Total Spending', value: `${formatCurrency(stats.total)} 원`, icon: <ReceiptText size={20} />, color: '#6366f1' },
+                        { label: viewMode === 'calendar' ? 'Daily Average' : 'Avg Monthly', value: `${formatCurrency(viewMode === 'calendar' ? stats.dailyAvg : stats.avgMonthly)} 원`, icon: <Calendar size={20} />, color: '#10b981' },
+                        { label: viewMode === 'calendar' ? 'Monthly Max' : 'Max Transaction', value: `${formatCurrency(stats.max)} 원`, icon: <MapPin size={20} />, color: '#f59e0b' },
+                        { label: viewMode === 'calendar' ? 'Monthly Points' : 'Total Points', value: `${formatCurrency(stats.points)} P`, icon: <CreditCard size={20} />, color: '#ec4899' },
                     ].map((stat, i) => (
                         <div key={i} className="glass-card" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -294,15 +359,59 @@ const TransactionsContent = () => {
                                 </tbody>
                             </table>
                         </div>
+
+                        {/* Pagination Controls */}
+                        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px', padding: '24px 0 24px', borderTop: '1px solid rgba(255,255,255,0.05)', background: 'rgba(255,255,255,0.01)' }}>
+                            <button
+                                disabled={page === 1}
+                                onClick={() => setPage(p => p - 1)}
+                                style={{ background: 'transparent', border: 'none', color: page === 1 ? 'rgba(255,255,255,0.2)' : 'white', cursor: page === 1 ? 'default' : 'pointer', display: 'flex', padding: '4px' }}
+                            >
+                                <ChevronLeft size={20} />
+                            </button>
+
+                            <div style={{ display: 'flex', gap: '6px' }}>
+                                {Array.from({ length: Math.max(1, totalPages) }).map((_, i) => (
+                                    <button
+                                        key={i + 1}
+                                        onClick={() => setPage(i + 1)}
+                                        style={{
+                                            width: '32px',
+                                            height: '32px',
+                                            borderRadius: '8px',
+                                            border: 'none',
+                                            background: page === i + 1 ? 'var(--primary)' : 'rgba(255,255,255,0.05)',
+                                            color: page === i + 1 ? 'black' : 'white',
+                                            fontWeight: 700,
+                                            fontSize: '0.85rem',
+                                            cursor: 'pointer',
+                                            transition: 'all 0.2s'
+                                        }}
+                                    >
+                                        {i + 1}
+                                    </button>
+                                ))}
+                            </div>
+
+                            <button
+                                disabled={page >= totalPages}
+                                onClick={() => setPage(p => p + 1)}
+                                style={{ background: 'transparent', border: 'none', color: page >= totalPages ? 'rgba(255,255,255,0.2)' : 'white', cursor: page >= totalPages ? 'default' : 'pointer', display: 'flex', padding: '4px' }}
+                            >
+                                <ChevronRight size={20} />
+                            </button>
+                        </div>
                     </div>
                 ) : (
                     <CalendarView
-                        transactions={transactions}
+                        transactions={filteredTransactions}
+                        holidays={holidays}
                         currentMonth={currentMonth}
                         setCurrentMonth={setCurrentMonth}
                         formatCurrency={formatCurrency}
                         onDayClick={(date: string) => {
-                            setSearchTerm(date);
+                            setSearchDate(date);
+                            setSearchMerchant('');
                             setViewMode('table');
                         }}
                     />
@@ -312,7 +421,7 @@ const TransactionsContent = () => {
     );
 };
 
-const CalendarView = ({ transactions, currentMonth, setCurrentMonth, formatCurrency, onDayClick }: any) => {
+const CalendarView = ({ transactions, holidays, currentMonth, setCurrentMonth, formatCurrency, onDayClick }: any) => {
     const daysInMonth = (year: number, month: number) => new Date(year, month + 1, 0).getDate();
     const firstDayOfMonth = (year: number, month: number) => new Date(year, month, 1).getDay();
 
@@ -399,8 +508,47 @@ const CalendarView = ({ transactions, currentMonth, setCurrentMonth, formatCurre
                         >
                             {isValid && (
                                 <>
-                                    <div style={{ fontSize: '0.9rem', fontWeight: 600, color: i % 7 === 0 ? '#ef4444' : i % 7 === 6 ? '#3b82f6' : 'white' }}>
-                                        {dayNum}
+                                    <div style={{
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        alignItems: 'flex-start'
+                                    }}>
+                                        <div style={{
+                                            fontSize: '0.9rem',
+                                            fontWeight: 600,
+                                            color: (
+                                                i % 7 === 0 ||
+                                                holidays.some((h: any) => {
+                                                    if (h.recurring) {
+                                                        const hMonthDay = h.holidayDate.substring(5);
+                                                        const currentMonthDay = dateStr.substring(5);
+                                                        return hMonthDay === currentMonthDay;
+                                                    }
+                                                    return h.holidayDate === dateStr;
+                                                })
+                                            ) ? '#ef4444' : i % 7 === 6 ? '#3b82f6' : 'white'
+                                        }}>
+                                            {dayNum}
+                                        </div>
+                                        {holidays.find((h: any) => {
+                                            if (h.recurring) {
+                                                const hMonthDay = h.holidayDate.substring(5);
+                                                const currentMonthDay = dateStr.substring(5);
+                                                return hMonthDay === currentMonthDay;
+                                            }
+                                            return h.holidayDate === dateStr;
+                                        }) && (
+                                                <div style={{ fontSize: '0.6rem', color: '#ef4444', fontWeight: 600, textAlign: 'right', maxWidth: '70%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                                    {holidays.find((h: any) => {
+                                                        if (h.recurring) {
+                                                            const hMonthDay = h.holidayDate.substring(5);
+                                                            const currentMonthDay = dateStr.substring(5);
+                                                            return hMonthDay === currentMonthDay;
+                                                        }
+                                                        return h.holidayDate === dateStr;
+                                                    }).name}
+                                                </div>
+                                            )}
                                     </div>
                                     {total > 0 && (
                                         <motion.div

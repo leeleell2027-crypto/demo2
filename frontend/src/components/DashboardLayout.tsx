@@ -43,7 +43,6 @@ const categories: Category[] = [
         icon: <Wallet size={20} />,
         items: [
             { label: 'Transactions', href: '/transactions', icon: <CreditCard size={18} /> },
-            { label: 'Calendar', href: '/calendar', icon: <Calendar size={18} /> },
         ]
     },
     {
@@ -61,7 +60,9 @@ const categories: Category[] = [
         items: [
             { label: 'Profile', href: '/profile', icon: <User size={18} /> },
             { label: 'General', href: '/settings', icon: <Settings size={18} /> },
+            { label: 'Calendar', href: '/settings/calendar', icon: <Calendar size={18} /> },
             { label: 'Admin Management', href: '/admin', icon: <Shield size={18} /> },
+            { label: 'Holiday Management', href: '/holidays', icon: <Calendar size={18} /> },
         ]
     }
 ];
@@ -91,7 +92,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     return {
                         ...cat,
                         items: cat.items.filter(item => {
-                            if (item.href === '/admin') return user.role === 'SUPER_ADMIN';
+                            if (item.href === '/admin' || item.href === '/holidays') return user.role === 'SUPER_ADMIN';
+                            if (item.href === '/settings/calendar') return user.role === 'SUPER_ADMIN' || user.role === 'MIDDLE_ADMIN';
                             return true;
                         })
                     };

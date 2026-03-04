@@ -12,6 +12,10 @@ public interface MemberMapper {
 
     Member findByUsername(String username);
 
+    int count();
+
+    List<Member> findWithPagination(@Param("offset") int offset, @Param("limit") int limit);
+
     int insert(Member member);
 
     int update(Member member);

@@ -25,4 +25,20 @@
         SELECT COUNT(*) FROM boards
     </select>
 
+    <update id="update">
+        UPDATE boards
+        SET title = #{title},
+            event_date = #{eventDate},
+            content = #{content},
+            category1 = #{category1},
+            category2 = #{category2},
+            category3 = #{category3},
+            image_url = #{imageUrl}
+        WHERE id = #{id}
+    </update>
+
+    <delete id="delete">
+        DELETE FROM boards WHERE id = #{id}
+    </delete>
+
 </mapper>

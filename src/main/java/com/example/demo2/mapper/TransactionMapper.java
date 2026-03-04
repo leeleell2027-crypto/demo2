@@ -2,12 +2,18 @@ package com.example.demo2.mapper;
 
 import com.example.demo2.model.Transaction;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 import java.util.List;
 
 @Mapper
 public interface TransactionMapper {
 
     List<Transaction> findAll();
+
+    int count(@Param("searchDate") String searchDate, @Param("searchMerchant") String searchMerchant);
+
+    List<Transaction> findPaged(@Param("offset") int offset, @Param("size") int size,
+            @Param("searchDate") String searchDate, @Param("searchMerchant") String searchMerchant);
 
     int insert(Transaction transaction);
 }

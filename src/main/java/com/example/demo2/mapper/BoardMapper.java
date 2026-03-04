@@ -14,4 +14,8 @@ public interface BoardMapper {
     Board findById(Long id);
 
     int countAll();
+
+    int update(Board board);
+
+    int delete(Long id);
 }

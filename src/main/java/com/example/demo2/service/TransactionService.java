@@ -5,6 +5,8 @@ import com.example.demo2.model.Transaction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 
 @Service
 public class TransactionService {
@@ -14,6 +16,20 @@ public class TransactionService {
 
     public List<Transaction> getAllTransactions() {
         return transactionMapper.findAll();
+    }
+
+    public Map<String, Object> getPagedTransactions(int page, int size, String searchDate, String searchMerchant) {
+        int offset = (page - 1) * size;
+        List<Transaction> transactions = transactionMapper.findPaged(offset, size, searchDate, searchMerchant);
+        int total = transactionMapper.count(searchDate, searchMerchant);
+        int totalPages = (int) Math.ceil((double) total / size);
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("transactions", transactions);
+        result.put("total", total);
+        result.put("totalPages", totalPages);
+        result.put("currentPage", page);
+        return result;
     }
 
     public void createTransaction(Transaction transaction) {

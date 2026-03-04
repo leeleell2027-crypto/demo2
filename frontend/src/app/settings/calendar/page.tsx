@@ -23,15 +23,19 @@ interface Transaction {
 
 export default function CalendarPage() {
     const [transactions, setTransactions] = useState<Transaction[]>([]);
+    const [holidays, setHolidays] = useState<any[]>([]);
     const [currentMonth, setCurrentMonth] = useState(new Date());
     const [loading, setLoading] = useState(true);
     const router = useRouter();
 
     useEffect(() => {
-        fetch('/api/transactions')
-            .then(res => res.json())
-            .then(data => {
-                setTransactions(data);
+        Promise.all([
+            fetch('/api/transactions').then(res => res.json()),
+            fetch('/api/holidays/all').then(res => res.json())
+        ])
+            .then(([transactionData, holidayData]) => {
+                setTransactions(transactionData);
+                setHolidays(holidayData);
                 setLoading(false);
             })
             .catch(err => {
@@ -144,8 +148,48 @@ export default function CalendarPage() {
                                 >
                                     {isValid && (
                                         <>
-                                            <div style={{ fontSize: '1rem', fontWeight: 700, color: i % 7 === 0 ? '#ef4444' : i % 7 === 6 ? '#3b82f6' : 'white' }}>
-                                                {dayNum}
+                                            <div style={{
+                                                display: 'flex',
+                                                justifyContent: 'space-between',
+                                                alignItems: 'flex-start'
+                                            }}>
+                                                <div style={{
+                                                    fontSize: '1rem',
+                                                    fontWeight: 700,
+                                                    color: (
+                                                        i % 7 === 0 ||
+                                                        holidays.some(h => {
+                                                            if (h.recurring) {
+                                                                // 매년 반복인 경우 월-일만 체크
+                                                                const hMonthDay = h.holidayDate.substring(5); // "MM-DD"
+                                                                const currentMonthDay = dateStr.substring(5);
+                                                                return hMonthDay === currentMonthDay;
+                                                            }
+                                                            return h.holidayDate === dateStr;
+                                                        })
+                                                    ) ? '#ef4444' : i % 7 === 6 ? '#3b82f6' : 'white'
+                                                }}>
+                                                    {dayNum}
+                                                </div>
+                                                {holidays.find(h => {
+                                                    if (h.recurring) {
+                                                        const hMonthDay = h.holidayDate.substring(5);
+                                                        const currentMonthDay = dateStr.substring(5);
+                                                        return hMonthDay === currentMonthDay;
+                                                    }
+                                                    return h.holidayDate === dateStr;
+                                                }) && (
+                                                        <div style={{ fontSize: '0.7rem', color: '#ef4444', fontWeight: 600, textAlign: 'right', maxWidth: '70%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                                            {holidays.find(h => {
+                                                                if (h.recurring) {
+                                                                    const hMonthDay = h.holidayDate.substring(5);
+                                                                    const currentMonthDay = dateStr.substring(5);
+                                                                    return hMonthDay === currentMonthDay;
+                                                                }
+                                                                return h.holidayDate === dateStr;
+                                                            }).name}
+                                                        </div>
+                                                    )}
                                             </div>
                                             {total > 0 && (
                                                 <div style={{

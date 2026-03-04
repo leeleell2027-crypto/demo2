@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Image as ImageIcon, Plus, Home, X, Upload, Calendar, Tag, FileText, ReceiptText } from 'lucide-react';
+import { Image as ImageIcon, Plus, Home, X, Upload, Calendar, Tag, FileText, ReceiptText, ChevronLeft, ChevronRight, Pencil, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 
 interface Board {
@@ -26,6 +26,10 @@ const GalleryPage = () => {
     const [selectedBoard, setSelectedBoard] = useState<Board | null>(null);
     const [loading, setLoading] = useState(false);
     const [activeView, setActiveView] = useState<'gallery' | 'table'>('gallery');
+
+    // Edit state
+    const [isEditMode, setIsEditMode] = useState(false);
+    const [editId, setEditId] = useState<number | null>(null);
 
     // Form states
     const [title, setTitle] = useState('');
@@ -65,7 +69,7 @@ const GalleryPage = () => {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!title || !eventDate || !selectedFile) {
+        if (!title || !eventDate || (!selectedFile && !isEditMode)) {
             alert('제목, 날짜, 이미지는 필수 항목입니다.');
             return;
         }
@@ -78,31 +82,69 @@ const GalleryPage = () => {
         formData.append('category1', category1);
         formData.append('category2', category2);
         formData.append('category3', category3);
-        formData.append('image', selectedFile);
+        if (selectedFile) {
+            formData.append('image', selectedFile);
+        }
+        if (isEditMode && previewUrl) {
+            formData.append('imageUrl', previewUrl);
+        }
 
         try {
-            const res = await fetch('/api/boards', {
-                method: 'POST',
+            const url = isEditMode ? `/api/boards/${editId}` : '/api/boards';
+            const method = isEditMode ? 'PUT' : 'POST';
+
+            const res = await fetch(url, {
+                method,
                 body: formData,
             });
 
             if (res.ok) {
                 setShowModal(false);
                 resetForm();
-                if (currentPage === 0) {
-                    fetchBoards(0);
-                } else {
-                    setCurrentPage(0); // 첫 페이지로 이동하여 새 글 확인
-                }
+                fetchBoards(currentPage);
             } else {
                 const errorText = await res.text();
-                alert('업로드 실패: ' + errorText);
+                alert('요청 실패: ' + errorText);
             }
         } catch (error) {
-            console.error('Upload error', error);
-            alert('업로드 중 오류가 발생했습니다.');
+            console.error('Request error', error);
+            alert('요청 중 오류가 발생했습니다.');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleEdit = (board: Board) => {
+        setIsEditMode(true);
+        setEditId(board.id);
+        setTitle(board.title);
+        setEventDate(board.eventDate);
+        setContent(board.content);
+        setCategory1(board.category1);
+        setCategory2(board.category2);
+        setCategory3(board.category3);
+        setPreviewUrl(board.imageUrl);
+        setSelectedFile(null);
+        setShowModal(true);
+        setSelectedBoard(null); // Close detail view if open
+    };
+
+    const handleDelete = async (id: number) => {
+        if (!window.confirm('정말 삭제하시겠습니까?')) return;
+
+        try {
+            const res = await fetch(`/api/boards/${id}`, {
+                method: 'DELETE',
+            });
+            if (res.ok) {
+                fetchBoards(currentPage);
+                setSelectedBoard(null);
+            } else {
+                alert('삭제 실패');
+            }
+        } catch (error) {
+            console.error('Delete error', error);
+            alert('삭제 중 오류 발생');
         }
     };
 
@@ -115,6 +157,8 @@ const GalleryPage = () => {
         setCategory3('');
         setSelectedFile(null);
         setPreviewUrl(null);
+        setIsEditMode(false);
+        setEditId(null);
     };
 
     // 16개 그리드를 채우기 위한 로직
@@ -306,6 +350,7 @@ const GalleryPage = () => {
                                             <th style={{ padding: '20px 24px' }}>Event Date</th>
                                             <th style={{ padding: '20px 24px' }}>Categories</th>
                                             <th style={{ padding: '20px 24px' }}>Created At</th>
+                                            <th style={{ padding: '20px 24px' }}>Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -341,6 +386,26 @@ const GalleryPage = () => {
                                                 <td style={{ padding: '16px 24px', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
                                                     {new Date(item.createdAt).toLocaleDateString()}
                                                 </td>
+                                                <td style={{ padding: '16px 24px' }}>
+                                                    <div style={{ display: 'flex', gap: '8px' }}>
+                                                        <motion.button
+                                                            whileHover={{ scale: 1.1 }}
+                                                            whileTap={{ scale: 0.9 }}
+                                                            onClick={(e) => { e.stopPropagation(); handleEdit(item); }}
+                                                            style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid var(--glass-border)', color: 'white', padding: '6px', borderRadius: '8px', cursor: 'pointer', display: 'flex' }}
+                                                        >
+                                                            <Pencil size={14} />
+                                                        </motion.button>
+                                                        <motion.button
+                                                            whileHover={{ scale: 1.1, background: 'rgba(239, 68, 68, 0.2)' }}
+                                                            whileTap={{ scale: 0.9 }}
+                                                            onClick={(e) => { e.stopPropagation(); handleDelete(item.id); }}
+                                                            style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(239, 68, 68, 0.2)', color: '#ef4444', padding: '6px', borderRadius: '8px', cursor: 'pointer', display: 'flex' }}
+                                                        >
+                                                            <Trash2 size={14} />
+                                                        </motion.button>
+                                                    </div>
+                                                </td>
                                             </motion.tr>
                                         ))}
                                         {boards.length === 0 && (
@@ -359,69 +424,46 @@ const GalleryPage = () => {
                 </AnimatePresence>
 
                 {/* Pagination Controls */}
-                {totalPages > 1 && (
-                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '12px', marginTop: '40px' }}>
-                        <motion.button
-                            whileHover={{ scale: 1.1 }}
-                            whileTap={{ scale: 0.9 }}
-                            disabled={currentPage === 0}
-                            onClick={() => setCurrentPage(p => p - 1)}
-                            style={{
-                                background: 'rgba(255,255,255,0.05)',
-                                color: currentPage === 0 ? 'rgba(255,255,255,0.2)' : 'white',
-                                border: '1px solid var(--glass-border)',
-                                padding: '10px 16px',
-                                borderRadius: '10px',
-                                cursor: currentPage === 0 ? 'default' : 'pointer'
-                            }}
-                        >
-                            Previous
-                        </motion.button>
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px', padding: '24px 0 0', borderTop: '1px solid rgba(255,255,255,0.05)', marginTop: '40px' }}>
+                    <button
+                        disabled={currentPage === 0}
+                        onClick={() => setCurrentPage(p => p - 1)}
+                        style={{ background: 'transparent', border: 'none', color: currentPage === 0 ? 'rgba(255,255,255,0.2)' : 'white', cursor: currentPage === 0 ? 'default' : 'pointer', display: 'flex', padding: '4px' }}
+                    >
+                        <ChevronLeft size={20} />
+                    </button>
 
-                        <div style={{ display: 'flex', gap: '8px' }}>
-                            {Array.from({ length: totalPages }).map((_, i) => (
-                                <motion.button
-                                    key={i}
-                                    whileHover={{ scale: 1.1 }}
-                                    onClick={() => setCurrentPage(i)}
-                                    style={{
-                                        width: '40px',
-                                        height: '40px',
-                                        borderRadius: '10px',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        fontWeight: 700,
-                                        cursor: 'pointer',
-                                        background: currentPage === i ? 'var(--primary)' : 'rgba(255,255,255,0.05)',
-                                        color: 'white',
-                                        border: currentPage === i ? 'none' : '1px solid var(--glass-border)',
-                                        boxShadow: currentPage === i ? '0 4px 12px rgba(99, 102, 241, 0.4)' : 'none'
-                                    }}
-                                >
-                                    {i + 1}
-                                </motion.button>
-                            ))}
-                        </div>
-
-                        <motion.button
-                            whileHover={{ scale: 1.1 }}
-                            whileTap={{ scale: 0.9 }}
-                            disabled={currentPage === totalPages - 1}
-                            onClick={() => setCurrentPage(p => p + 1)}
-                            style={{
-                                background: 'rgba(255,255,255,0.05)',
-                                color: currentPage === totalPages - 1 ? 'rgba(255,255,255,0.2)' : 'white',
-                                border: '1px solid var(--glass-border)',
-                                padding: '10px 16px',
-                                borderRadius: '10px',
-                                cursor: currentPage === totalPages - 1 ? 'default' : 'pointer'
-                            }}
-                        >
-                            Next
-                        </motion.button>
+                    <div style={{ display: 'flex', gap: '6px' }}>
+                        {Array.from({ length: Math.max(1, totalPages) }).map((_, i) => (
+                            <button
+                                key={i}
+                                onClick={() => setCurrentPage(i)}
+                                style={{
+                                    width: '32px',
+                                    height: '32px',
+                                    borderRadius: '8px',
+                                    border: 'none',
+                                    background: currentPage === i ? 'var(--primary)' : 'rgba(255,255,255,0.05)',
+                                    color: currentPage === i ? 'black' : 'white',
+                                    fontWeight: 700,
+                                    fontSize: '0.85rem',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s'
+                                }}
+                            >
+                                {i + 1}
+                            </button>
+                        ))}
                     </div>
-                )}
+
+                    <button
+                        disabled={currentPage >= totalPages - 1}
+                        onClick={() => setCurrentPage(p => p + 1)}
+                        style={{ background: 'transparent', border: 'none', color: currentPage >= totalPages - 1 ? 'rgba(255,255,255,0.2)' : 'white', cursor: currentPage >= totalPages - 1 ? 'default' : 'pointer', display: 'flex', padding: '4px' }}
+                    >
+                        <ChevronRight size={20} />
+                    </button>
+                </div>
 
                 {/* Upload Modal */}
                 <AnimatePresence>
@@ -435,8 +477,8 @@ const GalleryPage = () => {
                                 style={{ maxWidth: '800px', width: '100%', maxHeight: '90vh', overflowY: 'auto', padding: '40px' }}
                             >
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
-                                    <h2 style={{ fontSize: '1.8rem', fontWeight: 800 }}>Create New Post</h2>
-                                    <button onClick={() => setShowModal(false)} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>
+                                    <h2 style={{ fontSize: '1.8rem', fontWeight: 800 }}>{isEditMode ? 'Edit Post' : 'Create New Post'}</h2>
+                                    <button onClick={() => { setShowModal(false); resetForm(); }} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>
                                         <X size={28} />
                                     </button>
                                 </div>
@@ -514,7 +556,7 @@ const GalleryPage = () => {
                                             disabled={loading}
                                             style={{ marginTop: 'auto', background: 'var(--primary)', color: 'white', border: 'none', padding: '16px', borderRadius: '16px', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}
                                         >
-                                            {loading ? 'Publishing...' : <><Upload size={20} /> Create Post</>}
+                                            {loading ? (isEditMode ? 'Updating...' : 'Publishing...') : <>{isEditMode ? <Pencil size={20} /> : <Upload size={20} />} {isEditMode ? 'Update Post' : 'Create Post'}</>}
                                         </button>
                                     </div>
                                 </form>
@@ -567,8 +609,23 @@ const GalleryPage = () => {
                                     </div>
 
                                     <div style={{ marginTop: 'auto', paddingTop: '24px', borderTop: '1px solid var(--glass-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                        <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                                            Registered: {new Date(selectedBoard.createdAt).toLocaleDateString()}
+                                        <div style={{ display: 'flex', gap: '12px' }}>
+                                            <motion.button
+                                                whileHover={{ scale: 1.05 }}
+                                                whileTap={{ scale: 0.95 }}
+                                                onClick={() => handleEdit(selectedBoard)}
+                                                style={{ background: 'rgba(99, 102, 241, 0.1)', color: 'var(--primary)', border: '1px solid rgba(99, 102, 241, 0.2)', padding: '10px 20px', borderRadius: '12px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
+                                            >
+                                                <Pencil size={16} /> Edit
+                                            </motion.button>
+                                            <motion.button
+                                                whileHover={{ scale: 1.05, background: 'rgba(239, 68, 68, 0.2)' }}
+                                                whileTap={{ scale: 0.95 }}
+                                                onClick={() => handleDelete(selectedBoard.id)}
+                                                style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.2)', padding: '10px 20px', borderRadius: '12px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
+                                            >
+                                                <Trash2 size={16} /> Delete
+                                            </motion.button>
                                         </div>
                                         <motion.button
                                             whileHover={{ scale: 1.05 }}

@@ -34,4 +34,13 @@ public class MemberService {
     public void removeMember(String id) {
         memberMapper.delete(id);
     }
+
+    public int getTotalCount() {
+        return memberMapper.count();
+    }
+
+    public List<Member> getMembersPaged(int page, int size) {
+        int offset = (page - 1) * size;
+        return memberMapper.findWithPagination(offset, size);
+    }
 }

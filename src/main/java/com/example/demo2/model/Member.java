@@ -7,6 +7,8 @@ public class Member {
     private String username;
     private String password;
     private String role;
+    private java.time.LocalDateTime createdAt;
+    private java.time.LocalDateTime updatedAt;
 
     // Getters and Setters
     public String getId() {
@@ -55,5 +57,21 @@ public class Member {
 
     public void setRole(String role) {
         this.role = role;
+    }
+
+    public java.time.LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(java.time.LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public java.time.LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(java.time.LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
     }
 }

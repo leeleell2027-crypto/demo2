@@ -53,4 +53,40 @@ public class BoardController {
             return ResponseEntity.status(500).body("Failed to upload image: " + e.getMessage());
         }
     }
+
+    @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<String> updateBoard(
+            @PathVariable("id") Long id,
+            @RequestParam("title") String title,
+            @RequestParam("eventDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate eventDate,
+            @RequestParam("content") String content,
+            @RequestParam("category1") String category1,
+            @RequestParam("category2") String category2,
+            @RequestParam("category3") String category3,
+            @RequestParam(value = "image", required = false) MultipartFile image,
+            @RequestParam(value = "imageUrl", required = false) String imageUrl) {
+
+        try {
+            Board board = new Board();
+            board.setId(id);
+            board.setTitle(title);
+            board.setEventDate(eventDate);
+            board.setContent(content);
+            board.setCategory1(category1);
+            board.setCategory2(category2);
+            board.setCategory3(category3);
+            board.setImageUrl(imageUrl); // Keep existing if not changed
+
+            boardService.updateBoard(board, image);
+            return ResponseEntity.ok("Board entry updated successfully");
+        } catch (IOException e) {
+            return ResponseEntity.status(500).body("Failed to update board: " + e.getMessage());
+        }
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> deleteBoard(@PathVariable("id") Long id) {
+        boardService.deleteBoard(id);
+        return ResponseEntity.ok("Board entry deleted successfully");
+    }
 }
