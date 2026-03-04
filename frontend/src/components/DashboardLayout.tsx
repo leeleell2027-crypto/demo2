@@ -96,8 +96,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
     useEffect(() => {
         // Redirect if trying to access unauthorized category
-        const currentCat = categories.find(c => c.items.some(item => pathname.startsWith(item.href)));
-        if (currentCat && !filteredCategories.find(c => c.id === currentCat.id)) {
+        const currentCat = categories.find((c: Category) => c.items.some((item: NavItem) => pathname.startsWith(item.href)));
+        if (currentCat && !filteredCategories.find((c: Category) => c.id === currentCat.id)) {
             router.push('/');
         }
     }, [pathname, filteredCategories, router]);
@@ -106,10 +106,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
     // Sync activeCategory with pathname
     useEffect(() => {
-        const cat = filteredCategories.find(c => c.items.some(item => pathname.startsWith(item.href)));
+        const cat = filteredCategories.find((c: Category) => c.items.some((item: NavItem) => pathname.startsWith(item.href)));
         if (cat) {
             setActiveCategory(cat.id);
-        } else if (filteredCategories.length > 0 && !filteredCategories.find(c => c.id === activeCategory)) {
+        } else if (filteredCategories.length > 0 && !filteredCategories.find((c: Category) => c.id === activeCategory)) {
             setActiveCategory(filteredCategories[0].id);
         }
     }, [pathname, filteredCategories, activeCategory]);
@@ -230,7 +230,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                             {currentCategory?.label} Menu
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                            {currentCategory?.items.map((item: any) => {
+                            {currentCategory?.items.map((item: NavItem) => {
                                 const isActive = pathname === item.href;
                                 return (
                                     <Link key={item.href} href={item.href} style={{ textDecoration: 'none' }}>

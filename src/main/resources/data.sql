@@ -19,6 +19,7 @@ INSERT INTO transactions (date, time, card, merchant, amount_krw, amount_usd, pa
 ('2025-09-30', '13:20', 'KB국민 다담카드(비OTP)', '인천세종병원', 2150000.00, 0.00, '일시불', '', 0.00, 0.00, '전표매입', '2025-11-05', '30054594'),
 ('2025-12-30', '06:19', 'KB국민 다담카드(비OTP)', '네이버페이', 277444.00, 0.00, '일시불', '', 0.00, 0.00, '전표매입', '2026-02-05', '30055549');
 
+DELETE FROM member;
 INSERT INTO member (id, name, email, username, password, role) VALUES
 ('admin', '슈퍼관리자', 'admin@example.com', 'admin', '$2a$10$GRLdNijSQMUvl/au9ShLOmqnWQmL4.ybBE672FeTrAnQun9S/K9H6', 'SUPER_ADMIN'),
 ('middle', '중간관리자', 'middle@example.com', 'middle', '$2a$10$GRLdNijSQMUvl/au9ShLOmqnWQmL4.ybBE672FeTrAnQun9S/K9H6', 'MIDDLE_ADMIN'),
