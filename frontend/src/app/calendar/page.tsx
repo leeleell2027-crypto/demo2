@@ -1,294 +1,174 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Home, Plus, Trash2, X } from 'lucide-react';
-import Link from 'next/link';
+import React, { useState, useEffect, useMemo } from 'react';
+import { motion } from 'framer-motion';
+import { Calendar, ChevronLeft, ChevronRight, CreditCard } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
-interface Schedule {
-    id: number;
-    title: string;
-    description: string;
-    scheduleDate: string;
+interface Transaction {
+    date: string;
+    time: string;
+    card: string;
+    merchant: string;
+    amountKrw: string;
+    amountUsd: string;
+    paymentMethod: string;
+    merchantInfo: string;
+    discount: string;
+    points: string;
+    status: string;
+    dueDate: string;
+    approvalNo: string;
 }
 
-const CalendarPage = () => {
-    const [currentDate, setCurrentDate] = useState(new Date());
-    const [schedules, setSchedules] = useState<Schedule[]>([]);
-    const [showModal, setShowModal] = useState(false);
-    const [selectedDate, setSelectedDate] = useState<string | null>(null);
-    const [newTitle, setNewTitle] = useState('');
-    const [loading, setLoading] = useState(false);
-
-    const year = currentDate.getFullYear();
-    const month = currentDate.getMonth();
-    const today = new Date();
+export default function CalendarPage() {
+    const [transactions, setTransactions] = useState<Transaction[]>([]);
+    const [currentMonth, setCurrentMonth] = useState(new Date());
+    const [loading, setLoading] = useState(true);
+    const router = useRouter();
 
     useEffect(() => {
-        fetchSchedules();
-    }, []);
-
-    const fetchSchedules = async () => {
-        try {
-            const res = await fetch('/api/schedules');
-            if (res.ok) {
-                const data = await res.json();
-                setSchedules(data);
-            }
-        } catch (error) {
-            console.error('Failed to fetch schedules', error);
-        }
-    };
-
-    const handleAddSchedule = async () => {
-        if (!newTitle.trim() || !selectedDate) return;
-
-        setLoading(true);
-        try {
-            const res = await fetch('/api/schedules', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    title: newTitle,
-                    scheduleDate: selectedDate
-                })
+        fetch('/api/transactions')
+            .then(res => res.json())
+            .then(data => {
+                setTransactions(data);
+                setLoading(false);
+            })
+            .catch(err => {
+                console.error(err);
+                setLoading(false);
             });
-
-            if (res.ok) {
-                setNewTitle('');
-                setShowModal(false);
-                fetchSchedules();
-            }
-        } catch (error) {
-            console.error('Failed to add schedule', error);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleDeleteSchedule = async (id: number) => {
-        try {
-            const res = await fetch(`/api/schedules/${id}`, { method: 'DELETE' });
-            if (res.ok) {
-                fetchSchedules();
-            }
-        } catch (error) {
-            console.error('Failed to delete schedule', error);
-        }
-    };
-
-    const HOLIDAYS: { [key: string]: string } = {
-        '2026-01-01': '신정',
-        '2026-02-16': '설날 연휴',
-        '2026-02-17': '설날',
-        '2026-02-18': '설날 연휴',
-        '2026-02-19': '대체공휴일',
-        '2026-03-01': '삼일절',
-        '2026-03-02': '대체공휴일',
-        '2026-05-05': '어린이날',
-        '2026-05-24': '부처님 오신 날',
-        '2026-05-25': '대체공휴일',
-        '2026-06-06': '현충일',
-        '2026-08-15': '광복절',
-        '2026-09-24': '추석 연휴',
-        '2026-09-25': '추석',
-        '2026-09-26': '추석 연휴',
-        '2026-09-28': '대체공휴일',
-        '2026-10-03': '개천절',
-        '2026-10-09': '한글날',
-        '2026-12-25': '성탄절'
-    };
+    }, []);
 
     const daysInMonth = (year: number, month: number) => new Date(year, month + 1, 0).getDate();
     const firstDayOfMonth = (year: number, month: number) => new Date(year, month, 1).getDay();
 
-    const prevMonth = () => setCurrentDate(new Date(year, month - 1, 1));
-    const nextMonth = () => setCurrentDate(new Date(year, month + 1, 1));
+    const year = currentMonth.getFullYear();
+    const month = currentMonth.getMonth();
+    const days = daysInMonth(year, month);
+    const firstDay = firstDayOfMonth(year, month);
 
-    const offset = firstDayOfMonth(year, month);
-    const days = [];
+    const prevMonth = () => setCurrentMonth(new Date(year, month - 1, 1));
+    const nextMonth = () => setCurrentMonth(new Date(year, month + 1, 1));
 
-    for (let i = 0; i < offset; i++) {
-        days.push(<div key={`empty-${i}`} style={{ height: '70px' }}></div>);
-    }
+    const dailyTotals = useMemo(() => {
+        const totals: Record<string, number> = {};
+        transactions.forEach((t) => {
+            const dateStr = t.date;
+            const amount = Number(String(t.amountKrw).replace(/,/g, '') || 0);
+            if (t.status !== '승인취소') {
+                totals[dateStr] = (totals[dateStr] || 0) + amount;
+            }
+        });
+        return totals;
+    }, [transactions]);
 
-    for (let d = 1; d <= daysInMonth(year, month); d++) {
-        const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-        const currentDayOfWeek = new Date(year, month, d).getDay();
-        const holidayName = HOLIDAYS[dateStr];
-        const isSunday = currentDayOfWeek === 0;
-        const isHoliday = !!holidayName;
-        const isToday = today.toISOString().split('T')[0] === dateStr;
-        const daySchedules = schedules.filter(s => s.scheduleDate === dateStr);
+    const formatCurrency = (value: number) => {
+        return new Intl.NumberFormat('ko-KR').format(Math.floor(value));
+    };
 
-        days.push(
-            <motion.div
-                key={d}
-                whileHover={{ scale: 1.05, backgroundColor: 'rgba(255, 255, 255, 0.05)' }}
-                onClick={() => {
-                    setSelectedDate(dateStr);
-                    setShowModal(true);
-                }}
-                style={{
-                    height: '85px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    borderRadius: '12px',
-                    cursor: 'pointer',
-                    position: 'relative',
-                    border: isToday ? '1px solid var(--primary)' : '1px solid transparent',
-                    background: isToday ? 'rgba(99, 102, 241, 0.05)' : 'transparent',
-                    padding: '4px'
-                }}
-            >
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
-                    <span style={{
-                        fontSize: '1rem',
-                        fontWeight: (isToday || isHoliday) ? 700 : 400,
-                        color: (isSunday || isHoliday) ? '#ef4444' : (isToday ? 'var(--primary)' : 'var(--text-main)')
-                    }}>
-                        {d}
-                    </span>
-                    {holidayName && (
-                        <span style={{ fontSize: '0.65rem', color: '#ef4444', fontWeight: 600, textAlign: 'center', lineHeight: 1 }}>
-                            {holidayName}
-                        </span>
-                    )}
-                </div>
-                <div style={{ display: 'flex', gap: '2px', marginTop: '4px', flexWrap: 'wrap', justifyContent: 'center' }}>
-                    {daySchedules.map((_, i) => (
-                        <div key={i} style={{ width: '4px', height: '4px', borderRadius: '50%', background: 'var(--primary)' }}></div>
-                    ))}
-                </div>
-            </motion.div>
+    const weekDays = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+
+    if (loading) {
+        return (
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%', padding: '100px' }}>
+                <div style={{ color: 'var(--text-muted)' }}>로딩 중...</div>
+            </div>
         );
     }
 
-    const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-
     return (
-        <main style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', width: '100vw', padding: '20px', background: '#0f172a' }}>
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="glass-card"
-                style={{ padding: '32px', maxWidth: '600px', width: '100%' }}
-            >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
-                    <Link href="/">
-                        <motion.div whileHover={{ scale: 1.1 }} style={{ padding: '8px', cursor: 'pointer', color: 'var(--text-muted)' }}>
-                            <Home size={24} />
-                        </motion.div>
-                    </Link>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--primary)' }}>
-                        <CalendarIcon size={24} />
-                        <span style={{ fontWeight: 700, fontSize: '1.4rem', letterSpacing: '-0.02em' }}>Schedule Planner</span>
-                    </div>
-                    <div style={{ width: '40px' }}></div>
-                </div>
-
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-                    <button onClick={prevMonth} style={{ background: 'transparent', color: 'var(--text-muted)', border: 'none', cursor: 'pointer' }}>
-                        <ChevronLeft size={28} />
-                    </button>
-                    <h2 style={{ fontSize: '1.6rem', fontWeight: 800 }}>{monthNames[month]} {year}</h2>
-                    <button onClick={nextMonth} style={{ background: 'transparent', color: 'var(--text-muted)', border: 'none', cursor: 'pointer' }}>
-                        <ChevronRight size={28} />
-                    </button>
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', textAlign: 'center', marginBottom: '16px' }}>
-                    {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => (
-                        <div key={d} style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{d}</div>
-                    ))}
-                </div>
-
-                <motion.div
-                    key={`${year}-${month}`}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '8px', marginBottom: '32px' }}
-                >
-                    {days}
-                </motion.div>
-
-                {/* Selected Date Schedules */}
-                <AnimatePresence>
-                    {selectedDate && (
-                        <motion.div
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: 'auto' }}
-                            exit={{ opacity: 0, height: 0 }}
-                            style={{ borderTop: '1px solid var(--glass-border)', paddingTop: '24px' }}
+        <div style={{ padding: '40px 24px', color: 'white' }}>
+            <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
+                    <h1 style={{ fontSize: '2.5rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '15px' }}>
+                        <Calendar size={32} color="var(--primary)" />
+                        Spend Calendar
+                    </h1>
+                    <div style={{ display: 'flex', gap: '10px' }}>
+                        <motion.button
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
+                            onClick={prevMonth}
+                            style={{ padding: '12px', borderRadius: '14px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--glass-border)', color: 'white' }}
                         >
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                                <h3 style={{ fontSize: '1.1rem', fontWeight: 600 }}>Schedules for {selectedDate}</h3>
-                                <button
-                                    onClick={() => setShowModal(true)}
-                                    style={{ background: 'var(--primary)', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '0.9rem' }}
+                            <ChevronLeft size={24} />
+                        </motion.button>
+                        <h2 style={{ fontSize: '1.25rem', fontWeight: 700, minWidth: '180px', textAlign: 'center' }}>
+                            {currentMonth.toLocaleString('default', { month: 'long', year: 'numeric' })}
+                        </h2>
+                        <motion.button
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
+                            onClick={nextMonth}
+                            style={{ padding: '12px', borderRadius: '14px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--glass-border)', color: 'white' }}
+                        >
+                            <ChevronRight size={24} />
+                        </motion.button>
+                    </div>
+                </div>
+
+                <div className="glass-card" style={{ padding: '24px', borderRadius: '24px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '1px', background: 'rgba(255,255,255,0.1)', borderRadius: '16px', overflow: 'hidden' }}>
+                        {weekDays.map(day => (
+                            <div key={day} style={{ padding: '15px', textAlign: 'center', background: 'rgba(15, 23, 42, 0.8)', fontSize: '0.8rem', fontWeight: 800, color: 'var(--text-muted)' }}>
+                                {day}
+                            </div>
+                        ))}
+
+                        {Array.from({ length: 42 }).map((_, i) => {
+                            const dayNum = i - firstDay + 1;
+                            const isValid = dayNum > 0 && dayNum <= days;
+                            const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(dayNum).padStart(2, '0')}`;
+                            const total = dailyTotals[dateStr];
+
+                            return (
+                                <motion.div
+                                    key={i}
+                                    whileHover={isValid ? { background: 'rgba(255,255,255,0.05)', scale: 1.02 } : {}}
+                                    onClick={() => {
+                                        if (isValid) {
+                                            router.push(`/transactions?date=${dateStr}`);
+                                        }
+                                    }}
+                                    style={{
+                                        height: '140px',
+                                        padding: '12px',
+                                        background: isValid ? 'rgba(30, 41, 59, 0.4)' : 'transparent',
+                                        border: '1px solid rgba(255,255,255,0.05)',
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        justifyContent: 'space-between',
+                                        cursor: isValid ? 'pointer' : 'default'
+                                    }}
                                 >
-                                    <Plus size={16} /> Add
-                                </button>
-                            </div>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                                {schedules.filter(s => s.scheduleDate === selectedDate).length === 0 ? (
-                                    <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', textAlign: 'center', padding: '20px' }}>No schedules for this day.</p>
-                                ) : (
-                                    schedules.filter(s => s.scheduleDate === selectedDate).map(s => (
-                                        <div key={s.id} style={{ background: 'rgba(255, 255, 255, 0.03)', padding: '12px 16px', borderRadius: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: '1px solid var(--glass-border)' }}>
-                                            <span style={{ fontSize: '0.95rem' }}>{s.title}</span>
-                                            <button onClick={() => handleDeleteSchedule(s.id)} style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', opacity: 0.6 }}>
-                                                <Trash2 size={16} />
-                                            </button>
-                                        </div>
-                                    ))
-                                )}
-                            </div>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
-            </motion.div>
-
-            {/* Add Schedule Modal */}
-            <AnimatePresence>
-                {showModal && (
-                    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000, padding: '20px' }}>
-                        <motion.div
-                            initial={{ scale: 0.9, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            exit={{ scale: 0.9, opacity: 0 }}
-                            className="glass-card"
-                            style={{ padding: '32px', maxWidth: '400px', width: '100%', position: 'relative' }}
-                        >
-                            <button onClick={() => setShowModal(false)} style={{ position: 'absolute', top: '20px', right: '20px', background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>
-                                <X size={24} />
-                            </button>
-                            <h2 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '24px' }}>Add Schedule</h2>
-                            <p style={{ color: 'var(--text-muted)', marginBottom: '16px', fontSize: '0.9rem' }}>Date: {selectedDate}</p>
-                            <input
-                                autoFocus
-                                type="text"
-                                placeholder="What's the plan?"
-                                value={newTitle}
-                                onChange={(e) => setNewTitle(e.target.value)}
-                                onKeyDown={(e) => e.key === 'Enter' && handleAddSchedule()}
-                                style={{ width: '100%', background: 'rgba(255, 255, 255, 0.05)', border: '1px solid var(--glass-border)', borderRadius: '12px', padding: '14px', color: 'white', marginBottom: '24px', outline: 'none' }}
-                            />
-                            <button
-                                onClick={handleAddSchedule}
-                                disabled={loading || !newTitle.trim()}
-                                style={{ width: '100%', background: 'var(--primary)', color: 'white', border: 'none', padding: '14px', borderRadius: '12px', fontWeight: 700, cursor: 'pointer', opacity: loading ? 0.7 : 1 }}
-                            >
-                                {loading ? 'Saving...' : 'Save Schedule'}
-                            </button>
-                        </motion.div>
+                                    {isValid && (
+                                        <>
+                                            <div style={{ fontSize: '1rem', fontWeight: 700, color: i % 7 === 0 ? '#ef4444' : i % 7 === 6 ? '#3b82f6' : 'white' }}>
+                                                {dayNum}
+                                            </div>
+                                            {total > 0 && (
+                                                <div style={{
+                                                    background: 'rgba(99, 102, 241, 0.1)',
+                                                    border: '1px solid rgba(99, 102, 241, 0.2)',
+                                                    padding: '4px 8px',
+                                                    borderRadius: '8px',
+                                                    fontSize: '0.8rem',
+                                                    fontWeight: 800,
+                                                    color: '#818cf8',
+                                                    textAlign: 'right'
+                                                }}>
+                                                    {formatCurrency(total)}
+                                                </div>
+                                            )}
+                                        </>
+                                    )}
+                                </motion.div>
+                            );
+                        })}
                     </div>
-                )}
-            </AnimatePresence>
-        </main>
+                </div>
+            </div>
+        </div>
     );
-};
-
-export default CalendarPage;
+}

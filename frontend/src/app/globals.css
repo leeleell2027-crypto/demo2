@@ -33,10 +33,6 @@
 
 body {
   min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow-x: hidden;
   margin: 0;
   background: var(--bg-gradient);
   color: var(--text-main);
