@@ -74,22 +74,30 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     const filteredCategories = useMemo(() => {
         if (!user) return [];
 
-        // Deep clone categories to avoid mutating original
-        const filtered = JSON.parse(JSON.stringify(categories)).map((cat: any) => {
-            // Filter specific items within categories if needed
-            if (cat.id === 'settings') {
-                cat.items = cat.items.filter((item: any) => {
-                    if (item.href === '/admin') return user.role === 'SUPER_ADMIN';
-                    return true;
-                });
-            }
-            return cat;
-        });
+        // Filter categories based on user role
+        const allowedCategoryIds = user.role === 'SUPER_ADMIN'
+            ? ['finance', 'asset', 'settings']
+            : user.role === 'MIDDLE_ADMIN'
+                ? ['finance', 'settings']
+                : user.role === 'GENERAL_ADMIN'
+                    ? ['asset', 'settings']
+                    : [];
 
-        if (user.role === 'SUPER_ADMIN') return filtered;
-        if (user.role === 'MIDDLE_ADMIN') return filtered.filter((c: any) => c.id === 'finance' || c.id === 'settings');
-        if (user.role === 'GENERAL_ADMIN') return filtered.filter((c: any) => c.id === 'asset' || c.id === 'settings');
-        return [];
+        return categories
+            .filter(cat => allowedCategoryIds.includes(cat.id))
+            .map(cat => {
+                // For settings category, filter specific items based on role
+                if (cat.id === 'settings') {
+                    return {
+                        ...cat,
+                        items: cat.items.filter(item => {
+                            if (item.href === '/admin') return user.role === 'SUPER_ADMIN';
+                            return true;
+                        })
+                    };
+                }
+                return cat;
+            });
     }, [user]);
 
     const [activeCategory, setActiveCategory] = useState('finance');
