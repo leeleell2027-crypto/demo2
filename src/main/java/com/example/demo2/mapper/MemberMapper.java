@@ -8,7 +8,7 @@ import java.util.List;
 public interface MemberMapper {
     List<Member> findAll();
 
-    Member findById(Integer id);
+    Member findById(String id);
 
     Member findByUsername(String username);
 
@@ -16,5 +16,5 @@ public interface MemberMapper {
 
     int update(Member member);
 
-    int delete(Integer id);
+    int delete(String id);
 }

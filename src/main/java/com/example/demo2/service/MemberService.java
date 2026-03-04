@@ -15,7 +15,7 @@ public class MemberService {
         return memberMapper.findAll();
     }
 
-    public Member getMemberById(Integer id) {
+    public Member getMemberById(String id) {
         return memberMapper.findById(id);
     }
 
@@ -24,14 +24,14 @@ public class MemberService {
     }
 
     public void saveMember(Member member) {
-        if (member.getId() == null) {
+        if (memberMapper.findById(member.getId()) == null) {
             memberMapper.insert(member);
         } else {
             memberMapper.update(member);
         }
     }
 
-    public void removeMember(Integer id) {
+    public void removeMember(String id) {
         memberMapper.delete(id);
     }
 }

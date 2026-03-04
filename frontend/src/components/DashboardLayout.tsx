@@ -15,11 +15,12 @@ import {
     User,
     Menu,
     X,
-    LogOut
+    LogOut,
+    Shield
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useAuth } from './AuthContext';
 
 interface NavItem {
@@ -60,6 +61,7 @@ const categories: Category[] = [
         items: [
             { label: 'Profile', href: '/profile', icon: <User size={18} /> },
             { label: 'General', href: '/settings', icon: <Settings size={18} /> },
+            { label: 'Admin Management', href: '/admin', icon: <Shield size={18} /> },
         ]
     }
 ];
@@ -68,16 +70,49 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     const { user, loading: authLoading, logout: contextLogout } = useAuth();
     const pathname = usePathname();
     const router = useRouter();
+
+    const filteredCategories = useMemo(() => {
+        if (!user) return [];
+
+        // Deep clone categories to avoid mutating original
+        const filtered = JSON.parse(JSON.stringify(categories)).map((cat: any) => {
+            // Filter specific items within categories if needed
+            if (cat.id === 'settings') {
+                cat.items = cat.items.filter((item: any) => {
+                    if (item.href === '/admin') return user.role === 'SUPER_ADMIN';
+                    return true;
+                });
+            }
+            return cat;
+        });
+
+        if (user.role === 'SUPER_ADMIN') return filtered;
+        if (user.role === 'MIDDLE_ADMIN') return filtered.filter((c: any) => c.id === 'finance' || c.id === 'settings');
+        if (user.role === 'GENERAL_ADMIN') return filtered.filter((c: any) => c.id === 'asset' || c.id === 'settings');
+        return [];
+    }, [user]);
+
     const [activeCategory, setActiveCategory] = useState('finance');
+
+    useEffect(() => {
+        // Redirect if trying to access unauthorized category
+        const currentCat = categories.find(c => c.items.some(item => pathname.startsWith(item.href)));
+        if (currentCat && !filteredCategories.find(c => c.id === currentCat.id)) {
+            router.push('/');
+        }
+    }, [pathname, filteredCategories, router]);
+
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
     // Sync activeCategory with pathname
     useEffect(() => {
-        const cat = categories.find(c => c.items.some(item => pathname.startsWith(item.href)));
+        const cat = filteredCategories.find(c => c.items.some(item => pathname.startsWith(item.href)));
         if (cat) {
             setActiveCategory(cat.id);
+        } else if (filteredCategories.length > 0 && !filteredCategories.find(c => c.id === activeCategory)) {
+            setActiveCategory(filteredCategories[0].id);
         }
-    }, [pathname]);
+    }, [pathname, filteredCategories, activeCategory]);
 
     const handleLogout = async () => {
         try {
@@ -126,7 +161,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     </Link>
 
                     <nav style={{ display: 'flex', gap: '12px' }}>
-                        {categories.map((cat) => (
+                        {filteredCategories.map((cat) => (
                             <button
                                 key={cat.id}
                                 onClick={() => {
@@ -195,7 +230,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                             {currentCategory?.label} Menu
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                            {currentCategory?.items.map((item) => {
+                            {currentCategory?.items.map((item: any) => {
                                 const isActive = pathname === item.href;
                                 return (
                                     <Link key={item.href} href={item.href} style={{ textDecoration: 'none' }}>

@@ -48,6 +48,7 @@ public class AuthController {
 
             Map<String, String> body = new HashMap<>();
             body.put("name", member.getName());
+            body.put("role", member.getRole());
             return ResponseEntity.ok(body);
         }
 
@@ -83,6 +84,7 @@ public class AuthController {
             if (member != null) {
                 Map<String, String> body = new HashMap<>();
                 body.put("name", member.getName());
+                body.put("role", member.getRole());
                 return ResponseEntity.ok(body);
             }
         }

@@ -18,3 +18,9 @@ INSERT INTO transactions (date, time, card, merchant, amount_krw, amount_usd, pa
 ('2026-01-12', '08:57', 'KB국민 다담카드(비OTP)', 'KT통신요금자동납부', 25300.00, 0.00, '일시불', '', 2530.00, 0.00, '전표매입', '2026-02-05', '30055687'),
 ('2025-09-30', '13:20', 'KB국민 다담카드(비OTP)', '인천세종병원', 2150000.00, 0.00, '일시불', '', 0.00, 0.00, '전표매입', '2025-11-05', '30054594'),
 ('2025-12-30', '06:19', 'KB국민 다담카드(비OTP)', '네이버페이', 277444.00, 0.00, '일시불', '', 0.00, 0.00, '전표매입', '2026-02-05', '30055549');
+
+INSERT INTO member (id, name, email, username, password, role) VALUES
+('admin', '슈퍼관리자', 'admin@example.com', 'admin', '$2a$10$8.UnVuG9HHgffUDAlk8q7uy5f6F0G7RlU.n3.vVq6p0s5y5r5r5r', 'SUPER_ADMIN'),
+('middle', '중간관리자', 'middle@example.com', 'middle', '$2a$10$8.UnVuG9HHgffUDAlk8q7uy5f6F0G7RlU.n3.vVq6p0s5y5r5r5r', 'MIDDLE_ADMIN'),
+('user', '일반관리자', 'user@example.com', 'user', '$2a$10$8.UnVuG9HHgffUDAlk8q7uy5f6F0G7RlU.n3.vVq6p0s5y5r5r5r', 'GENERAL_ADMIN');
+-- Note: password hash is for '1234'
