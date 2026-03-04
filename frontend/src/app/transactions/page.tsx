@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { CreditCard, Search, ArrowLeft, Download, Filter, Calendar, MapPin, ReceiptText, ChevronLeft, ChevronRight, LayoutGrid, Table } from 'lucide-react';
+import { CreditCard, Search, ArrowLeft, Download, Filter, Calendar, MapPin, ReceiptText, ChevronLeft, ChevronRight, LayoutGrid, Table, BarChart2 } from 'lucide-react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
@@ -32,7 +32,7 @@ const TransactionsContent = () => {
     const [error, setError] = useState<string | null>(null);
     const [searchDate, setSearchDate] = useState('');
     const [searchMerchant, setSearchMerchant] = useState('');
-    const [viewMode, setViewMode] = useState<'table' | 'calendar'>('table');
+    const [viewMode, setViewMode] = useState<'table' | 'calendar' | 'chart'>('table');
     const [currentMonth, setCurrentMonth] = useState(new Date());
     const [holidays, setHolidays] = useState<any[]>([]);
 
@@ -94,7 +94,7 @@ const TransactionsContent = () => {
             const merchantMatch = !searchMerchant || (t.merchant || '').toLowerCase().includes(searchMerchant.toLowerCase());
             const matchesSearch = dateMatch && merchantMatch;
 
-            if (viewMode === 'calendar') {
+            if (viewMode === 'calendar' || viewMode === 'chart') {
                 const transDate = new Date(t.date);
                 const isSameMonth = transDate.getFullYear() === currentMonth.getFullYear() &&
                     transDate.getMonth() === currentMonth.getMonth();
@@ -104,6 +104,32 @@ const TransactionsContent = () => {
             return matchesSearch;
         });
     }, [transactions, searchDate, searchMerchant, viewMode, currentMonth]);
+
+    const chartData = useMemo(() => {
+        const year = currentMonth.getFullYear();
+        const month = currentMonth.getMonth();
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+        const dailyAggregation: { [key: string]: number } = {};
+
+        // Initialize all days of the month with 0
+        for (let d = 1; d <= daysInMonth; d++) {
+            const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+            dailyAggregation[dateStr] = 0;
+        }
+
+        filteredTransactions.forEach(t => {
+            const dateStr = t.date; // YYYY-MM-DD
+            const amount = Number(String(t.amountKrw || 0).replace(/,/g, ''));
+            if (dailyAggregation.hasOwnProperty(dateStr)) {
+                dailyAggregation[dateStr] += amount;
+            }
+        });
+
+        return Object.entries(dailyAggregation)
+            .sort(([a], [b]) => a.localeCompare(b))
+            .map(([date, total]) => ({ date, total, day: parseInt(date.substring(8)) }));
+    }, [filteredTransactions, currentMonth]);
 
     const stats = useMemo(() => {
         if (filteredTransactions.length === 0) {
@@ -185,6 +211,24 @@ const TransactionsContent = () => {
                         >
                             <LayoutGrid size={18} /> Calendar
                         </button>
+                        <button
+                            onClick={() => setViewMode('chart')}
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px',
+                                padding: '10px 16px',
+                                borderRadius: '10px',
+                                border: 'none',
+                                background: viewMode === 'chart' ? 'var(--primary)' : 'transparent',
+                                color: 'white',
+                                cursor: 'pointer',
+                                fontWeight: 600,
+                                transition: 'all 0.2s'
+                            }}
+                        >
+                            <BarChart2 size={18} /> Chart
+                        </button>
                     </div>
 
                     <div style={{ display: 'flex', gap: '12px' }}>
@@ -225,13 +269,37 @@ const TransactionsContent = () => {
                                     padding: '12px 16px 12px 44px',
                                     borderRadius: '12px',
                                     color: 'white',
-                                    width: '280px',
+                                    width: '240px',
                                     fontSize: '0.95rem',
                                     outline: 'none',
                                     transition: 'border-color 0.2s',
                                 }}
                                 onFocus={(e) => e.target.style.borderColor = 'var(--primary)'}
                                 onBlur={(e) => e.target.style.borderColor = 'var(--glass-border)'}
+                            />
+                        </div>
+                        <div style={{ position: 'relative' }}>
+                            <Filter size={18} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+                            <input
+                                type="month"
+                                value={`${currentMonth.getFullYear()}-${String(currentMonth.getMonth() + 1).padStart(2, '0')}`}
+                                onChange={(e) => {
+                                    const val = e.target.value; // YYYY-MM
+                                    const [y, m] = val.split('-');
+                                    setCurrentMonth(new Date(parseInt(y), parseInt(m) - 1, 1));
+                                    setSearchDate(val); // This will trigger server-side fetch for the month
+                                }}
+                                style={{
+                                    background: 'rgba(255,255,255,0.03)',
+                                    border: '1px solid var(--glass-border)',
+                                    padding: '12px 16px 12px 44px',
+                                    borderRadius: '12px',
+                                    color: 'white',
+                                    width: '180px',
+                                    fontSize: '0.95rem',
+                                    outline: 'none',
+                                    cursor: 'pointer'
+                                }}
                             />
                         </div>
                         <motion.button whileHover={{ scale: 1.05 }} style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid var(--glass-border)', color: 'white', padding: '12px 20px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontWeight: 600 }}>
@@ -402,7 +470,7 @@ const TransactionsContent = () => {
                             </button>
                         </div>
                     </div>
-                ) : (
+                ) : viewMode === 'calendar' ? (
                     <CalendarView
                         transactions={filteredTransactions}
                         holidays={holidays}
@@ -415,9 +483,205 @@ const TransactionsContent = () => {
                             setViewMode('table');
                         }}
                     />
+                ) : (
+                    <ChartView
+                        data={chartData}
+                        formatCurrency={formatCurrency}
+                        onBarClick={(date: string) => {
+                            setSearchDate(date);
+                            setSearchMerchant(''); // Clear merchant search if clicking specific day chart bar? 
+                            // Actually, maybe keep merchant search if they are looking for specific trends.
+                            // But usually, clicking a bar means "show me everything on this day".
+                            // I'll keep it consistent with calendar: clear merchant, set date, switch to table.
+                            setSearchMerchant('');
+                            setViewMode('table');
+                        }}
+                    />
                 )}
             </div>
         </div>
+    );
+};
+
+const ChartView = ({ data, formatCurrency, onBarClick }: { data: any[], formatCurrency: any, onBarClick: (date: string) => void }) => {
+    if (data.length === 0) {
+        return (
+            <div className="glass-card" style={{ padding: '80px 0', textAlign: 'center', color: 'var(--text-muted)' }}>
+                <BarChart2 size={64} style={{ opacity: 0.1, marginBottom: '24px' }} />
+                <p style={{ fontSize: '1.2rem' }}>No data available for chart.</p>
+            </div>
+        );
+    }
+
+    const maxTotal = Math.max(...data.map(d => d.total));
+    const paddingLeft = 100;
+    const paddingRight = 40;
+    const paddingBottom = 40;
+    const height = 400;
+
+    return (
+        <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="glass-card"
+            style={{ padding: '40px', borderRadius: '32px', overflow: 'hidden' }}
+        >
+            <div style={{ marginBottom: '32px' }}>
+                <h3 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '8px' }}>Daily Spending Trend</h3>
+                <p style={{ color: 'var(--text-muted)' }}>Daily transaction totals for the selected month</p>
+            </div>
+
+            <div style={{
+                width: '100%',
+                height: `${height}px`,
+                position: 'relative',
+                display: 'flex',
+                alignItems: 'flex-end',
+                gap: '4px',
+                padding: `0 ${paddingRight}px ${paddingBottom}px ${paddingLeft}px`
+            }}>
+                {/* Unit label at the top left */}
+                <div style={{
+                    position: 'absolute',
+                    left: 0,
+                    bottom: paddingBottom + (1 * (height * 0.7)) + 15,
+                    width: paddingLeft - 15,
+                    textAlign: 'right',
+                    fontSize: '0.65rem',
+                    color: 'var(--text-muted)',
+                    fontWeight: 700
+                }}>
+                    (단위: 원)
+                </div>
+
+                {/* Horizontal guide lines & Y-axis labels */}
+                {[0, 0.25, 0.5, 0.75, 1].map(ratio => (
+                    <React.Fragment key={ratio}>
+                        <div style={{
+                            position: 'absolute',
+                            left: paddingLeft,
+                            right: paddingRight,
+                            bottom: paddingBottom + (ratio * (height * 0.7)),
+                            borderTop: '1px solid rgba(255,255,255,0.03)',
+                            zIndex: 0
+                        }} />
+                        <div style={{
+                            position: 'absolute',
+                            left: 0,
+                            bottom: paddingBottom + (ratio * (height * 0.7)) - 7,
+                            width: paddingLeft - 15,
+                            textAlign: 'right',
+                            fontSize: '0.65rem',
+                            color: 'var(--text-muted)',
+                            fontWeight: 600,
+                            fontFamily: 'monospace'
+                        }}>
+                            {formatCurrency(Math.round(maxTotal * ratio))}
+                        </div>
+                    </React.Fragment>
+                ))}
+
+                {data.map((item, index) => {
+                    const barHeight = maxTotal > 0 ? (item.total / maxTotal) * (height * 0.7) : 0;
+                    const isMax = item.total === maxTotal && maxTotal > 0;
+
+                    return (
+                        <motion.div
+                            key={item.date}
+                            initial="initial"
+                            whileHover="hoverGroup"
+                            style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', zIndex: 1 }}
+                        >
+                            <div style={{ position: 'relative', width: '100%', display: 'flex', justifyContent: 'center' }}>
+                                {/* Tooltip label (Balloon style) */}
+                                <motion.div
+                                    variants={{
+                                        initial: { opacity: 0, scale: 0.5, y: 10 },
+                                        hoverGroup: { opacity: 1, scale: 1, y: 0 }
+                                    }}
+                                    style={{
+                                        position: 'absolute',
+                                        bottom: 'calc(100% + 15px)',
+                                        background: isMax ? '#ef4444' : 'rgba(255,255,255,0.95)',
+                                        color: isMax ? 'white' : 'black',
+                                        padding: '8px 14px',
+                                        borderRadius: '12px',
+                                        fontSize: '0.75rem',
+                                        fontWeight: 800,
+                                        pointerEvents: 'none',
+                                        zIndex: 10,
+                                        boxShadow: '0 10px 25px rgba(0,0,0,0.4)',
+                                        whiteSpace: 'nowrap',
+                                        textAlign: 'center'
+                                    }}
+                                >
+                                    <div style={{ fontSize: '0.65rem', color: isMax ? 'rgba(255,255,255,0.8)' : 'var(--text-muted)', marginBottom: '2px' }}>{item.date}</div>
+                                    <div>{formatCurrency(item.total)}원</div>
+                                    {/* Balloon tail */}
+                                    <div style={{
+                                        position: 'absolute',
+                                        bottom: '-6px',
+                                        left: '50%',
+                                        transform: 'translateX(-50%)',
+                                        width: '0',
+                                        height: '0',
+                                        borderLeft: '6px solid transparent',
+                                        borderRight: '6px solid transparent',
+                                        borderTop: `6px solid ${isMax ? '#ef4444' : 'rgba(255,255,255,0.95)'}`
+                                    }} />
+                                </motion.div>
+
+                                <motion.div
+                                    initial={{ height: 0 }}
+                                    animate={{ height: Math.max(barHeight, item.total > 0 ? 4 : 0) }}
+                                    transition={{ duration: 0.8, delay: index * 0.02, ease: [0.34, 1.56, 0.64, 1] }}
+                                    onClick={() => item.total > 0 && onBarClick(item.date)}
+                                    style={{
+                                        width: '100%',
+                                        maxWidth: '24px',
+                                        background: item.total > 0
+                                            ? (isMax ? 'linear-gradient(180deg, #ef4444 0%, #991b1b 100%)' : 'linear-gradient(180deg, var(--primary) 0%, rgba(99, 102, 241, 0.4) 100%)')
+                                            : 'rgba(255,255,255,0.03)',
+                                        borderRadius: '4px 4px 2px 2px',
+                                        cursor: item.total > 0 ? 'pointer' : 'default',
+                                        boxShadow: isMax ? '0 0 15px rgba(239, 68, 68, 0.3)' : 'none'
+                                    }}
+                                    whileHover={item.total > 0 ? {
+                                        filter: 'brightness(1.3)',
+                                        scaleX: 1.2,
+                                        boxShadow: isMax ? '0 0 25px rgba(239, 68, 68, 0.5)' : '0 0 20px rgba(99, 102, 241, 0.4)'
+                                    } : {}}
+                                />
+                            </div>
+
+                            <div style={{
+                                fontSize: '0.65rem',
+                                color: item.day % 5 === 0 || item.day === 1 || item.day === data.length ? 'var(--text-muted)' : 'transparent',
+                                fontWeight: 600,
+                                height: '14px'
+                            }}>
+                                {item.day}
+                            </div>
+                        </motion.div>
+                    );
+                })}
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'center', marginTop: '16px', gap: '24px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                    <div style={{ width: '12px', height: '12px', borderRadius: '3px', background: 'var(--primary)' }} />
+                    Spending Amount
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                    <div style={{ width: '12px', height: '12px', borderRadius: '3px', background: '#ef4444' }} />
+                    Highest Spending (Peak)
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                    <div style={{ width: '12px', height: '12px', borderRadius: '3px', background: 'rgba(255,255,255,0.03)' }} />
+                    No Transactions
+                </div>
+            </div>
+        </motion.div>
     );
 };
 
