@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useAuth } from '@/components/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -87,10 +88,16 @@ const NoticePage = () => {
     // Comment state
     const [commentText, setCommentText] = useState('');
     const [replyToCommentId, setReplyToCommentId] = useState<number | null>(null);
+    const searchParams = useSearchParams();
+    const noticeIdParam = searchParams.get('id');
 
     useEffect(() => {
-        fetchNotices();
-    }, [page, searchTerm]);
+        if (noticeIdParam) {
+            handleDetail(parseInt(noticeIdParam));
+        } else {
+            fetchNotices();
+        }
+    }, [page, searchTerm, noticeIdParam]);
 
     const fetchNotices = async () => {
         try {
@@ -612,4 +619,10 @@ const NoticePage = () => {
     );
 };
 
-export default NoticePage;
+const WrappedNoticePage = () => (
+    <Suspense fallback={<div className="page-container"><div className="glass-panel" style={{ padding: '100px', textAlign: 'center' }}>Loading...</div></div>}>
+        <NoticePage />
+    </Suspense>
+);
+
+export default WrappedNoticePage;

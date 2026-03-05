@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import { Lock, User, LogIn, AlertCircle } from 'lucide-react';
 
 interface LoginPageProps {
-    onLoginSuccess: (user: { name: string }) => void;
+    onLoginSuccess: (user: any) => void;
 }
 
 const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
