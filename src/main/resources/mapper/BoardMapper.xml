@@ -6,6 +6,26 @@
     <select id="findAll" resultType="com.example.demo2.model.Board">
         SELECT id, title, event_date, content, category1, category2, category3, image_url, created_at
         FROM boards
+        <where>
+            <if test="searchTitle != null and searchTitle != ''">
+                AND title LIKE CONCAT('%', #{searchTitle}, '%')
+            </if>
+            <if test="startDate != null and startDate != ''">
+                AND event_date &gt;= #{startDate}
+            </if>
+            <if test="endDate != null and endDate != ''">
+                AND event_date &lt;= #{endDate}
+            </if>
+            <if test="category1 != null and category1 != ''">
+                AND category1 LIKE CONCAT('%', #{category1}, '%')
+            </if>
+            <if test="category2 != null and category2 != ''">
+                AND category2 LIKE CONCAT('%', #{category2}, '%')
+            </if>
+            <if test="category3 != null and category3 != ''">
+                AND category3 LIKE CONCAT('%', #{category3}, '%')
+            </if>
+        </where>
         ORDER BY created_at DESC
         LIMIT #{limit} OFFSET #{offset}
     </select>
@@ -23,6 +43,26 @@
 
     <select id="countAll" resultType="int">
         SELECT COUNT(*) FROM boards
+        <where>
+            <if test="searchTitle != null and searchTitle != ''">
+                AND title LIKE CONCAT('%', #{searchTitle}, '%')
+            </if>
+            <if test="startDate != null and startDate != ''">
+                AND event_date &gt;= #{startDate}
+            </if>
+            <if test="endDate != null and endDate != ''">
+                AND event_date &lt;= #{endDate}
+            </if>
+            <if test="category1 != null and category1 != ''">
+                AND category1 LIKE CONCAT('%', #{category1}, '%')
+            </if>
+            <if test="category2 != null and category2 != ''">
+                AND category2 LIKE CONCAT('%', #{category2}, '%')
+            </if>
+            <if test="category3 != null and category3 != ''">
+                AND category3 LIKE CONCAT('%', #{category3}, '%')
+            </if>
+        </where>
     </select>
 
     <update id="update">

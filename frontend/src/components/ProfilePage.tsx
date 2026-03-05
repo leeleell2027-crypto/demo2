@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { User, LogOut, ShieldCheck, Mail, Calendar, Hash, BadgeCheck, Image as ImageIcon } from 'lucide-react';
+import { User, LogOut, ShieldCheck, Mail, Calendar, Hash, BadgeCheck, Image as ImageIcon, CreditCard } from 'lucide-react';
 import Link from 'next/link';
 
 interface ProfilePageProps {
@@ -24,7 +24,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout }) => {
     // Mocking more detailed member information for display
     const memberInfo = [
         { icon: <Mail size={18} />, label: "Email Address", value: `${user.name.toLowerCase()}@example.com` },
-        { icon: <Hash size={18} />, label: "Member ID", value: `MEM-${Math.floor(Math.random() * 9000) + 1000}` },
+        { icon: <Hash size={18} />, label: "Member ID", value: `MEM-8842` },
         { icon: <BadgeCheck size={18} />, label: "Role", value: "Premium Member" },
         { icon: <Calendar size={18} />, label: "Joined Date", value: "February 2026" },
     ];
@@ -117,7 +117,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout }) => {
             {/* Navigation Buttons */}
             <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '12px' }}>
                 <div style={{ display: 'flex', gap: '12px', width: '100%' }}>
-                    <Link href="/calendar" style={{ flex: 1 }}>
+                    <Link href="/transactions" style={{ flex: 1 }}>
                         <motion.button
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
@@ -138,8 +138,8 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout }) => {
                                 boxShadow: '0 8px 16px rgba(99, 102, 241, 0.2)'
                             }}
                         >
-                            <Calendar size={18} />
-                            달력 확인
+                            <CreditCard size={18} />
+                            거래 내역
                         </motion.button>
                     </Link>
                     <Link href="/gallery" style={{ flex: 1 }}>

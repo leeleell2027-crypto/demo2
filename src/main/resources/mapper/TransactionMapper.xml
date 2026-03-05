@@ -12,11 +12,14 @@
     <select id="count" resultType="int">
         SELECT COUNT(*) FROM transactions
         <where>
-            <if test="searchDate != null and searchDate != ''">
-                AND date LIKE CONCAT('%', #{searchDate}, '%')
-            </if>
             <if test="searchMerchant != null and searchMerchant != ''">
                 AND merchant LIKE CONCAT('%', #{searchMerchant}, '%')
+            </if>
+            <if test="startDate != null and startDate != ''">
+                AND date &gt;= #{startDate}
+            </if>
+            <if test="endDate != null and endDate != ''">
+                AND date &lt;= #{endDate}
             </if>
         </where>
     </select>
@@ -31,11 +34,17 @@
             <if test="searchMerchant != null and searchMerchant != ''">
                 AND merchant LIKE CONCAT('%', #{searchMerchant}, '%')
             </if>
+            <if test="startDate != null and startDate != ''">
+                AND date &gt;= #{startDate}
+            </if>
+            <if test="endDate != null and endDate != ''">
+                AND date &lt;= #{endDate}
+            </if>
         </where>
         ORDER BY date DESC, time DESC
         LIMIT #{size} OFFSET #{offset}
     </select>
-
+    
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO transactions (
             date, time, card, merchant, amount_krw, amount_usd, 
@@ -47,5 +56,28 @@
             #{status}, #{dueDate}, #{approvalNo}
         )
     </insert>
+    
+    <select id="getSearchStatistics" resultType="map">
+        SELECT 
+            COALESCE(SUM(amount_krw), 0) as sumAmount,
+            COALESCE(SUM(points), 0) as sumPoints,
+            COUNT(*) as count
+        FROM transactions
+        <where>
+            AND status != '승인취소'
+            <if test="searchDate != null and searchDate != ''">
+                AND date LIKE CONCAT('%', #{searchDate}, '%')
+            </if>
+            <if test="searchMerchant != null and searchMerchant != ''">
+                AND merchant LIKE CONCAT('%', #{searchMerchant}, '%')
+            </if>
+            <if test="startDate != null and startDate != ''">
+                AND date &gt;= #{startDate}
+            </if>
+            <if test="endDate != null and endDate != ''">
+                AND date &lt;= #{endDate}
+            </if>
+        </where>
+    </select>
 
 </mapper>

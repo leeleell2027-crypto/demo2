@@ -21,7 +21,5 @@ INSERT INTO transactions (date, time, card, merchant, amount_krw, amount_usd, pa
 
 DELETE FROM member;
 INSERT INTO member (id, name, email, username, password, role) VALUES
-('admin', '슈퍼관리자', 'admin@example.com', 'admin', '$2a$10$GRLdNijSQMUvl/au9ShLOmqnWQmL4.ybBE672FeTrAnQun9S/K9H6', 'SUPER_ADMIN'),
-('middle', '중간관리자', 'middle@example.com', 'middle', '$2a$10$GRLdNijSQMUvl/au9ShLOmqnWQmL4.ybBE672FeTrAnQun9S/K9H6', 'MIDDLE_ADMIN'),
-('user', '일반관리자', 'user@example.com', 'user', '$2a$10$GRLdNijSQMUvl/au9ShLOmqnWQmL4.ybBE672FeTrAnQun9S/K9H6', 'GENERAL_ADMIN');
+('admin', '슈퍼관리자', 'admin@example.com', 'admin', '$2a$10$GRLdNijSQMUvl/au9ShLOmqnWQmL4.ybBE672FeTrAnQun9S/K9H6', 'SUPER_ADMIN');
 -- Note: password hash is for '1234'

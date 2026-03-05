@@ -24,7 +24,9 @@ public class TransactionController {
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) String searchDate,
-            @RequestParam(required = false) String searchMerchant) {
-        return transactionService.getPagedTransactions(page, size, searchDate, searchMerchant);
+            @RequestParam(required = false) String searchMerchant,
+            @RequestParam(required = false) String startDate,
+            @RequestParam(required = false) String endDate) {
+        return transactionService.getPagedTransactions(page, size, searchDate, searchMerchant, startDate, endDate);
     }
 }

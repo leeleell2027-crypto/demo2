@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { CreditCard, Search, ArrowLeft, Download, Filter, Calendar, MapPin, ReceiptText, ChevronLeft, ChevronRight, LayoutGrid, Table, BarChart2 } from 'lucide-react';
 import Link from 'next/link';
@@ -24,13 +24,47 @@ interface Transaction {
 }
 
 
+// Global cache to prevent duplicate fetches across component remounts (Strict Mode)
+const apiCache: { [key: string]: { promise?: Promise<any>, data?: any, timestamp?: number } } = {};
+
+const fetchWithCache = async (url: string, signal?: AbortSignal) => {
+    const now = Date.now();
+    const cached = apiCache[url];
+
+    // 1. If we have fresh data (less than 5 seconds old), return it immediately
+    if (cached?.data && (now - (cached.timestamp || 0) < 5000)) {
+        return cached.data;
+    }
+
+    // 2. If a request is already in flight, wait for it
+    if (cached?.promise) {
+        return cached.promise;
+    }
+
+    // 3. Start a new request
+    const promise = (async () => {
+        try {
+            const response = await fetch(url, { signal });
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            const data = await response.json();
+            apiCache[url] = { data, timestamp: Date.now() };
+            return data;
+        } catch (error) {
+            delete apiCache[url];
+            throw error;
+        }
+    })();
+
+    apiCache[url] = { promise };
+    return promise;
+};
+
 const TransactionsContent = () => {
     const searchParams = useSearchParams();
     const dateParam = searchParams.get('date');
     const [transactions, setTransactions] = useState<Transaction[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [searchDate, setSearchDate] = useState('');
     const [searchMerchant, setSearchMerchant] = useState('');
     const [viewMode, setViewMode] = useState<'table' | 'calendar' | 'chart'>('table');
     const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -41,69 +75,158 @@ const TransactionsContent = () => {
     const [totalPages, setTotalPages] = useState(0);
     const [total, setTotal] = useState(0);
     const [pageSize] = useState(10);
+    const [totalSearchAmount, setTotalSearchAmount] = useState(0);
+    const [totalSearchPoints, setTotalSearchPoints] = useState(0);
 
-    useEffect(() => {
-        if (dateParam) {
-            setSearchDate(dateParam);
+    // Date range search state
+    const [startDate, setStartDate] = useState(() => {
+        if (dateParam) return dateParam;
+        const today = new Date();
+        const y = today.getFullYear();
+        const m = String(today.getMonth() + 1).padStart(2, '0');
+        return `${y}-${m}-01`;
+    });
+    const [endDate, setEndDate] = useState(() => {
+        if (dateParam) return dateParam;
+        const today = new Date();
+        const y = today.getFullYear();
+        const m = String(today.getMonth() + 1).padStart(2, '0');
+        const d = String(today.getDate()).padStart(2, '0');
+        return `${y}-${m}-${d}`;
+    });
+    const [dateRangeType, setDateRangeType] = useState(dateParam ? 'custom' : 'month'); // today, week, month, custom
+    const [calendarSearchMerchant, setCalendarSearchMerchant] = useState('');
+    const [chartSearchMerchant, setChartSearchMerchant] = useState('');
+
+    // Refs for optimization
+    const abortControllerRef = useRef<AbortController | null>(null);
+    const lastInitiatedParams = useRef("");
+    const lastCompletedParams = useRef("");
+
+    // Removed the initial mount useEffect that was setting dates,
+    // as it's now handled by the initial state logic above to prevent duplicate API calls.
+
+    const handleDateRangeChange = (type: string) => {
+        setDateRangeType(type);
+        const today = new Date();
+        let start = new Date();
+
+        if (type === 'today') {
+            // No change to start (already today)
+        } else if (type === 'week') {
+            start.setDate(today.getDate() - 7);
+        } else if (type === 'month') {
+            start.setDate(1);
         }
-    }, [dateParam]);
 
-    useEffect(() => {
-        const fetchTransactions = async () => {
-            setLoading(true);
-            try {
-                if (viewMode === 'calendar') {
-                    const [transactionRes, holidayRes] = await Promise.all([
-                        fetch('/api/transactions'),
-                        fetch('/api/holidays/all')
-                    ]);
-
-                    if (!transactionRes.ok || !holidayRes.ok) {
-                        throw new Error('Failed to fetch data');
-                    }
-
-                    const transactionData = await transactionRes.json();
-                    const holidayData = await holidayRes.json();
-
-                    setTransactions(transactionData);
-                    setHolidays(holidayData);
-                    setTotal(transactionData.length);
-                    setTotalPages(1);
-                } else {
-                    const response = await fetch(`/api/transactions/paged?page=${page}&size=${pageSize}&searchDate=${encodeURIComponent(searchDate)}&searchMerchant=${encodeURIComponent(searchMerchant)}`);
-                    if (!response.ok) throw new Error('Failed to fetch paginated transactions');
-                    const data = await response.json();
-                    setTransactions(data.transactions);
-                    setTotal(data.total);
-                    setTotalPages(data.totalPages);
-                }
-                setLoading(false);
-            } catch (err) {
-                console.error('Error fetching transactions:', err);
-                setError('Failed to load transaction data. Please make sure the backend is running.');
-                setLoading(false);
-            }
+        const formatDate = (date: Date) => {
+            const y = date.getFullYear();
+            const m = String(date.getMonth() + 1).padStart(2, '0');
+            const d = String(date.getDate()).padStart(2, '0');
+            return `${y}-${m}-${d}`;
         };
 
-        fetchTransactions();
-    }, [page, pageSize, viewMode, searchDate, searchMerchant]);
+        if (type !== 'custom') {
+            setStartDate(formatDate(start));
+            setEndDate(formatDate(today));
+        }
+    };
+
+    // Date param is now handled in the state initializers to avoid double-fetching.
+
+    useEffect(() => {
+        // Prevent empty date searches
+        if (!startDate || !endDate) return;
+
+        const currentParams = JSON.stringify({ page, pageSize, viewMode, searchMerchant, startDate, endDate });
+
+        // Debounce: Wait for 100ms before initiating the fetch
+        const debounceTimer = setTimeout(() => {
+            // Already handled by fetchWithCache internally, but we can still use lastInitiatedParams
+            // to avoid starting the debounce logic if exactly the same fetch is already planned.
+            if (lastInitiatedParams.current === currentParams) return;
+
+            const controller = new AbortController();
+            abortControllerRef.current = controller;
+            lastInitiatedParams.current = currentParams;
+
+            const fetchTransactions = async (signal: AbortSignal) => {
+                setLoading(true);
+                try {
+                    if (viewMode === 'calendar' || viewMode === 'chart') {
+                        // Fetch Transactions and Holidays in parallel using cache
+                        const [transactionData, holidayData] = await Promise.all([
+                            fetchWithCache('/api/transactions', signal),
+                            fetchWithCache('/api/holidays/all', signal)
+                        ]);
+
+                        if (signal.aborted) return;
+
+                        setTransactions(transactionData);
+                        setHolidays(holidayData || []);
+                        setTotal(transactionData.length);
+                        setTotalPages(1);
+                    } else {
+                        const url = `/api/transactions/paged?page=${page}&size=${pageSize}&searchMerchant=${encodeURIComponent(searchMerchant)}&startDate=${startDate}&endDate=${endDate}`;
+                        const data = await fetchWithCache(url, signal);
+
+                        if (signal.aborted) return;
+
+                        setTransactions(data.transactions);
+                        setTotal(data.total);
+                        setTotalPages(data.totalPages);
+                        if (data.searchStats) {
+                            setTotalSearchAmount(data.searchStats.sumAmount || 0);
+                            setTotalSearchPoints(data.searchStats.sumPoints || 0);
+                        }
+                    }
+                    lastCompletedParams.current = currentParams;
+                    setLoading(false);
+                } catch (err: any) {
+                    if (err.name === 'AbortError') return;
+                    console.error('Error fetching transactions:', err);
+                    setError('Failed to load transaction data. Please make sure the backend is running.');
+                    setLoading(false);
+                } finally {
+                    if (lastInitiatedParams.current === currentParams) {
+                        lastInitiatedParams.current = "";
+                    }
+                }
+            };
+
+            fetchTransactions(controller.signal);
+        }, 100);
+
+        return () => {
+            clearTimeout(debounceTimer);
+            if (abortControllerRef.current) {
+                abortControllerRef.current.abort();
+            }
+            if (lastInitiatedParams.current === currentParams) {
+                lastInitiatedParams.current = "";
+            }
+        };
+    }, [page, pageSize, viewMode, searchMerchant, startDate, endDate]);
+
+    const allSearchFilteredTransactions = useMemo(() => {
+        return transactions.filter(t => {
+            // Use specific merchant search based on view mode
+            const merchantToMatch = viewMode === 'calendar' ? calendarSearchMerchant : chartSearchMerchant;
+            const merchantMatch = !merchantToMatch || (t.merchant || '').toLowerCase().includes(merchantToMatch.toLowerCase());
+            return merchantMatch;
+        });
+    }, [transactions, calendarSearchMerchant, chartSearchMerchant, viewMode]);
 
     const filteredTransactions = useMemo(() => {
-        return transactions.filter(t => {
-            const dateMatch = !searchDate || (t.date || '').includes(searchDate);
-            const merchantMatch = !searchMerchant || (t.merchant || '').toLowerCase().includes(searchMerchant.toLowerCase());
-            const matchesSearch = dateMatch && merchantMatch;
-
-            if (viewMode === 'calendar' || viewMode === 'chart') {
+        if (viewMode === 'calendar' || viewMode === 'chart') {
+            return allSearchFilteredTransactions.filter(t => {
                 const transDate = new Date(t.date);
-                const isSameMonth = transDate.getFullYear() === currentMonth.getFullYear() &&
+                return transDate.getFullYear() === currentMonth.getFullYear() &&
                     transDate.getMonth() === currentMonth.getMonth();
-                return matchesSearch && isSameMonth;
-            }
-
-            return matchesSearch;
-        });
-    }, [transactions, searchDate, searchMerchant, viewMode, currentMonth]);
+            });
+        }
+        return allSearchFilteredTransactions;
+    }, [allSearchFilteredTransactions, viewMode, currentMonth]);
 
     const chartData = useMemo(() => {
         const year = currentMonth.getFullYear();
@@ -132,25 +255,39 @@ const TransactionsContent = () => {
     }, [filteredTransactions, currentMonth]);
 
     const stats = useMemo(() => {
-        if (filteredTransactions.length === 0) {
+        if (viewMode === 'table') {
+            // In table mode, use the search-wide stats provided by the backend
+            return {
+                total: totalSearchAmount,
+                avgMonthly: 0, // Backend doesn't provide this yet for table, maybe calculate if needed
+                dailyAvg: 0,
+                max: 0, // Backend doesn't provide this yet
+                points: totalSearchPoints
+            };
+        }
+
+        // Use transactions that match BOTH search criteria and the currently viewed period (month)
+        const sourceData = filteredTransactions.filter(t => t.status !== '승인취소');
+
+        if (sourceData.length === 0) {
             return { total: 0, avgMonthly: 0, dailyAvg: 0, max: 0, points: 0 };
         }
 
-        const total = filteredTransactions.reduce((sum, t) => sum + Number(String(t.amountKrw).replace(/,/g, '') || 0), 0);
-        const points = filteredTransactions.reduce((sum, t) => sum + Number(String(t.points).replace(/,/g, '') || 0), 0);
-        const max = filteredTransactions.reduce((maxVal, t) => {
+        const total = sourceData.reduce((sum, t) => sum + Number(String(t.amountKrw).replace(/,/g, '') || 0), 0);
+        const points = sourceData.reduce((sum, t) => sum + Number(String(t.points).replace(/,/g, '') || 0), 0);
+        const max = sourceData.reduce((maxVal, t) => {
             const amt = Number(String(t.amountKrw).replace(/,/g, '') || 0);
             return amt > maxVal ? amt : maxVal;
         }, 0);
 
-        const months = new Set(filteredTransactions.map(t => t.date.substring(0, 7)));
+        const months = new Set(sourceData.map(t => t.date.substring(0, 7)));
         const avgMonthly = months.size > 0 ? total / months.size : 0;
 
         const daysInSelectedMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0).getDate();
         const dailyAvg = total / daysInSelectedMonth;
 
         return { total, avgMonthly, dailyAvg, max, points };
-    }, [filteredTransactions, currentMonth, viewMode]);
+    }, [filteredTransactions, allSearchFilteredTransactions, currentMonth, viewMode, totalSearchAmount, totalSearchPoints]);
 
     const formatCurrency = (value: number) => {
         return new Intl.NumberFormat('ko-KR', { style: 'decimal' }).format(Math.floor(value));
@@ -160,158 +297,156 @@ const TransactionsContent = () => {
         <div style={{ padding: '40px 24px', color: 'white' }}>
             <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
                 {/* Header Section */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '40px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-                        <div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--primary)', marginBottom: '4px' }}>
-                                <CreditCard size={20} />
-                                <span style={{ fontWeight: 600, fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Card Statement</span>
+                {/* Header Section - Split into 2 Rows */}
+                <div style={{ marginBottom: '40px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                    {/* Row 1: Title & View Mode Tabs */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+                            <div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--primary)', marginBottom: '4px' }}>
+                                    <CreditCard size={20} />
+                                    <span style={{ fontWeight: 600, fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Card Statement</span>
+                                </div>
+                                <h1 style={{ fontSize: '2.5rem', fontWeight: 800, letterSpacing: '-0.02em', margin: 0 }}>Transaction History</h1>
                             </div>
-                            <h1 style={{ fontSize: '2.5rem', fontWeight: 800, letterSpacing: '-0.02em' }}>Transaction History</h1>
+                        </div>
+
+                        <div style={{ display: 'flex', gap: '8px', background: 'rgba(255,255,255,0.05)', padding: '4px', borderRadius: '14px', border: '1px solid var(--glass-border)' }}>
+                            <button
+                                onClick={() => setViewMode('table')}
+                                style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '8px',
+                                    padding: '10px 16px',
+                                    borderRadius: '10px',
+                                    border: 'none',
+                                    background: viewMode === 'table' ? 'var(--primary)' : 'transparent',
+                                    color: viewMode === 'table' ? 'black' : 'white',
+                                    cursor: 'pointer',
+                                    fontWeight: 600,
+                                    transition: 'all 0.2s'
+                                }}
+                            >
+                                <Table size={18} /> Table
+                            </button>
+                            <button
+                                onClick={() => setViewMode('calendar')}
+                                style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '8px',
+                                    padding: '10px 16px',
+                                    borderRadius: '10px',
+                                    border: 'none',
+                                    background: viewMode === 'calendar' ? 'var(--primary)' : 'transparent',
+                                    color: viewMode === 'calendar' ? 'black' : 'white',
+                                    cursor: 'pointer',
+                                    fontWeight: 600,
+                                    transition: 'all 0.2s'
+                                }}
+                            >
+                                <LayoutGrid size={18} /> Calendar
+                            </button>
+                            <button
+                                onClick={() => setViewMode('chart')}
+                                style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '8px',
+                                    padding: '10px 16px',
+                                    borderRadius: '10px',
+                                    border: 'none',
+                                    background: viewMode === 'chart' ? 'var(--primary)' : 'transparent',
+                                    color: viewMode === 'chart' ? 'black' : 'white',
+                                    cursor: 'pointer',
+                                    fontWeight: 600,
+                                    transition: 'all 0.2s'
+                                }}
+                            >
+                                <BarChart2 size={18} /> Chart
+                            </button>
                         </div>
                     </div>
 
-                    <div style={{ display: 'flex', gap: '8px', background: 'rgba(255,255,255,0.05)', padding: '4px', borderRadius: '14px', border: '1px solid var(--glass-border)' }}>
-                        <button
-                            onClick={() => setViewMode('table')}
-                            style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '8px',
-                                padding: '10px 16px',
-                                borderRadius: '10px',
-                                border: 'none',
-                                background: viewMode === 'table' ? 'var(--primary)' : 'transparent',
-                                color: 'white',
-                                cursor: 'pointer',
-                                fontWeight: 600,
-                                transition: 'all 0.2s'
-                            }}
-                        >
-                            <Table size={18} /> Table
-                        </button>
-                        <button
-                            onClick={() => {
-                                setViewMode('calendar');
-                                setSearchDate('');
-                            }}
-                            style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '8px',
-                                padding: '10px 16px',
-                                borderRadius: '10px',
-                                border: 'none',
-                                background: viewMode === 'calendar' ? 'var(--primary)' : 'transparent',
-                                color: 'white',
-                                cursor: 'pointer',
-                                fontWeight: 600,
-                                transition: 'all 0.2s'
-                            }}
-                        >
-                            <LayoutGrid size={18} /> Calendar
-                        </button>
-                        <button
-                            onClick={() => setViewMode('chart')}
-                            style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '8px',
-                                padding: '10px 16px',
-                                borderRadius: '10px',
-                                border: 'none',
-                                background: viewMode === 'chart' ? 'var(--primary)' : 'transparent',
-                                color: 'white',
-                                cursor: 'pointer',
-                                fontWeight: 600,
-                                transition: 'all 0.2s'
-                            }}
-                        >
-                            <BarChart2 size={18} /> Chart
-                        </button>
-                    </div>
-
-                    <div style={{ display: 'flex', gap: '12px' }}>
-                        {viewMode === 'table' && (
+                    {/* Row 2: Search & Filter Controls */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 24px', background: 'rgba(255,255,255,0.02)', borderRadius: '20px', border: '1px solid var(--glass-border)' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                            {viewMode === 'table' && (
+                                <>
+                                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center', background: 'rgba(255,255,255,0.05)', padding: '4px', borderRadius: '12px', border: '1px solid var(--glass-border)', marginRight: '8px' }}>
+                                        {['today', 'week', 'month'].map((type) => (
+                                            <button
+                                                key={type}
+                                                onClick={() => handleDateRangeChange(type)}
+                                                style={{
+                                                    padding: '8px 12px',
+                                                    borderRadius: '8px',
+                                                    border: 'none',
+                                                    background: dateRangeType === type ? 'var(--primary)' : 'transparent',
+                                                    color: dateRangeType === type ? 'black' : 'white',
+                                                    cursor: 'pointer',
+                                                    fontSize: '0.85rem',
+                                                    fontWeight: 600,
+                                                    transition: 'all 0.2s'
+                                                }}
+                                            >
+                                                {type === 'today' ? '당일' : type === 'week' ? '주간' : '월간'}
+                                            </button>
+                                        ))}
+                                    </div>
+                                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                        <input
+                                            type="date"
+                                            value={startDate}
+                                            onChange={(e) => {
+                                                setStartDate(e.target.value);
+                                                setDateRangeType('custom');
+                                            }}
+                                            style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--glass-border)', padding: '10px 12px', borderRadius: '10px', color: 'white', fontSize: '0.9rem', outline: 'none' }}
+                                        />
+                                        <span style={{ color: 'var(--text-muted)' }}>~</span>
+                                        <input
+                                            type="date"
+                                            value={endDate}
+                                            onChange={(e) => {
+                                                setEndDate(e.target.value);
+                                                setDateRangeType('custom');
+                                            }}
+                                            style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--glass-border)', padding: '10px 12px', borderRadius: '10px', color: 'white', fontSize: '0.9rem', outline: 'none' }}
+                                        />
+                                    </div>
+                                    <div style={{ width: '1px', height: '24px', background: 'var(--glass-border)', margin: '0 8px' }} />
+                                </>
+                            )}
                             <div style={{ position: 'relative' }}>
-                                <Calendar size={18} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+                                <Search size={18} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
                                 <input
                                     type="text"
-                                    placeholder="Date (YYYY-MM-DD)"
-                                    value={searchDate}
-                                    onChange={(e) => setSearchDate(e.target.value)}
-                                    style={{
-                                        background: 'rgba(255,255,255,0.03)',
-                                        border: '1px solid var(--glass-border)',
-                                        padding: '12px 16px 12px 44px',
-                                        borderRadius: '12px',
-                                        color: 'white',
-                                        width: '200px',
-                                        fontSize: '0.95rem',
-                                        outline: 'none',
-                                        transition: 'border-color 0.2s',
+                                    placeholder="가맹점 검색..."
+                                    value={viewMode === 'table' ? searchMerchant : viewMode === 'calendar' ? calendarSearchMerchant : chartSearchMerchant}
+                                    onChange={(e) => {
+                                        if (viewMode === 'table') setSearchMerchant(e.target.value);
+                                        else if (viewMode === 'calendar') setCalendarSearchMerchant(e.target.value);
+                                        else setChartSearchMerchant(e.target.value);
                                     }}
-                                    onFocus={(e) => e.target.style.borderColor = 'var(--primary)'}
-                                    onBlur={(e) => e.target.style.borderColor = 'var(--glass-border)'}
+                                    style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--glass-border)', padding: '12px 16px 12px 44px', borderRadius: '12px', color: 'white', width: '220px', fontSize: '0.95rem', outline: 'none' }}
                                 />
                             </div>
-                        )}
-                        <div style={{ position: 'relative' }}>
-                            <Search size={18} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-                            <input
-                                type="text"
-                                placeholder="Search merchant..."
-                                value={searchMerchant}
-                                onChange={(e) => setSearchMerchant(e.target.value)}
-                                style={{
-                                    background: 'rgba(255,255,255,0.03)',
-                                    border: '1px solid var(--glass-border)',
-                                    padding: '12px 16px 12px 44px',
-                                    borderRadius: '12px',
-                                    color: 'white',
-                                    width: '240px',
-                                    fontSize: '0.95rem',
-                                    outline: 'none',
-                                    transition: 'border-color 0.2s',
-                                }}
-                                onFocus={(e) => e.target.style.borderColor = 'var(--primary)'}
-                                onBlur={(e) => e.target.style.borderColor = 'var(--glass-border)'}
-                            />
                         </div>
-                        <div style={{ position: 'relative' }}>
-                            <Filter size={18} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-                            <input
-                                type="month"
-                                value={`${currentMonth.getFullYear()}-${String(currentMonth.getMonth() + 1).padStart(2, '0')}`}
-                                onChange={(e) => {
-                                    const val = e.target.value; // YYYY-MM
-                                    const [y, m] = val.split('-');
-                                    setCurrentMonth(new Date(parseInt(y), parseInt(m) - 1, 1));
-                                    setSearchDate(val); // This will trigger server-side fetch for the month
-                                }}
-                                style={{
-                                    background: 'rgba(255,255,255,0.03)',
-                                    border: '1px solid var(--glass-border)',
-                                    padding: '12px 16px 12px 44px',
-                                    borderRadius: '12px',
-                                    color: 'white',
-                                    width: '180px',
-                                    fontSize: '0.95rem',
-                                    outline: 'none',
-                                    cursor: 'pointer'
-                                }}
-                            />
+
+                        <div style={{ display: 'flex', gap: '12px' }}>
+                            <motion.button whileHover={{ scale: 1.05 }} style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid var(--glass-border)', color: 'white', padding: '12px 20px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontWeight: 600 }}>
+                                <Filter size={18} /> Filter
+                            </motion.button>
+                            <motion.button
+                                whileHover={{ scale: 1.05 }}
+                                style={{ background: 'var(--primary)', border: 'none', color: 'black', padding: '12px 24px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontWeight: 700, boxShadow: '0 10px 15px -3px rgba(99, 102, 241, 0.3)' }}
+                                onClick={() => window.location.reload()}
+                            >
+                                <Download size={18} /> Export
+                            </motion.button>
                         </div>
-                        <motion.button whileHover={{ scale: 1.05 }} style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid var(--glass-border)', color: 'white', padding: '12px 20px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontWeight: 600 }}>
-                            <Filter size={18} /> Filter
-                        </motion.button>
-                        <motion.button
-                            whileHover={{ scale: 1.05 }}
-                            style={{ background: 'var(--primary)', border: 'none', color: 'white', padding: '12px 24px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontWeight: 700, boxShadow: '0 10px 15px -3px rgba(99, 102, 241, 0.3)' }}
-                            onClick={() => window.location.reload()}
-                        >
-                            <Download size={18} /> Export
-                        </motion.button>
                     </div>
                 </div>
 
@@ -478,7 +613,9 @@ const TransactionsContent = () => {
                         setCurrentMonth={setCurrentMonth}
                         formatCurrency={formatCurrency}
                         onDayClick={(date: string) => {
-                            setSearchDate(date);
+                            setStartDate(date);
+                            setEndDate(date);
+                            setDateRangeType('custom');
                             setSearchMerchant('');
                             setViewMode('table');
                         }}
@@ -486,9 +623,14 @@ const TransactionsContent = () => {
                 ) : (
                     <ChartView
                         data={chartData}
+                        holidays={holidays}
+                        currentMonth={currentMonth}
+                        setCurrentMonth={setCurrentMonth}
                         formatCurrency={formatCurrency}
                         onBarClick={(date: string) => {
-                            setSearchDate(date);
+                            setStartDate(date);
+                            setEndDate(date);
+                            setDateRangeType('custom');
                             setSearchMerchant(''); // Clear merchant search if clicking specific day chart bar? 
                             // Actually, maybe keep merchant search if they are looking for specific trends.
                             // But usually, clicking a bar means "show me everything on this day".
@@ -503,10 +645,37 @@ const TransactionsContent = () => {
     );
 };
 
-const ChartView = ({ data, formatCurrency, onBarClick }: { data: any[], formatCurrency: any, onBarClick: (date: string) => void }) => {
+const ChartView = ({ data, holidays, currentMonth, setCurrentMonth, formatCurrency, onBarClick }: { data: any[], holidays: any[], currentMonth: Date, setCurrentMonth: any, formatCurrency: any, onBarClick: (date: string) => void }) => {
+    const year = currentMonth.getFullYear();
+    const month = currentMonth.getMonth();
+
+    const prevMonth = () => setCurrentMonth(new Date(year, month - 1, 1));
+    const nextMonth = () => setCurrentMonth(new Date(year, month + 1, 1));
+
     if (data.length === 0) {
         return (
             <div className="glass-card" style={{ padding: '80px 0', textAlign: 'center', color: 'var(--text-muted)' }}>
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '20px', marginBottom: '30px' }}>
+                    <motion.button
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                        onClick={prevMonth}
+                        style={{ padding: '10px', borderRadius: '12px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--glass-border)', color: 'white', cursor: 'pointer' }}
+                    >
+                        <ChevronLeft size={20} />
+                    </motion.button>
+                    <h2 style={{ fontSize: '1.2rem', fontWeight: 700, margin: 0 }}>
+                        {currentMonth.toLocaleString('default', { month: 'long', year: 'numeric' })}
+                    </h2>
+                    <motion.button
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                        onClick={nextMonth}
+                        style={{ padding: '10px', borderRadius: '12px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--glass-border)', color: 'white', cursor: 'pointer' }}
+                    >
+                        <ChevronRight size={20} />
+                    </motion.button>
+                </div>
                 <BarChart2 size={64} style={{ opacity: 0.1, marginBottom: '24px' }} />
                 <p style={{ fontSize: '1.2rem' }}>No data available for chart.</p>
             </div>
@@ -526,9 +695,34 @@ const ChartView = ({ data, formatCurrency, onBarClick }: { data: any[], formatCu
             className="glass-card"
             style={{ padding: '40px', borderRadius: '32px', overflow: 'hidden' }}
         >
-            <div style={{ marginBottom: '32px' }}>
-                <h3 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '8px' }}>Daily Spending Trend</h3>
-                <p style={{ color: 'var(--text-muted)' }}>Daily transaction totals for the selected month</p>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
+                <div>
+                    <h3 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '8px' }}>Daily Spending Trend</h3>
+                    <p style={{ color: 'var(--text-muted)' }}>Daily transaction totals for the selected month</p>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                    <h2 style={{ fontSize: '1.1rem', fontWeight: 700, margin: 0, color: 'var(--primary)' }}>
+                        {currentMonth.toLocaleString('default', { month: 'long', year: 'numeric' })}
+                    </h2>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                        <motion.button
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
+                            onClick={prevMonth}
+                            style={{ padding: '8px', borderRadius: '10px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--glass-border)', color: 'white', cursor: 'pointer' }}
+                        >
+                            <ChevronLeft size={18} />
+                        </motion.button>
+                        <motion.button
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
+                            onClick={nextMonth}
+                            style={{ padding: '8px', borderRadius: '10px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--glass-border)', color: 'white', cursor: 'pointer' }}
+                        >
+                            <ChevronRight size={18} />
+                        </motion.button>
+                    </div>
+                </div>
             </div>
 
             <div style={{
@@ -585,6 +779,20 @@ const ChartView = ({ data, formatCurrency, onBarClick }: { data: any[], formatCu
                     const barHeight = maxTotal > 0 ? (item.total / maxTotal) * (height * 0.7) : 0;
                     const isMax = item.total === maxTotal && maxTotal > 0;
 
+                    // Check if this date is a holiday (consistent logic with CalendarView)
+                    const isHoliday = holidays.some((h: any) => {
+                        if (h.recurring) {
+                            const hMonthDay = h.holidayDate.substring(5);
+                            const currentMonthDay = item.date.substring(5);
+                            return hMonthDay === currentMonthDay;
+                        }
+                        return h.holidayDate === item.date;
+                    });
+
+                    // Check if this date is a Sunday
+                    const isSunday = new Date(item.date).getDay() === 0;
+                    const isRedDay = isHoliday || isSunday;
+
                     return (
                         <motion.div
                             key={item.date}
@@ -617,6 +825,16 @@ const ChartView = ({ data, formatCurrency, onBarClick }: { data: any[], formatCu
                                 >
                                     <div style={{ fontSize: '0.65rem', color: isMax ? 'rgba(255,255,255,0.8)' : 'var(--text-muted)', marginBottom: '2px' }}>{item.date}</div>
                                     <div>{formatCurrency(item.total)}원</div>
+                                    {isHoliday && (
+                                        <div style={{ fontSize: '0.6rem', marginTop: '2px' }}>
+                                            {holidays.find((h: any) => {
+                                                if (h.recurring) {
+                                                    return h.holidayDate.substring(5) === item.date.substring(5);
+                                                }
+                                                return h.holidayDate === item.date;
+                                            })?.name}
+                                        </div>
+                                    )}
                                     {/* Balloon tail */}
                                     <div style={{
                                         position: 'absolute',
@@ -633,18 +851,21 @@ const ChartView = ({ data, formatCurrency, onBarClick }: { data: any[], formatCu
 
                                 <motion.div
                                     initial={{ height: 0 }}
-                                    animate={{ height: Math.max(barHeight, item.total > 0 ? 4 : 0) }}
+                                    animate={{ height: Math.max(barHeight, 4) }} // Show at least 4px even for 0 total
                                     transition={{ duration: 0.8, delay: index * 0.02, ease: [0.34, 1.56, 0.64, 1] }}
                                     onClick={() => item.total > 0 && onBarClick(item.date)}
                                     style={{
                                         width: '100%',
                                         maxWidth: '24px',
-                                        background: item.total > 0
-                                            ? (isMax ? 'linear-gradient(180deg, #ef4444 0%, #991b1b 100%)' : 'linear-gradient(180deg, var(--primary) 0%, rgba(99, 102, 241, 0.4) 100%)')
-                                            : 'rgba(255,255,255,0.03)',
+                                        background: isMax
+                                            ? 'linear-gradient(180deg, #ef4444 0%, #991b1b 100%)'
+                                            : item.total > 0
+                                                ? 'linear-gradient(180deg, var(--primary) 0%, rgba(99, 102, 241, 0.4) 100%)'
+                                                : 'rgba(255,255,255,0.05)',
                                         borderRadius: '4px 4px 2px 2px',
                                         cursor: item.total > 0 ? 'pointer' : 'default',
-                                        boxShadow: isMax ? '0 0 15px rgba(239, 68, 68, 0.3)' : 'none'
+                                        boxShadow: isMax ? '0 0 15px rgba(239, 68, 68, 0.3)' : 'none',
+                                        opacity: item.total === 0 ? 0.3 : 1
                                     }}
                                     whileHover={item.total > 0 ? {
                                         filter: 'brightness(1.3)',
@@ -655,10 +876,11 @@ const ChartView = ({ data, formatCurrency, onBarClick }: { data: any[], formatCu
                             </div>
 
                             <div style={{
-                                fontSize: '0.65rem',
-                                color: item.day % 5 === 0 || item.day === 1 || item.day === data.length ? 'var(--text-muted)' : 'transparent',
-                                fontWeight: 600,
-                                height: '14px'
+                                fontSize: '0.6rem',
+                                color: isRedDay ? '#ef4444' : 'var(--text-muted)',
+                                fontWeight: isRedDay ? 800 : 600,
+                                height: '14px',
+                                marginTop: '4px'
                             }}>
                                 {item.day}
                             </div>
@@ -674,10 +896,10 @@ const ChartView = ({ data, formatCurrency, onBarClick }: { data: any[], formatCu
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
                     <div style={{ width: '12px', height: '12px', borderRadius: '3px', background: '#ef4444' }} />
-                    Highest Spending (Peak)
+                    Highest Spending / Holiday
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                    <div style={{ width: '12px', height: '12px', borderRadius: '3px', background: 'rgba(255,255,255,0.03)' }} />
+                    <div style={{ width: '12px', height: '12px', borderRadius: '3px', background: 'rgba(255,255,255,0.05)' }} />
                     No Transactions
                 </div>
             </div>
@@ -698,16 +920,18 @@ const CalendarView = ({ transactions, holidays, currentMonth, setCurrentMonth, f
     const prevMonth = () => setCurrentMonth(new Date(year, month - 1, 1));
     const nextMonth = () => setCurrentMonth(new Date(year, month + 1, 1));
 
-    const dailyTotals = useMemo(() => {
+    const { dailyTotals, maxTotal } = useMemo(() => {
         const totals: Record<string, number> = {};
+        let max = 0;
         transactions.forEach((t: Transaction) => {
             const dateStr = t.date; // Format is YYYY-MM-DD
             const amount = Number(String(t.amountKrw).replace(/,/g, '') || 0);
             if (t.status !== '승인취소') {
                 totals[dateStr] = (totals[dateStr] || 0) + amount;
+                if (totals[dateStr] > max) max = totals[dateStr];
             }
         });
-        return totals;
+        return { dailyTotals: totals, maxTotal: max };
     }, [transactions]);
 
     const weekDays = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
@@ -819,14 +1043,15 @@ const CalendarView = ({ transactions, holidays, currentMonth, setCurrentMonth, f
                                             initial={{ scale: 0 }}
                                             animate={{ scale: 1 }}
                                             style={{
-                                                background: 'rgba(99, 102, 241, 0.1)',
-                                                border: '1px solid rgba(99, 102, 241, 0.2)',
+                                                background: total === maxTotal && maxTotal > 0 ? 'rgba(239, 68, 68, 0.1)' : 'rgba(99, 102, 241, 0.1)',
+                                                border: total === maxTotal && maxTotal > 0 ? '1px solid rgba(239, 68, 68, 0.3)' : '1px solid rgba(99, 102, 241, 0.2)',
                                                 padding: '6px 8px',
                                                 borderRadius: '8px',
                                                 fontSize: '0.75rem',
-                                                fontWeight: 700,
-                                                color: '#818cf8',
-                                                textAlign: 'right'
+                                                fontWeight: total === maxTotal && maxTotal > 0 ? 800 : 700,
+                                                color: total === maxTotal && maxTotal > 0 ? '#ef4444' : '#818cf8',
+                                                textAlign: 'right',
+                                                boxShadow: total === maxTotal && maxTotal > 0 ? '0 0 10px rgba(239, 68, 68, 0.2)' : 'none'
                                             }}
                                         >
                                             {formatCurrency(total)} 원

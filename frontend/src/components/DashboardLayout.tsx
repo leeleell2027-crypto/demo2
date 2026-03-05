@@ -81,7 +81,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             : user.role === 'MIDDLE_ADMIN'
                 ? ['finance', 'settings']
                 : user.role === 'GENERAL_ADMIN'
-                    ? ['asset', 'settings']
+                    ? ['asset']
                     : [];
 
         return categories

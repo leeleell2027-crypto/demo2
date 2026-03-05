@@ -20,10 +20,19 @@ public class BoardService {
     // 이미지 저장 경로 (프로젝트 루트의 uploads 폴더)
     private final String uploadPath = System.getProperty("user.dir") + File.separator + "uploads";
 
-    public BoardPageResponse getPaginatedBoards(int page, int size) {
+    public BoardPageResponse getPaginatedBoards(
+            int page,
+            int size,
+            String searchTitle,
+            String startDate,
+            String endDate,
+            String category1,
+            String category2,
+            String category3) {
         int offset = page * size;
-        List<Board> boards = boardMapper.findAll(size, offset);
-        int totalCount = boardMapper.countAll();
+        List<Board> boards = boardMapper.findAll(size, offset, searchTitle, startDate, endDate, category1, category2,
+                category3);
+        int totalCount = boardMapper.countAll(searchTitle, startDate, endDate, category1, category2, category3);
         int totalPages = (int) Math.ceil((double) totalCount / size);
 
         return new BoardPageResponse(boards, totalCount, totalPages, page);

@@ -7,13 +7,24 @@ import java.util.List;
 
 @Mapper
 public interface BoardMapper {
-    List<Board> findAll(@Param("limit") int limit, @Param("offset") int offset);
+    List<Board> findAll(@Param("limit") int limit, @Param("offset") int offset,
+            @Param("searchTitle") String searchTitle,
+            @Param("startDate") String startDate,
+            @Param("endDate") String endDate,
+            @Param("category1") String category1,
+            @Param("category2") String category2,
+            @Param("category3") String category3);
 
     int insert(Board board);
 
     Board findById(Long id);
 
-    int countAll();
+    int countAll(@Param("searchTitle") String searchTitle,
+            @Param("startDate") String startDate,
+            @Param("endDate") String endDate,
+            @Param("category1") String category1,
+            @Param("category2") String category2,
+            @Param("category3") String category3);
 
     int update(Board board);
 

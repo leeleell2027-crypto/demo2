@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Image as ImageIcon, Plus, Home, X, Upload, Calendar, Tag, FileText, ReceiptText, ChevronLeft, ChevronRight, Pencil, Trash2 } from 'lucide-react';
+import { Image as ImageIcon, Plus, Home, X, Upload, Calendar, Tag, FileText, ReceiptText, ChevronLeft, ChevronRight, Pencil, Trash2, Search } from 'lucide-react';
 import Link from 'next/link';
 
 interface Board {
@@ -17,6 +17,37 @@ interface Board {
     createdAt: string;
 }
 
+const apiCache: { [key: string]: { promise?: Promise<any>, data?: any, timestamp?: number } } = {};
+
+const fetchWithCache = async (url: string, signal?: AbortSignal) => {
+    const now = Date.now();
+    const cached = apiCache[url];
+
+    if (cached?.data && (now - (cached.timestamp || 0) < 5000)) {
+        return cached.data;
+    }
+
+    if (cached?.promise) {
+        return cached.promise;
+    }
+
+    const promise = (async () => {
+        try {
+            const response = await fetch(url, { signal });
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            const data = await response.json();
+            apiCache[url] = { data, timestamp: Date.now() };
+            return data;
+        } catch (error) {
+            delete apiCache[url];
+            throw error;
+        }
+    })();
+
+    apiCache[url] = { promise };
+    return promise;
+};
+
 const GalleryPage = () => {
     const [boards, setBoards] = useState<Board[]>([]);
     const [currentPage, setCurrentPage] = useState(0);
@@ -26,6 +57,17 @@ const GalleryPage = () => {
     const [selectedBoard, setSelectedBoard] = useState<Board | null>(null);
     const [loading, setLoading] = useState(false);
     const [activeView, setActiveView] = useState<'gallery' | 'table'>('gallery');
+    const [searchTerm, setSearchTerm] = useState('');
+    const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
+    const [startDate, setStartDate] = useState('');
+    const [endDate, setEndDate] = useState('');
+    const [dateRangeType, setDateRangeType] = useState('all'); // all, today, week, month, custom
+    const [searchCategory1, setSearchCategory1] = useState('');
+    const [searchCategory2, setSearchCategory2] = useState('');
+    const [searchCategory3, setSearchCategory3] = useState('');
+
+    const abortControllerRef = useRef<AbortController | null>(null);
+    const lastInitiatedParams = useRef("");
 
     // Edit state
     const [isEditMode, setIsEditMode] = useState(false);
@@ -42,19 +84,75 @@ const GalleryPage = () => {
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
     useEffect(() => {
-        fetchBoards(currentPage);
-    }, [currentPage]);
+        const timer = setTimeout(() => {
+            setDebouncedSearchTerm(searchTerm);
+        }, 300);
+        return () => clearTimeout(timer);
+    }, [searchTerm]);
 
-    const fetchBoards = async (page: number) => {
+    useEffect(() => {
+        fetchBoards(currentPage, debouncedSearchTerm, startDate, endDate, searchCategory1, searchCategory2, searchCategory3);
+    }, [currentPage, debouncedSearchTerm, startDate, endDate, searchCategory1, searchCategory2, searchCategory3]);
+
+    const handleDateRangeChange = (type: string) => {
+        setDateRangeType(type);
+        if (type === 'all') {
+            setStartDate('');
+            setEndDate('');
+            return;
+        }
+        const today = new Date();
+        let start = new Date();
+
+        if (type === 'today') {
+            // No change to start
+        } else if (type === 'week') {
+            start.setDate(today.getDate() - 7);
+        } else if (type === 'month') {
+            start.setDate(1);
+        }
+
+        const formatDate = (date: Date) => {
+            const y = date.getFullYear();
+            const m = String(date.getMonth() + 1).padStart(2, '0');
+            const d = String(date.getDate()).padStart(2, '0');
+            return `${y}-${m}-${d}`;
+        };
+
+        if (type !== 'custom') {
+            setStartDate(formatDate(start));
+            setEndDate(formatDate(today));
+        }
+    };
+
+    const fetchBoards = async (
+        page: number,
+        search: string = '',
+        start: string = '',
+        end: string = '',
+        c1: string = '',
+        c2: string = '',
+        c3: string = ''
+    ) => {
+        const params = `page=${page}&size=16&searchTitle=${encodeURIComponent(search)}&startDate=${start}&endDate=${end}&category1=${encodeURIComponent(c1)}&category2=${encodeURIComponent(c2)}&category3=${encodeURIComponent(c3)}`;
+
+        if (lastInitiatedParams.current === params) return;
+        lastInitiatedParams.current = params;
+
+        if (abortControllerRef.current) {
+            abortControllerRef.current.abort();
+        }
+        abortControllerRef.current = new AbortController();
+
         try {
-            const res = await fetch(`/api/boards?page=${page}&size=16`);
-            if (res.ok) {
-                const data = await res.json();
-                setBoards(data.boards);
-                setTotalPages(data.totalPages);
-                setTotalCount(data.totalCount);
-            }
-        } catch (error) {
+            const url = `/api/boards?${params}`;
+            const data = await fetchWithCache(url, abortControllerRef.current.signal);
+
+            setBoards(data.boards);
+            setTotalPages(data.totalPages);
+            setTotalCount(data.totalCount);
+        } catch (error: any) {
+            if (error.name === 'AbortError') return;
             console.error('Failed to fetch boards', error);
         }
     };
@@ -172,74 +270,134 @@ const GalleryPage = () => {
         <div style={{ padding: '40px 24px', color: 'white' }}>
             <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
                 {/* Header */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                            <div>
-                                <h1 style={{ fontSize: '2rem', fontWeight: 800, letterSpacing: '-0.02em' }}>Image Gallery</h1>
-                                <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Showcasing {totalCount} premium moments</p>
-                            </div>
+                {/* Header Section */}
+                <div style={{ marginBottom: '40px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+                        <div>
+                            <h1 style={{ fontSize: '2rem', fontWeight: 800, letterSpacing: '-0.02em' }}>Asset Gallery</h1>
+                            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Showcasing {totalCount} premium moments</p>
                         </div>
-                        <div style={{ display: 'flex', gap: '12px' }}>
+                        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                            <div style={{ display: 'flex', background: 'rgba(255,255,255,0.05)', borderRadius: '12px', padding: '4px', border: '1px solid var(--glass-border)' }}>
+                                <button onClick={() => setActiveView('gallery')} style={{ padding: '8px 16px', borderRadius: '8px', border: 'none', background: activeView === 'gallery' ? 'var(--primary)' : 'transparent', color: activeView === 'gallery' ? 'black' : 'white', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 700, transition: '0.2s' }}>
+                                    <ImageIcon size={16} /> Gallery
+                                </button>
+                                <button onClick={() => setActiveView('table')} style={{ padding: '8px 16px', borderRadius: '8px', border: 'none', background: activeView === 'table' ? 'var(--primary)' : 'transparent', color: activeView === 'table' ? 'black' : 'white', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 700, transition: '0.2s' }}>
+                                    <ReceiptText size={16} /> Table
+                                </button>
+                            </div>
                             <motion.button
                                 whileHover={{ scale: 1.05 }}
                                 whileTap={{ scale: 0.95 }}
                                 onClick={() => setShowModal(true)}
                                 style={{ background: 'var(--primary)', color: 'white', border: 'none', padding: '12px 24px', borderRadius: '14px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', boxShadow: '0 10px 15px -3px rgba(99, 102, 241, 0.3)' }}
                             >
-                                <Plus size={20} /> Upload Image
+                                <Plus size={20} /> Upload
                             </motion.button>
                         </div>
                     </div>
 
-                    {/* Navigation Bar */}
-                    <div style={{ marginBottom: '40px', display: 'flex', gap: '12px', position: 'sticky', top: '20px', zIndex: 10 }}>
-                        <motion.button
-                            whileHover={{ scale: 1.05, background: activeView === 'gallery' ? 'var(--primary)' : 'rgba(255,255,255,0.1)' }}
-                            whileTap={{ scale: 0.95 }}
-                            onClick={() => setActiveView('gallery')}
-                            style={{
-                                background: activeView === 'gallery' ? 'var(--primary)' : 'rgba(255,255,255,0.05)',
-                                color: 'white',
-                                padding: '10px 24px',
-                                borderRadius: '12px',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '8px',
-                                border: activeView === 'gallery' ? 'none' : '1px solid var(--glass-border)',
-                                cursor: 'pointer',
-                                backdropFilter: 'blur(12px)',
-                                fontWeight: 700,
-                                boxShadow: activeView === 'gallery' ? '0 8px 20px -5px rgba(99, 102, 241, 0.4)' : 'none',
-                                transition: 'all 0.3s ease'
-                            }}
-                        >
-                            <ImageIcon size={18} style={{ color: activeView === 'gallery' ? 'white' : 'var(--primary)' }} /> Gallery View
-                        </motion.button>
-                        <motion.button
-                            whileHover={{ scale: 1.05, background: activeView === 'table' ? 'var(--primary)' : 'rgba(255,255,255,0.1)' }}
-                            whileTap={{ scale: 0.95 }}
-                            onClick={() => setActiveView('table')}
-                            style={{
-                                background: activeView === 'table' ? 'var(--primary)' : 'rgba(255,255,255,0.05)',
-                                color: 'white',
-                                padding: '10px 24px',
-                                borderRadius: '12px',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '8px',
-                                border: activeView === 'table' ? 'none' : '1px solid var(--glass-border)',
-                                cursor: 'pointer',
-                                backdropFilter: 'blur(12px)',
-                                fontWeight: 700,
-                                boxShadow: activeView === 'table' ? '0 8px 20px -5px rgba(99, 102, 241, 0.4)' : 'none',
-                                transition: 'all 0.3s ease'
-                            }}
-                        >
-                            <ReceiptText size={18} style={{ color: activeView === 'table' ? 'white' : 'var(--primary)' }} /> Table View
-                        </motion.button>
-                    </div>
+                    {/* Filter Section (Row 2) */}
+                    <div className="glass-card" style={{ padding: '24px', borderRadius: '20px', border: '1px solid var(--glass-border)', display: 'flex', flexWrap: 'wrap', gap: '20px', alignItems: 'flex-end', background: 'rgba(255,255,255,0.02)' }}>
+                        {/* Title Search */}
+                        <div style={{ flex: '1', minWidth: '200px' }}>
+                            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '8px', textTransform: 'uppercase' }}>Search Title</label>
+                            <div style={{ position: 'relative' }}>
+                                <input
+                                    type="text"
+                                    placeholder="Search by title..."
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    style={{
+                                        width: '100%',
+                                        background: 'rgba(255,255,255,0.05)',
+                                        border: '1px solid var(--glass-border)',
+                                        color: 'white',
+                                        padding: '10px 12px 10px 36px',
+                                        borderRadius: '10px',
+                                        fontSize: '0.9rem',
+                                        outline: 'none'
+                                    }}
+                                />
+                                <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+                            </div>
+                        </div>
 
+                        {/* Date Filters */}
+                        <div>
+                            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '8px', textTransform: 'uppercase' }}>Date Range</label>
+                            <div style={{ display: 'flex', gap: '4px', background: 'rgba(255,255,255,0.05)', padding: '4px', borderRadius: '12px', border: '1px solid var(--glass-border)', marginBottom: '8px' }}>
+                                {['all', 'today', 'week', 'month'].map((type) => (
+                                    <button
+                                        key={type}
+                                        onClick={() => handleDateRangeChange(type)}
+                                        style={{
+                                            padding: '8px 12px',
+                                            borderRadius: '8px',
+                                            border: 'none',
+                                            background: dateRangeType === type ? 'var(--primary)' : 'transparent',
+                                            color: dateRangeType === type ? 'black' : 'white',
+                                            fontSize: '0.85rem',
+                                            fontWeight: 600,
+                                            cursor: 'pointer',
+                                            transition: 'all 0.2s',
+                                        }}
+                                    >
+                                        {type === 'all' ? '전체' : type === 'today' ? '당일' : type === 'week' ? '주간' : '월간'}
+                                    </button>
+                                ))}
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <input
+                                    type="date"
+                                    value={startDate}
+                                    onChange={(e) => { setStartDate(e.target.value); setDateRangeType('custom'); }}
+                                    style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--glass-border)', color: 'white', padding: '10px 12px', borderRadius: '10px', fontSize: '0.9rem', outline: 'none' }}
+                                />
+                                <span style={{ color: 'var(--text-muted)' }}>~</span>
+                                <input
+                                    type="date"
+                                    value={endDate}
+                                    onChange={(e) => { setEndDate(e.target.value); setDateRangeType('custom'); }}
+                                    style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--glass-border)', color: 'white', padding: '10px 12px', borderRadius: '10px', fontSize: '0.9rem', outline: 'none' }}
+                                />
+                            </div>
+                        </div>
+
+                        {/* Categories */}
+                        <div style={{ display: 'flex', gap: '12px' }}>
+                            <div>
+                                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '8px', textTransform: 'uppercase' }}>Cat 1</label>
+                                <input
+                                    type="text"
+                                    placeholder="Category 1"
+                                    value={searchCategory1}
+                                    onChange={(e) => setSearchCategory1(e.target.value)}
+                                    style={{ width: '100px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--glass-border)', color: 'white', padding: '10px', borderRadius: '10px', fontSize: '0.85rem', outline: 'none' }}
+                                />
+                            </div>
+                            <div>
+                                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '8px', textTransform: 'uppercase' }}>Cat 2</label>
+                                <input
+                                    type="text"
+                                    placeholder="Category 2"
+                                    value={searchCategory2}
+                                    onChange={(e) => setSearchCategory2(e.target.value)}
+                                    style={{ width: '100px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--glass-border)', color: 'white', padding: '10px', borderRadius: '10px', fontSize: '0.85rem', outline: 'none' }}
+                                />
+                            </div>
+                            <div>
+                                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '8px', textTransform: 'uppercase' }}>Cat 3</label>
+                                <input
+                                    type="text"
+                                    placeholder="Category 3"
+                                    value={searchCategory3}
+                                    onChange={(e) => setSearchCategory3(e.target.value)}
+                                    style={{ width: '100px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--glass-border)', color: 'white', padding: '10px', borderRadius: '10px', fontSize: '0.85rem', outline: 'none' }}
+                                />
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 {/* Conditional Rendering of Views */}
