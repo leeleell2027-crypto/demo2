@@ -61,3 +61,46 @@ CREATE TABLE IF NOT EXISTS `holiday` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 ALTER TABLE `holiday` ADD COLUMN IF NOT EXISTS `is_recurring` tinyint(1) NOT NULL DEFAULT 0 AFTER `name`;
+
+-- Notice Table
+CREATE TABLE IF NOT EXISTS notices (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    member_id VARCHAR(100) NOT NULL,
+    content TEXT NOT NULL,
+    ip_address VARCHAR(45) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    notice_start_date DATE,
+    notice_end_date DATE,
+    -- Hierarchy for replies
+    ref INT NOT NULL, 
+    step INT NOT NULL DEFAULT 0,
+    depth INT NOT NULL DEFAULT 0,
+    view_count INT DEFAULT 0
+);
+
+-- Notice Attachment Table
+CREATE TABLE IF NOT EXISTS notice_attachments (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    notice_id INT NOT NULL,
+    file_name VARCHAR(255) NOT NULL,
+    file_path VARCHAR(500) NOT NULL,
+    file_size BIGINT NOT NULL,
+    content_type VARCHAR(100),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (notice_id) REFERENCES notices(id) ON DELETE CASCADE
+);
+
+-- Notice Comment Table
+CREATE TABLE IF NOT EXISTS notice_comments (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    notice_id INT NOT NULL,
+    parent_id INT NULL,
+    member_id VARCHAR(100) NOT NULL,
+    content TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (notice_id) REFERENCES notices(id) ON DELETE CASCADE,
+    FOREIGN KEY (parent_id) REFERENCES notice_comments(id) ON DELETE CASCADE
+);

@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.demo2.mapper.NoticeMapper">
+
+    <resultMap id="NoticeResultMap" type="com.example.demo2.model.Notice">
+        <id property="id" column="id" />
+        <result property="title" column="title" />
+        <result property="memberId" column="member_id" />
+        <result property="content" column="content" />
+        <result property="ipAddress" column="ip_address" />
+        <result property="createdAt" column="created_at" />
+        <result property="updatedAt" column="updated_at" />
+        <result property="noticeStartDate" column="notice_start_date" />
+        <result property="noticeEndDate" column="notice_end_date" />
+        <result property="ref" column="ref" />
+        <result property="step" column="step" />
+        <result property="depth" column="depth" />
+        <result property="viewCount" column="view_count" />
+        <result property="memberName" column="memberName" />
+        <result property="commentCount" column="commentCount" />
+        <result property="attachmentCount" column="attachmentCount" />
+    </resultMap>
+
+    <select id="findAll" resultMap="NoticeResultMap">
+        SELECT n.*, m.name as memberName, 
+               (SELECT COUNT(*) FROM notice_comments WHERE notice_id = n.id) as commentCount,
+               (SELECT COUNT(*) FROM notice_attachments WHERE notice_id = n.id) as attachmentCount
+        FROM notices n
+        LEFT JOIN member m ON n.member_id = m.username OR n.member_id = m.id
+        <where>
+            <if test="searchTitle != null and searchTitle != ''">
+                AND n.title LIKE CONCAT('%', #{searchTitle}, '%')
+            </if>
+            <if test="memberId != null and memberId != ''">
+                AND n.member_id = #{memberId}
+            </if>
+        </where>
+        ORDER BY n.ref DESC, n.step ASC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="findById" resultMap="NoticeResultMap">
+        SELECT n.*, m.name as memberName
+        FROM notices n
+        LEFT JOIN member m ON n.member_id = m.username OR n.member_id = m.id
+        WHERE n.id = #{id}
+    </select>
+
+    <select id="countAll" resultType="int">
+        SELECT COUNT(*) FROM notices
+        <where>
+            <if test="searchTitle != null and searchTitle != ''">
+                AND title LIKE CONCAT('%', #{searchTitle}, '%')
+            </if>
+            <if test="memberId != null and memberId != ''">
+                AND member_id = #{memberId}
+            </if>
+        </where>
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO notices(title, member_id, content, ip_address, notice_start_date, notice_end_date, ref, step, depth)
+        VALUES(#{title}, #{memberId}, #{content}, #{ipAddress}, #{noticeStartDate}, #{noticeEndDate}, #{ref}, #{step}, #{depth})
+    </insert>
+
+    <update id="update">
+        UPDATE notices
+        SET title = #{title},
+            content = #{content},
+            notice_start_date = #{noticeStartDate},
+            notice_end_date = #{noticeEndDate},
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = #{id}
+    </update>
+
+    <delete id="delete">
+        DELETE FROM notices WHERE id = #{id}
+    </delete>
+
+    <update id="updateViewCount">
+        UPDATE notices SET view_count = view_count + 1 WHERE id = #{id}
+    </update>
+
+    <update id="updateReplyStep">
+        UPDATE notices SET step = step + 1 WHERE ref = #{ref} AND step &gt; #{step}
+    </update>
+    
+    <update id="updateRef">
+        UPDATE notices SET ref = id WHERE id = #{id}
+    </update>
+
+    <!-- Attachments -->
+    <insert id="insertAttachment">
+        INSERT INTO notice_attachments(notice_id, file_name, file_path, file_size, content_type)
+        VALUES(#{noticeId}, #{fileName}, #{filePath}, #{fileSize}, #{contentType})
+    </insert>
+
+    <select id="findAttachmentsByNoticeId" resultType="com.example.demo2.model.NoticeAttachment">
+        SELECT * FROM notice_attachments WHERE notice_id = #{noticeId}
+    </select>
+
+    <select id="findAttachmentsByNoticeIds" resultType="com.example.demo2.model.NoticeAttachment">
+        SELECT * FROM notice_attachments 
+        WHERE notice_id IN 
+        <foreach item="id" collection="noticeIds" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+    
+    <select id="findAttachmentById" resultType="com.example.demo2.model.NoticeAttachment">
+        SELECT * FROM notice_attachments WHERE id = #{id}
+    </select>
+
+    <delete id="deleteAttachment">
+        DELETE FROM notice_attachments WHERE id = #{id}
+    </delete>
+
+    <!-- Comments -->
+    <insert id="insertComment">
+        INSERT INTO notice_comments(notice_id, parent_id, member_id, content)
+        VALUES(#{noticeId}, #{parentId}, #{memberId}, #{content})
+    </insert>
+
+    <select id="findCommentsByNoticeId" resultType="com.example.demo2.model.NoticeComment">
+        WITH RECURSIVE CommentHierarchy AS (
+            SELECT 
+                id, notice_id, parent_id, member_id, content, created_at, updated_at,
+                0 AS depth,
+                CAST(LPAD(id, 10, '0') AS CHAR(255)) AS path
+            FROM notice_comments
+            WHERE notice_id = #{noticeId} AND parent_id IS NULL
+            
+            UNION ALL
+            
+            SELECT 
+                c.id, c.notice_id, c.parent_id, c.member_id, c.content, c.created_at, c.updated_at,
+                ch.depth + 1 AS depth,
+                CONCAT(ch.path, LPAD(c.id, 10, '0')) AS path
+            FROM notice_comments c
+            JOIN CommentHierarchy ch ON c.parent_id = ch.id
+        )
+        SELECT ch.*, m.name as memberName
+        FROM CommentHierarchy ch
+        LEFT JOIN member m ON ch.member_id = m.username OR ch.member_id = m.id
+        ORDER BY path ASC
+    </select>
+
+    <select id="findCommentById" resultType="com.example.demo2.model.NoticeComment">
+        SELECT * FROM notice_comments WHERE id = #{id}
+    </select>
+
+    <delete id="deleteComment">
+        DELETE FROM notice_comments WHERE id = #{id}
+    </delete>
+
+</mapper>

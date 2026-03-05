@@ -17,7 +17,8 @@ import {
     X,
     LogOut,
     Shield,
-    Map as MapIcon
+    Map as MapIcon,
+    Hash
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -44,6 +45,7 @@ const categories: Category[] = [
         icon: <Wallet size={20} />,
         items: [
             { label: 'Transactions', href: '/transactions', icon: <CreditCard size={18} /> },
+            { label: 'Notice', href: '/notice', icon: <Hash size={18} /> },
         ]
     },
     {
