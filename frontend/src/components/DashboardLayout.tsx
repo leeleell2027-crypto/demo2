@@ -16,7 +16,8 @@ import {
     Menu,
     X,
     LogOut,
-    Shield
+    Shield,
+    Map as MapIcon
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -51,6 +52,7 @@ const categories: Category[] = [
         icon: <ImageIcon size={20} />,
         items: [
             { label: 'Gallery', href: '/gallery', icon: <ImageIcon size={18} /> },
+            { label: 'Map', href: '/map', icon: <MapIcon size={18} /> },
         ]
     },
     {
