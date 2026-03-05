@@ -267,38 +267,55 @@ const GalleryPage = () => {
     const displayItems = gridItems.slice(0, 16);
 
     return (
-        <div style={{ padding: '40px 24px', color: 'white' }}>
-            <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+        <div className="page-container" style={{ color: 'white' }}>
+            <div style={{ maxWidth: '1200px', margin: '0 auto', width: '100%', display: 'flex', flexDirection: 'column', gap: '24px' }}>
                 {/* Header */}
                 {/* Header Section */}
                 <div style={{ marginBottom: '40px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
                         <div>
-                            <h1 style={{ fontSize: '2rem', fontWeight: 800, letterSpacing: '-0.02em' }}>Asset Gallery</h1>
+                            <h1 className="header-title" style={{ fontSize: '2rem' }}>Asset Gallery</h1>
                             <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Showcasing {totalCount} premium moments</p>
                         </div>
                         <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                            <div style={{ display: 'flex', background: 'rgba(255,255,255,0.05)', borderRadius: '12px', padding: '4px', border: '1px solid var(--glass-border)' }}>
-                                <button onClick={() => setActiveView('gallery')} style={{ padding: '8px 16px', borderRadius: '8px', border: 'none', background: activeView === 'gallery' ? 'var(--primary)' : 'transparent', color: activeView === 'gallery' ? 'black' : 'white', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 700, transition: '0.2s' }}>
+                            <div className="glass-panel" style={{ display: 'flex', borderRadius: '12px', padding: '4px' }}>
+                                <button
+                                    onClick={() => setActiveView('gallery')}
+                                    className={`btn ${activeView === 'gallery' ? 'btn-primary' : ''}`}
+                                    style={{
+                                        padding: '8px 16px',
+                                        borderRadius: '8px',
+                                        background: activeView === 'gallery' ? 'var(--primary)' : 'transparent',
+                                        color: activeView === 'gallery' ? 'black' : 'white',
+                                    }}
+                                >
                                     <ImageIcon size={16} /> Gallery
                                 </button>
-                                <button onClick={() => setActiveView('table')} style={{ padding: '8px 16px', borderRadius: '8px', border: 'none', background: activeView === 'table' ? 'var(--primary)' : 'transparent', color: activeView === 'table' ? 'black' : 'white', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 700, transition: '0.2s' }}>
+                                <button
+                                    onClick={() => setActiveView('table')}
+                                    className={`btn ${activeView === 'table' ? 'btn-primary' : ''}`}
+                                    style={{
+                                        padding: '8px 16px',
+                                        borderRadius: '8px',
+                                        background: activeView === 'table' ? 'var(--primary)' : 'transparent',
+                                        color: activeView === 'table' ? 'black' : 'white',
+                                    }}
+                                >
                                     <ReceiptText size={16} /> Table
                                 </button>
                             </div>
-                            <motion.button
-                                whileHover={{ scale: 1.05 }}
-                                whileTap={{ scale: 0.95 }}
+                            <button
+                                className="btn btn-primary"
+                                style={{ color: 'white' }}
                                 onClick={() => setShowModal(true)}
-                                style={{ background: 'var(--primary)', color: 'white', border: 'none', padding: '12px 24px', borderRadius: '14px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', boxShadow: '0 10px 15px -3px rgba(99, 102, 241, 0.3)' }}
                             >
                                 <Plus size={20} /> Upload
-                            </motion.button>
+                            </button>
                         </div>
                     </div>
 
                     {/* Filter Section (Row 2) */}
-                    <div className="glass-card" style={{ padding: '24px', borderRadius: '20px', border: '1px solid var(--glass-border)', display: 'flex', flexWrap: 'wrap', gap: '20px', alignItems: 'flex-end', background: 'rgba(255,255,255,0.02)' }}>
+                    <div className="glass-panel" style={{ padding: '24px', display: 'flex', flexWrap: 'wrap', gap: '20px', alignItems: 'flex-end', background: 'rgba(255,255,255,0.02)' }}>
                         {/* Title Search */}
                         <div style={{ flex: '1', minWidth: '200px' }}>
                             <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '8px', textTransform: 'uppercase' }}>Search Title</label>
@@ -308,16 +325,8 @@ const GalleryPage = () => {
                                     placeholder="Search by title..."
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
-                                    style={{
-                                        width: '100%',
-                                        background: 'rgba(255,255,255,0.05)',
-                                        border: '1px solid var(--glass-border)',
-                                        color: 'white',
-                                        padding: '10px 12px 10px 36px',
-                                        borderRadius: '10px',
-                                        fontSize: '0.9rem',
-                                        outline: 'none'
-                                    }}
+                                    className="input-control"
+                                    style={{ paddingLeft: '36px' }}
                                 />
                                 <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
                             </div>
@@ -326,21 +335,18 @@ const GalleryPage = () => {
                         {/* Date Filters */}
                         <div>
                             <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '8px', textTransform: 'uppercase' }}>Date Range</label>
-                            <div style={{ display: 'flex', gap: '4px', background: 'rgba(255,255,255,0.05)', padding: '4px', borderRadius: '12px', border: '1px solid var(--glass-border)', marginBottom: '8px' }}>
+                            <div className="glass-panel" style={{ display: 'flex', gap: '4px', padding: '4px', borderRadius: '12px', marginBottom: '8px' }}>
                                 {['all', 'today', 'week', 'month'].map((type) => (
                                     <button
                                         key={type}
                                         onClick={() => handleDateRangeChange(type)}
+                                        className={`btn ${dateRangeType === type ? 'btn-primary' : ''}`}
                                         style={{
                                             padding: '8px 12px',
                                             borderRadius: '8px',
-                                            border: 'none',
+                                            fontSize: '0.85rem',
                                             background: dateRangeType === type ? 'var(--primary)' : 'transparent',
                                             color: dateRangeType === type ? 'black' : 'white',
-                                            fontSize: '0.85rem',
-                                            fontWeight: 600,
-                                            cursor: 'pointer',
-                                            transition: 'all 0.2s',
                                         }}
                                     >
                                         {type === 'all' ? '전체' : type === 'today' ? '당일' : type === 'week' ? '주간' : '월간'}
@@ -352,14 +358,16 @@ const GalleryPage = () => {
                                     type="date"
                                     value={startDate}
                                     onChange={(e) => { setStartDate(e.target.value); setDateRangeType('custom'); }}
-                                    style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--glass-border)', color: 'white', padding: '10px 12px', borderRadius: '10px', fontSize: '0.9rem', outline: 'none' }}
+                                    className="input-control"
+                                    style={{ padding: '8px 12px' }}
                                 />
                                 <span style={{ color: 'var(--text-muted)' }}>~</span>
                                 <input
                                     type="date"
                                     value={endDate}
                                     onChange={(e) => { setEndDate(e.target.value); setDateRangeType('custom'); }}
-                                    style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--glass-border)', color: 'white', padding: '10px 12px', borderRadius: '10px', fontSize: '0.9rem', outline: 'none' }}
+                                    className="input-control"
+                                    style={{ padding: '8px 12px' }}
                                 />
                             </div>
                         </div>
@@ -373,7 +381,8 @@ const GalleryPage = () => {
                                     placeholder="Category 1"
                                     value={searchCategory1}
                                     onChange={(e) => setSearchCategory1(e.target.value)}
-                                    style={{ width: '100px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--glass-border)', color: 'white', padding: '10px', borderRadius: '10px', fontSize: '0.85rem', outline: 'none' }}
+                                    className="input-control"
+                                    style={{ width: '100px', padding: '10px' }}
                                 />
                             </div>
                             <div>
@@ -383,7 +392,8 @@ const GalleryPage = () => {
                                     placeholder="Category 2"
                                     value={searchCategory2}
                                     onChange={(e) => setSearchCategory2(e.target.value)}
-                                    style={{ width: '100px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--glass-border)', color: 'white', padding: '10px', borderRadius: '10px', fontSize: '0.85rem', outline: 'none' }}
+                                    className="input-control"
+                                    style={{ width: '100px', padding: '10px' }}
                                 />
                             </div>
                             <div>
@@ -393,7 +403,8 @@ const GalleryPage = () => {
                                     placeholder="Category 3"
                                     value={searchCategory3}
                                     onChange={(e) => setSearchCategory3(e.target.value)}
-                                    style={{ width: '100px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--glass-border)', color: 'white', padding: '10px', borderRadius: '10px', fontSize: '0.85rem', outline: 'none' }}
+                                    className="input-control"
+                                    style={{ width: '100px', padding: '10px' }}
                                 />
                             </div>
                         </div>
@@ -498,17 +509,17 @@ const GalleryPage = () => {
                                 <h2 style={{ fontSize: '1.5rem', fontWeight: 700 }}>Management List</h2>
                             </div>
 
-                            <div className="glass-card" style={{ overflow: 'hidden', padding: 0, borderRadius: '20px', border: '1px solid var(--glass-border)', marginBottom: '40px' }}>
-                                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-                                    <thead style={{ background: 'rgba(255,255,255,0.05)', color: 'var(--text-muted)', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                            <div className="data-table-container">
+                                <table className="data-table">
+                                    <thead>
                                         <tr>
-                                            <th style={{ padding: '20px 24px' }}>ID</th>
-                                            <th style={{ padding: '20px 24px' }}>Thumbnail</th>
-                                            <th style={{ padding: '20px 24px' }}>Title</th>
-                                            <th style={{ padding: '20px 24px' }}>Event Date</th>
-                                            <th style={{ padding: '20px 24px' }}>Categories</th>
-                                            <th style={{ padding: '20px 24px' }}>Created At</th>
-                                            <th style={{ padding: '20px 24px' }}>Actions</th>
+                                            <th>ID</th>
+                                            <th>Thumbnail</th>
+                                            <th>Title</th>
+                                            <th>Event Date</th>
+                                            <th>Categories</th>
+                                            <th>Created At</th>
+                                            <th>Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody>

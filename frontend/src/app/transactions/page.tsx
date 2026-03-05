@@ -294,8 +294,8 @@ const TransactionsContent = () => {
     };
 
     return (
-        <div style={{ padding: '40px 24px', color: 'white' }}>
-            <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
+        <div className="page-container" style={{ color: 'white' }}>
+            <div style={{ maxWidth: '1400px', margin: '0 auto', width: '100%', display: 'flex', flexDirection: 'column', gap: '24px' }}>
                 {/* Header Section */}
                 {/* Header Section - Split into 2 Rows */}
                 <div style={{ marginBottom: '40px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
@@ -307,25 +307,19 @@ const TransactionsContent = () => {
                                     <CreditCard size={20} />
                                     <span style={{ fontWeight: 600, fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Card Statement</span>
                                 </div>
-                                <h1 style={{ fontSize: '2.5rem', fontWeight: 800, letterSpacing: '-0.02em', margin: 0 }}>Transaction History</h1>
+                                <h1 className="header-title" style={{ fontSize: '2.5rem' }}>Transaction History</h1>
                             </div>
                         </div>
 
-                        <div style={{ display: 'flex', gap: '8px', background: 'rgba(255,255,255,0.05)', padding: '4px', borderRadius: '14px', border: '1px solid var(--glass-border)' }}>
+                        <div className="glass-panel view-mode-tabs">
                             <button
                                 onClick={() => setViewMode('table')}
+                                className={`btn ${viewMode === 'table' ? 'btn-primary' : ''} view-mode-tab`}
                                 style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '8px',
                                     padding: '10px 16px',
                                     borderRadius: '10px',
-                                    border: 'none',
                                     background: viewMode === 'table' ? 'var(--primary)' : 'transparent',
                                     color: viewMode === 'table' ? 'black' : 'white',
-                                    cursor: 'pointer',
-                                    fontWeight: 600,
-                                    transition: 'all 0.2s'
                                 }}
                             >
                                 <Table size={18} /> Table
@@ -370,25 +364,22 @@ const TransactionsContent = () => {
                     </div>
 
                     {/* Row 2: Search & Filter Controls */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 24px', background: 'rgba(255,255,255,0.02)', borderRadius: '20px', border: '1px solid var(--glass-border)' }}>
+                    <div className="glass-panel" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 24px', background: 'rgba(255,255,255,0.02)' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                             {viewMode === 'table' && (
                                 <>
-                                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center', background: 'rgba(255,255,255,0.05)', padding: '4px', borderRadius: '12px', border: '1px solid var(--glass-border)', marginRight: '8px' }}>
+                                    <div className="glass-panel" style={{ display: 'flex', gap: '4px', padding: '4px', borderRadius: '12px', marginRight: '8px' }}>
                                         {['today', 'week', 'month'].map((type) => (
                                             <button
                                                 key={type}
                                                 onClick={() => handleDateRangeChange(type)}
+                                                className={`btn ${dateRangeType === type ? 'btn-primary' : ''}`}
                                                 style={{
                                                     padding: '8px 12px',
                                                     borderRadius: '8px',
-                                                    border: 'none',
+                                                    fontSize: '0.85rem',
                                                     background: dateRangeType === type ? 'var(--primary)' : 'transparent',
                                                     color: dateRangeType === type ? 'black' : 'white',
-                                                    cursor: 'pointer',
-                                                    fontSize: '0.85rem',
-                                                    fontWeight: 600,
-                                                    transition: 'all 0.2s'
                                                 }}
                                             >
                                                 {type === 'today' ? '당일' : type === 'week' ? '주간' : '월간'}
@@ -403,7 +394,8 @@ const TransactionsContent = () => {
                                                 setStartDate(e.target.value);
                                                 setDateRangeType('custom');
                                             }}
-                                            style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--glass-border)', padding: '10px 12px', borderRadius: '10px', color: 'white', fontSize: '0.9rem', outline: 'none' }}
+                                            className="input-control"
+                                            style={{ padding: '8px 12px' }}
                                         />
                                         <span style={{ color: 'var(--text-muted)' }}>~</span>
                                         <input
@@ -413,7 +405,8 @@ const TransactionsContent = () => {
                                                 setEndDate(e.target.value);
                                                 setDateRangeType('custom');
                                             }}
-                                            style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--glass-border)', padding: '10px 12px', borderRadius: '10px', color: 'white', fontSize: '0.9rem', outline: 'none' }}
+                                            className="input-control"
+                                            style={{ padding: '8px 12px' }}
                                         />
                                     </div>
                                     <div style={{ width: '1px', height: '24px', background: 'var(--glass-border)', margin: '0 8px' }} />
@@ -430,22 +423,23 @@ const TransactionsContent = () => {
                                         else if (viewMode === 'calendar') setCalendarSearchMerchant(e.target.value);
                                         else setChartSearchMerchant(e.target.value);
                                     }}
-                                    style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--glass-border)', padding: '12px 16px 12px 44px', borderRadius: '12px', color: 'white', width: '220px', fontSize: '0.95rem', outline: 'none' }}
+                                    className="input-control"
+                                    style={{ paddingLeft: '44px', width: '220px' }}
                                 />
                             </div>
                         </div>
 
                         <div style={{ display: 'flex', gap: '12px' }}>
-                            <motion.button whileHover={{ scale: 1.05 }} style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid var(--glass-border)', color: 'white', padding: '12px 20px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontWeight: 600 }}>
+                            <button className="btn btn-secondary">
                                 <Filter size={18} /> Filter
-                            </motion.button>
-                            <motion.button
-                                whileHover={{ scale: 1.05 }}
-                                style={{ background: 'var(--primary)', border: 'none', color: 'black', padding: '12px 24px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontWeight: 700, boxShadow: '0 10px 15px -3px rgba(99, 102, 241, 0.3)' }}
+                            </button>
+                            <button
+                                className="btn btn-primary"
+                                style={{ color: 'black' }}
                                 onClick={() => window.location.reload()}
                             >
                                 <Download size={18} /> Export
-                            </motion.button>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -458,7 +452,7 @@ const TransactionsContent = () => {
                         { label: viewMode === 'calendar' ? 'Monthly Max' : 'Max Transaction', value: `${formatCurrency(stats.max)} 원`, icon: <MapPin size={20} />, color: '#f59e0b' },
                         { label: viewMode === 'calendar' ? 'Monthly Points' : 'Total Points', value: `${formatCurrency(stats.points)} P`, icon: <CreditCard size={20} />, color: '#ec4899' },
                     ].map((stat, i) => (
-                        <div key={i} className="glass-card" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        <div key={i} className="glass-panel" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                 <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: 600 }}>{stat.label}</span>
                                 <div style={{ background: `${stat.color}15`, color: stat.color, padding: '8px', borderRadius: '10px' }}>{stat.icon}</div>
@@ -470,18 +464,18 @@ const TransactionsContent = () => {
 
                 {/* Content Section */}
                 {viewMode === 'table' ? (
-                    <div className="glass-card" style={{ padding: 0, overflow: 'hidden', borderRadius: '24px', border: '1px solid var(--glass-border)' }}>
+                    <div className="data-table-container">
                         <div style={{ overflowX: 'auto' }}>
-                            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '1200px' }}>
+                            <table className="data-table">
                                 <thead>
-                                    <tr style={{ background: 'rgba(255,255,255,0.03)', borderBottom: '1px solid var(--glass-border)' }}>
-                                        <th style={{ padding: '20px 24px', fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Date & Time</th>
-                                        <th style={{ padding: '20px 24px', fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Merchant (이용하신곳)</th>
-                                        <th style={{ padding: '20px 24px', fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', textAlign: 'right' }}>Amount (KRW)</th>
-                                        <th style={{ padding: '20px 24px', fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Method</th>
-                                        <th style={{ padding: '20px 24px', fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Status</th>
-                                        <th style={{ padding: '20px 24px', fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Points</th>
-                                        <th style={{ padding: '20px 24px', fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Approval No</th>
+                                    <tr>
+                                        <th>Date & Time</th>
+                                        <th>Merchant (이용하신곳)</th>
+                                        <th style={{ textAlign: 'right' }}>Amount (KRW)</th>
+                                        <th>Method</th>
+                                        <th>Status</th>
+                                        <th>Points</th>
+                                        <th>Approval No</th>
                                     </tr>
                                 </thead>
                                 <tbody>

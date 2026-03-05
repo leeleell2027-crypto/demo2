@@ -82,19 +82,20 @@ export default function CalendarPage() {
     }
 
     return (
-        <div style={{ padding: '40px 24px', color: 'white' }}>
+        <div className="page-container" style={{ color: 'white' }}>
             <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
-                    <h1 style={{ fontSize: '2.5rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '15px' }}>
+                    <h1 className="header-title" style={{ fontSize: '2.5rem' }}>
                         <Calendar size={32} color="var(--primary)" />
                         Spend Calendar
                     </h1>
                     <div style={{ display: 'flex', gap: '10px' }}>
                         <motion.button
-                            whileHover={{ scale: 1.1 }}
-                            whileTap={{ scale: 0.9 }}
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
                             onClick={prevMonth}
-                            style={{ padding: '12px', borderRadius: '14px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--glass-border)', color: 'white' }}
+                            className="btn"
+                            style={{ padding: '12px', background: 'rgba(255,255,255,0.05)', color: 'white' }}
                         >
                             <ChevronLeft size={24} />
                         </motion.button>
@@ -102,20 +103,21 @@ export default function CalendarPage() {
                             {currentMonth.toLocaleString('default', { month: 'long', year: 'numeric' })}
                         </h2>
                         <motion.button
-                            whileHover={{ scale: 1.1 }}
-                            whileTap={{ scale: 0.9 }}
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
                             onClick={nextMonth}
-                            style={{ padding: '12px', borderRadius: '14px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--glass-border)', color: 'white' }}
+                            className="btn"
+                            style={{ padding: '12px', background: 'rgba(255,255,255,0.05)', color: 'white' }}
                         >
                             <ChevronRight size={24} />
                         </motion.button>
                     </div>
                 </div>
 
-                <div className="glass-card" style={{ padding: '24px', borderRadius: '24px' }}>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '1px', background: 'rgba(255,255,255,0.1)', borderRadius: '16px', overflow: 'hidden' }}>
+                <div className="glass-panel" style={{ padding: '24px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '1px', background: 'rgba(255,255,255,0.05)', borderRadius: '16px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.05)' }}>
                         {weekDays.map(day => (
-                            <div key={day} style={{ padding: '15px', textAlign: 'center', background: 'rgba(15, 23, 42, 0.8)', fontSize: '0.8rem', fontWeight: 800, color: 'var(--text-muted)' }}>
+                            <div key={day} style={{ padding: '16px', textAlign: 'center', background: 'rgba(15, 23, 42, 0.6)', fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.05em' }}>
                                 {day}
                             </div>
                         ))}
@@ -137,13 +139,14 @@ export default function CalendarPage() {
                                     }}
                                     style={{
                                         height: '140px',
-                                        padding: '12px',
-                                        background: isValid ? 'rgba(30, 41, 59, 0.4)' : 'transparent',
-                                        border: '1px solid rgba(255,255,255,0.05)',
+                                        padding: '16px',
+                                        background: isValid ? 'rgba(30, 41, 59, 0.3)' : 'transparent',
+                                        border: '1px solid rgba(255,255,255,0.03)',
                                         display: 'flex',
                                         flexDirection: 'column',
                                         justifyContent: 'space-between',
-                                        cursor: isValid ? 'pointer' : 'default'
+                                        cursor: isValid ? 'pointer' : 'default',
+                                        transition: 'background 0.2s'
                                     }}
                                 >
                                     {isValid && (
@@ -195,9 +198,9 @@ export default function CalendarPage() {
                                                 <div style={{
                                                     background: 'rgba(99, 102, 241, 0.1)',
                                                     border: '1px solid rgba(99, 102, 241, 0.2)',
-                                                    padding: '4px 8px',
-                                                    borderRadius: '8px',
-                                                    fontSize: '0.8rem',
+                                                    padding: '6px 10px',
+                                                    borderRadius: '10px',
+                                                    fontSize: '0.85rem',
                                                     fontWeight: 800,
                                                     color: '#818cf8',
                                                     textAlign: 'right'

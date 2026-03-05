@@ -118,83 +118,75 @@ export default function HolidayManagementPage() {
     }
 
     return (
-        <div style={{ padding: '40px', color: 'white' }}>
+        <div className="page-container" style={{ color: 'white' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '40px' }}>
                 <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--primary)', marginBottom: '4px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--primary)', marginBottom: '8px' }}>
                         <Calendar size={20} />
-                        <span style={{ fontWeight: 600, fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '0.1em' }}>System administration</span>
+                        <span style={{ fontWeight: 600, fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.1em' }}>System administration</span>
                     </div>
-                    <h1 style={{ fontSize: '2.5rem', fontWeight: 800, letterSpacing: '-0.02em' }}>Holiday Management</h1>
+                    <h1 className="header-title" style={{ fontSize: '2.5rem' }}>Holiday Management</h1>
                 </div>
 
                 <button
                     onClick={() => handleOpenModal()}
-                    style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px',
-                        padding: '12px 20px',
-                        borderRadius: '12px',
-                        background: 'white',
-                        color: 'black',
-                        fontWeight: 700,
-                        border: 'none',
-                        cursor: 'pointer'
-                    }}
+                    className="btn btn-primary"
+                    style={{ color: 'white' }}
                 >
                     <Plus size={18} />
                     Add Holiday
                 </button>
             </div>
 
-            <div className="glass-card" style={{ padding: '24px', borderRadius: '24px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+            <div className="data-table-container">
+                <table className="data-table">
                     <thead>
-                        <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-                            <th style={{ padding: '16px', color: 'rgba(255,255,255,0.5)', fontWeight: 500 }}>Date</th>
-                            <th style={{ padding: '16px', color: 'rgba(255,255,255,0.5)', fontWeight: 500 }}>Type</th>
-                            <th style={{ padding: '16px', color: 'rgba(255,255,255,0.5)', fontWeight: 500 }}>Holiday Name</th>
-                            <th style={{ padding: '16px', color: 'rgba(255,255,255,0.5)', fontWeight: 500 }}>Actions</th>
+                        <tr>
+                            <th>Date</th>
+                            <th>Type</th>
+                            <th>Holiday Name</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         {isLoading ? (
-                            <tr><td colSpan={4} style={{ padding: '40px', textAlign: 'center' }}>Loading...</td></tr>
+                            <tr><td colSpan={4} className="data-table-empty-row">Loading...</td></tr>
                         ) : holidays.length === 0 ? (
-                            <tr><td colSpan={4} style={{ padding: '40px', textAlign: 'center' }}>No holidays found.</td></tr>
-                        ) : holidays.map(h => (
-                            <tr key={h.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                                <td style={{ padding: '16px', fontWeight: 600 }}>{h.holidayDate}</td>
-                                <td style={{ padding: '16px' }}>
-                                    {h.recurring ? (
-                                        <span style={{ padding: '4px 8px', borderRadius: '6px', fontSize: '0.75rem', background: 'rgba(16, 185, 129, 0.1)', color: '#10b981', fontWeight: 600 }}>매년 반복</span>
-                                    ) : (
-                                        <span style={{ padding: '4px 8px', borderRadius: '6px', fontSize: '0.75rem', background: 'rgba(99, 102, 241, 0.1)', color: '#6366f1', fontWeight: 600 }}>단일 일자</span>
-                                    )}
-                                </td>
-                                <td style={{ padding: '16px' }}>{h.name}</td>
-                                <td style={{ padding: '16px' }}>
-                                    <div style={{ display: 'flex', gap: '8px' }}>
-                                        <button onClick={() => handleOpenModal(h)} style={{ background: 'rgba(255,255,255,0.05)', border: 'none', padding: '8px', borderRadius: '8px', cursor: 'pointer', color: 'white' }}>
-                                            <Edit2 size={16} />
-                                        </button>
-                                        <button onClick={() => handleDelete(h.id)} style={{ background: 'rgba(239, 68, 68, 0.1)', border: 'none', padding: '8px', borderRadius: '8px', cursor: 'pointer', color: '#ef4444' }}>
-                                            <Trash2 size={16} />
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                        ))}
+                            <tr><td colSpan={4} className="data-table-empty-row">No holidays found.</td></tr>
+                        ) : (
+                            holidays.map(h => (
+                                <tr key={h.id} className="data-table-row">
+                                    <td className="data-table-td-bold">{h.holidayDate}</td>
+                                    <td>
+                                        {h.recurring ? (
+                                            <span className="badge badge-success">매년 반복</span>
+                                        ) : (
+                                            <span className="badge badge-info">단일 일자</span>
+                                        )}
+                                    </td>
+                                    <td>{h.name}</td>
+                                    <td>
+                                        <div style={{ display: 'flex', gap: '8px' }}>
+                                            <button onClick={() => handleOpenModal(h)} style={{ background: 'rgba(255,255,255,0.05)', border: 'none', padding: '8px', borderRadius: '8px', cursor: 'pointer', color: 'white' }}>
+                                                <Edit2 size={16} />
+                                            </button>
+                                            <button onClick={() => handleDelete(h.id)} style={{ background: 'rgba(239, 68, 68, 0.1)', border: 'none', padding: '8px', borderRadius: '8px', cursor: 'pointer', color: '#ef4444' }}>
+                                                <Trash2 size={16} />
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))
+                        )}
                     </tbody>
                 </table>
 
-                {/* Pagination Controls */}
-                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px', padding: '24px 0 0', borderTop: '1px solid rgba(255,255,255,0.05)', marginTop: '24px' }}>
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', padding: '24px 0 0', marginTop: '12px' }}>
                     <button
                         disabled={currentPage === 1}
                         onClick={() => handlePageChange(currentPage - 1)}
-                        style={{ background: 'transparent', border: 'none', color: currentPage === 1 ? 'rgba(255,255,255,0.2)' : 'white', cursor: currentPage === 1 ? 'default' : 'pointer', display: 'flex', padding: '4px' }}
+                        className="btn"
+                        style={{ padding: '8px', background: 'transparent', color: currentPage === 1 ? 'rgba(255,255,255,0.1)' : 'white' }}
                     >
                         <ChevronLeft size={20} />
                     </button>
@@ -204,17 +196,14 @@ export default function HolidayManagementPage() {
                             <button
                                 key={i + 1}
                                 onClick={() => handlePageChange(i + 1)}
+                                className={`btn ${currentPage === i + 1 ? 'btn-primary' : ''}`}
                                 style={{
-                                    width: '32px',
-                                    height: '32px',
-                                    borderRadius: '8px',
-                                    border: 'none',
+                                    width: '36px',
+                                    height: '36px',
+                                    padding: 0,
+                                    borderRadius: '10px',
                                     background: currentPage === i + 1 ? 'var(--primary)' : 'rgba(255,255,255,0.05)',
                                     color: currentPage === i + 1 ? 'black' : 'white',
-                                    fontWeight: 700,
-                                    fontSize: '0.85rem',
-                                    cursor: 'pointer',
-                                    transition: 'all 0.2s'
                                 }}
                             >
                                 {i + 1}
@@ -225,7 +214,8 @@ export default function HolidayManagementPage() {
                     <button
                         disabled={currentPage >= totalPages}
                         onClick={() => handlePageChange(currentPage + 1)}
-                        style={{ background: 'transparent', border: 'none', color: currentPage >= totalPages ? 'rgba(255,255,255,0.2)' : 'white', cursor: currentPage >= totalPages ? 'default' : 'pointer', display: 'flex', padding: '4px' }}
+                        className="btn"
+                        style={{ padding: '8px', background: 'transparent', color: currentPage >= totalPages ? 'rgba(255,255,255,0.1)' : 'white' }}
                     >
                         <ChevronRight size={20} />
                     </button>
@@ -233,20 +223,20 @@ export default function HolidayManagementPage() {
             </div>
 
             {isModalOpen && (
-                <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
-                    <div className="glass-card" style={{ width: '100%', maxWidth: '400px', background: '#111', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '24px', padding: '32px', position: 'relative' }}>
+                <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(12px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '20px' }}>
+                    <div className="glass-panel animate-fade-in" style={{ width: '100%', maxWidth: '440px', padding: '32px', position: 'relative' }}>
                         <button onClick={() => setIsModalOpen(false)} style={{ position: 'absolute', top: '24px', right: '24px', background: 'transparent', border: 'none', color: 'white', cursor: 'pointer' }}>
                             <X size={24} />
                         </button>
-                        <h2 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '24px' }}>{editingHoliday ? 'Edit Holiday' : 'Add Holiday'}</h2>
+                        <h2 className="header-title" style={{ fontSize: '1.5rem', marginBottom: '24px' }}>{editingHoliday ? 'Edit Holiday' : 'Add Holiday'}</h2>
                         <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                             <div>
-                                <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.85rem', color: 'rgba(255,255,255,0.5)' }}>Date</label>
-                                <input type="date" required value={formData.holidayDate} onChange={e => setFormData({ ...formData, holidayDate: e.target.value })} style={{ width: '100%', padding: '12px', borderRadius: '12px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'white' }} />
+                                <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 600 }}>Date</label>
+                                <input type="date" required value={formData.holidayDate} onChange={e => setFormData({ ...formData, holidayDate: e.target.value })} className="input-control" />
                             </div>
                             <div>
-                                <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.85rem', color: 'rgba(255,255,255,0.5)' }}>Holiday Name</label>
-                                <input required value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} placeholder="Enter holiday name" style={{ width: '100%', padding: '12px', borderRadius: '12px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'white' }} />
+                                <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 600 }}>Holiday Name</label>
+                                <input required value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} placeholder="Enter holiday name" className="input-control" />
                             </div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }} onClick={() => setFormData({ ...formData, recurring: !formData.recurring })}>
                                 <div style={{
@@ -264,7 +254,7 @@ export default function HolidayManagementPage() {
                                 </div>
                                 <span style={{ fontSize: '0.9rem', color: formData.recurring ? 'white' : 'var(--text-muted)' }}>매년 반복 여부</span>
                             </div>
-                            <button type="submit" style={{ marginTop: '12px', padding: '14px', borderRadius: '12px', background: 'white', color: 'black', fontWeight: 700, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                            <button type="submit" className="btn btn-primary" style={{ marginTop: '12px', padding: '14px', width: '100%', color: 'white' }}>
                                 <Save size={18} />
                                 {editingHoliday ? 'Update' : 'Save'}
                             </button>

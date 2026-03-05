@@ -77,6 +77,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                             value={username}
                             onChange={(e) => setUsername(e.target.value)}
                             required
+                            className="input-control"
                             style={{ paddingLeft: '40px' }}
                         />
                     </div>
@@ -92,6 +93,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             required
+                            className="input-control"
                             style={{ paddingLeft: '40px' }}
                         />
                     </div>
@@ -121,18 +123,11 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                 <button
                     type="submit"
                     disabled={loading}
+                    className="btn btn-primary"
                     style={{
                         marginTop: '12px',
-                        background: 'var(--primary)',
-                        color: 'white',
                         padding: '14px',
-                        borderRadius: '12px',
-                        fontWeight: 600,
                         fontSize: '1rem',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '8px',
                         opacity: loading ? 0.7 : 1
                     }}
                 >

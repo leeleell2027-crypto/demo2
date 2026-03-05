@@ -153,15 +153,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     return (
         <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', width: '100vw', background: '#0f172a', color: 'white', overflow: 'hidden' }}>
             {/* Top Navigation */}
-            <header style={{
+            <header className="glass-panel" style={{
                 height: '70px',
-                background: 'rgba(30, 41, 59, 0.7)',
-                backdropFilter: 'blur(12px)',
-                borderBottom: '1px solid rgba(255,255,255,0.1)',
-                display: 'flex',
-                alignItems: 'center',
+                borderRadius: 0,
+                borderTop: 'none',
+                borderLeft: 'none',
+                borderRight: 'none',
                 padding: '0 24px',
                 zIndex: 100,
+                display: 'flex',
+                alignItems: 'center',
                 justifyContent: 'space-between'
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '40px' }}>
@@ -174,7 +175,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                         </div>
                     </Link>
 
-                    <nav style={{ display: 'flex', gap: '12px' }}>
+                    <nav style={{ display: 'flex', gap: '8px' }}>
                         {filteredCategories.map((cat) => (
                             <button
                                 key={cat.id}
@@ -184,17 +185,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                                         router.push(cat.items[0].href);
                                     }
                                 }}
+                                className={`btn ${activeCategory === cat.id ? 'btn-primary' : ''}`}
                                 style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '8px',
-                                    padding: '10px 20px',
+                                    padding: '10px 16px',
                                     borderRadius: '12px',
                                     background: activeCategory === cat.id ? 'rgba(255,255,255,0.05)' : 'transparent',
                                     color: activeCategory === cat.id ? 'white' : 'var(--text-muted)',
-                                    fontWeight: 600,
-                                    transition: 'all 0.2s',
-                                    border: activeCategory === cat.id ? '1px solid rgba(255,255,255,0.1)' : '1px solid transparent'
                                 }}
                             >
                                 {cat.icon}
@@ -210,17 +206,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                         <input
                             type="text"
                             placeholder="Search..."
+                            className="input-control"
                             style={{
-                                background: 'rgba(255,255,255,0.03)',
-                                border: '1px solid rgba(255,255,255,0.1)',
                                 padding: '8px 12px 8px 38px',
-                                borderRadius: '10px',
-                                fontSize: '0.9rem',
                                 width: '200px'
                             }}
                         />
                     </div>
-                    <button style={{ color: 'var(--text-muted)' }}><Bell size={20} /></button>
+                    <button style={{ color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer' }}><Bell size={20} /></button>
                     <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'linear-gradient(45deg, var(--primary), #ec4899)', border: '2px solid rgba(255,255,255,0.2)' }} />
                 </div>
             </header>

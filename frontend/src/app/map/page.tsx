@@ -95,18 +95,18 @@ const MapPage = () => {
     }, [mapLoaded, useFallback]);
 
     return (
-        <div style={{ padding: '24px', height: '100%', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        <div className="page-container" style={{ height: '100%', display: 'flex', flexDirection: 'column', gap: '20px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
-                    <h1 style={{ fontSize: '1.75rem', fontWeight: 800, marginBottom: '4px' }}>지도 서비스 (Google Maps)</h1>
+                    <h1 className="header-title" style={{ fontSize: '1.75rem', marginBottom: '4px' }}>지도 서비스 (Google Maps)</h1>
                     <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>구글 지도를 통한 글로벌 위치 정보를 확인하세요.</p>
                 </div>
                 <div style={{ display: 'flex', gap: '12px' }}>
-                    <button className="glass-button" style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 16px', borderRadius: '10px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--glass-border)', color: 'white', fontWeight: 600, cursor: 'pointer' }}>
+                    <button className="btn" style={{ padding: '10px 16px', background: 'rgba(255,255,255,0.05)', color: 'white' }}>
                         <Navigation size={18} />
                         현재 위치
                     </button>
-                    <button className="glass-button" style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 16px', borderRadius: '10px', background: 'var(--primary)', border: 'none', color: 'white', fontWeight: 600, cursor: 'pointer' }}>
+                    <button className="btn btn-primary" style={{ padding: '10px 16px', color: 'white' }}>
                         <MapPin size={18} />
                         장소 검색
                     </button>
@@ -137,37 +137,35 @@ const MapPage = () => {
                             marginHeight={0}
                             marginWidth={0}
                             src="https://www.openstreetmap.org/export/embed.html?bbox=126.96%2C37.55%2C126.99%2C37.58&amp;layer=mapnik"
-                            style={{ filter: 'invert(1) hue-rotate(180deg) brightness(0.8) contrast(1.2)' }}
+                            style={{ filter: 'invert(1) hue-rotate(180deg) brightness(0.8) contrast(1.2)', opacity: 0.6 }}
+                            title="OpenStreetMap Fallback"
                         />
 
                         {/* Key Setting Guide Overlay */}
-                        <div style={{
+                        <div className="glass-panel animate-fade-in" style={{
                             position: 'absolute',
-                            top: '20px',
-                            right: '20px',
-                            maxWidth: '340px',
-                            background: 'rgba(15, 23, 42, 0.9)',
-                            backdropFilter: 'blur(10px)',
-                            border: '1px solid #4285F4', // Google Blue
-                            padding: '20px',
-                            borderRadius: '16px',
+                            top: '24px',
+                            right: '24px',
+                            maxWidth: '360px',
+                            padding: '24px',
                             zIndex: 100,
-                            boxShadow: '0 20px 40px rgba(0,0,0,0.4)'
+                            boxShadow: '0 20px 40px rgba(0,0,0,0.4)',
+                            border: '1px solid rgba(66, 133, 244, 0.3)'
                         }}>
-                            <h3 style={{ color: '#4285F4', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <MapPin size={18} /> Google Maps 활성화 안내
+                            <h3 className="header-title" style={{ color: '#4285F4', marginBottom: '16px', fontSize: '1.1rem' }}>
+                                <MapPin size={20} /> Google Maps 활성화 안내
                             </h3>
                             <p style={{ fontSize: '0.85rem', lineHeight: '1.6', color: 'white', marginBottom: '16px' }}>
                                 구글 지도 API 키가 설정되지 않았습니다. 실제 구글 지도를 사용하시려면 다음 과정을 수행해 주세요.
                             </p>
-                            <ol style={{ fontSize: '0.8rem', color: 'var(--text-muted)', paddingLeft: '20px', marginBottom: '16px' }}>
-                                <li style={{ marginBottom: '4px' }}><b>Google Cloud Platform</b> 프로젝트 생성</li>
-                                <li style={{ marginBottom: '4px' }}><b>Maps JavaScript API</b> 활성화</li>
-                                <li style={{ marginBottom: '4px' }}>사용자 인증 정보에서 <b>API 키</b> 생성</li>
-                                <li style={{ marginBottom: '4px' }}><b>결제 계정</b> 연결 (필수)</li>
+                            <ol style={{ fontSize: '0.85rem', color: 'var(--text-muted)', paddingLeft: '20px', marginBottom: '20px', lineHeight: '1.8' }}>
+                                <li><b>Google Cloud Platform</b> 프로젝트 생성</li>
+                                <li><b>Maps JavaScript API</b> 활성화</li>
+                                <li>사용자 인증 정보에서 <b>API 키</b> 생성</li>
+                                <li><b>결제 계정</b> 연결 (필수)</li>
                                 <li><b>.env.local</b> 파일에 키 입력</li>
                             </ol>
-                            <div style={{ fontSize: '0.75rem', padding: '10px', background: 'rgba(66, 133, 244, 0.1)', borderRadius: '8px', color: '#4285F4', fontWeight: 600, border: '1px border-solid #4285F4' }}>
+                            <div style={{ fontSize: '0.8rem', padding: '12px', background: 'rgba(66, 133, 244, 0.1)', borderRadius: '10px', color: '#4285F4', fontWeight: 700, border: '1px border-solid rgba(66, 133, 244, 0.3)', fontFamily: 'monospace' }}>
                                 NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=발급받은키
                             </div>
                         </div>
@@ -184,10 +182,10 @@ const MapPage = () => {
                 )}
 
                 {/* Floating Map Controls */}
-                <div style={{ position: 'absolute', bottom: '20px', left: '20px', display: 'flex', gap: '10px', zIndex: 10 }}>
-                    <div className="glass-card" style={{ padding: '8px', borderRadius: '12px', display: 'flex', gap: '8px' }}>
-                        <button style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white', padding: '8px', borderRadius: '8px', cursor: 'pointer' }}><Layers size={18} /></button>
-                        <button style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white', padding: '8px', borderRadius: '8px', cursor: 'pointer' }}><Maximize size={18} /></button>
+                <div style={{ position: 'absolute', bottom: '24px', left: '24px', display: 'flex', gap: '12px', zIndex: 10 }}>
+                    <div className="glass-panel" style={{ padding: '8px', display: 'flex', gap: '8px' }}>
+                        <button className="btn" style={{ background: 'rgba(255,255,255,0.05)', color: 'white', padding: '8px' }}><Layers size={18} /></button>
+                        <button className="btn" style={{ background: 'rgba(255,255,255,0.05)', color: 'white', padding: '8px' }}><Maximize size={18} /></button>
                     </div>
                 </div>
             </motion.div>

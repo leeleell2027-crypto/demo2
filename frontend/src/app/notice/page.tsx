@@ -241,20 +241,17 @@ const NoticePage = () => {
     };
 
     return (
-        <div style={{ padding: '24px', height: '100%', display: 'flex', flexDirection: 'column', gap: '24px', maxWidth: '1200px', margin: '0 auto' }}>
+        <div className="page-container">
             {/* Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
-                    <h1 style={{ fontSize: '2rem', fontWeight: 800, background: 'linear-gradient(to right, #fff, #94a3b8)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-                        Notice Board
-                    </h1>
-                    <p style={{ color: 'var(--text-muted)', marginTop: '4px' }}>시스템 공지사항 및 안내를 확인하세요.</p>
+                    <h1 className="header-title">Notice Board</h1>
+                    <p className="header-subtitle">시스템 공지사항 및 안내를 확인하세요.</p>
                 </div>
                 {view === 'list' && (
                     <button
                         onClick={() => { resetForm(); setView('form'); }}
-                        className="glass-button"
-                        style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 20px', borderRadius: '14px', background: 'var(--primary)', color: 'white', fontWeight: 600, border: 'none', cursor: 'pointer', boxShadow: '0 8px 20px rgba(59, 130, 246, 0.3)' }}
+                        className="btn btn-primary"
                     >
                         <Plus size={20} />
                         공지 작성
@@ -272,7 +269,7 @@ const NoticePage = () => {
                         style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}
                     >
                         {/* Search & Stats */}
-                        <div className="glass-card" style={{ padding: '16px', borderRadius: '20px', display: 'flex', gap: '16px', alignItems: 'center' }}>
+                        <div className="glass-panel" style={{ padding: '16px', display: 'flex', gap: '16px', alignItems: 'center' }}>
                             <div style={{ position: 'relative', flex: 1 }}>
                                 <Search style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} size={18} />
                                 <input
@@ -280,24 +277,25 @@ const NoticePage = () => {
                                     placeholder="공지사항 제목으로 검색..."
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
-                                    style={{ width: '100%', padding: '12px 12px 12px 40px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--glass-border)', borderRadius: '12px', color: 'white', outline: 'none' }}
+                                    className="input-control"
+                                    style={{ paddingLeft: '40px' }}
                                 />
                             </div>
                         </div>
 
                         {/* List Table */}
-                        <div className="glass-card" style={{ borderRadius: '24px', overflow: 'hidden' }}>
-                            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-                                <thead style={{ background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid var(--glass-border)' }}>
+                        <div className="data-table-container">
+                            <table className="data-table">
+                                <thead>
                                     <tr>
-                                        <th style={{ padding: '16px 24px', color: 'var(--text-muted)', fontWeight: 600, fontSize: '0.85rem' }}>번호</th>
-                                        <th style={{ padding: '16px 24px', color: 'var(--text-muted)', fontWeight: 600, fontSize: '0.85rem' }}>제목</th>
-                                        <th style={{ padding: '16px 24px', color: 'var(--text-muted)', fontWeight: 600, fontSize: '0.85rem' }}>공지기간</th>
-                                        <th style={{ padding: '16px 24px', color: 'var(--text-muted)', fontWeight: 600, fontSize: '0.85rem' }}>작성자</th>
-                                        <th style={{ padding: '16px 24px', color: 'var(--text-muted)', fontWeight: 600, fontSize: '0.85rem' }}>작성일</th>
-                                        <th style={{ padding: '16px 24px', color: 'var(--text-muted)', fontWeight: 600, fontSize: '0.85rem' }}>첨부</th>
-                                        <th style={{ padding: '16px 24px', color: 'var(--text-muted)', fontWeight: 600, fontSize: '0.85rem' }}>댓글</th>
-                                        <th style={{ padding: '16px 24px', color: 'var(--text-muted)', fontWeight: 600, fontSize: '0.85rem' }}>조회</th>
+                                        <th>번호</th>
+                                        <th>제목</th>
+                                        <th>공지기간</th>
+                                        <th>작성자</th>
+                                        <th>작성일</th>
+                                        <th>첨부</th>
+                                        <th>댓글</th>
+                                        <th>조회</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -317,8 +315,8 @@ const NoticePage = () => {
                                             onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.02)'}
                                             onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                                         >
-                                            <td style={{ padding: '16px 24px', color: 'var(--text-muted)' }}>{notice.id}</td>
-                                            <td style={{ padding: '16px 24px' }}>
+                                            <td>{notice.id}</td>
+                                            <td>
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                                     {notice.depth > 0 && (
                                                         <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginLeft: `${notice.depth * 20}px`, color: 'var(--primary)' }}>
@@ -328,17 +326,17 @@ const NoticePage = () => {
                                                     <span style={{ fontWeight: 500 }}>{notice.title}</span>
                                                 </div>
                                             </td>
-                                            <td style={{ padding: '16px 24px', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                                            <td style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
                                                 {notice.noticeStartDate ? `${notice.noticeStartDate} ~ ${notice.noticeEndDate || ''}` : '-'}
                                             </td>
-                                            <td style={{ padding: '16px 24px' }}>
+                                            <td>
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                                    <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem' }}>{(notice.memberName || notice.memberId || 'U')[0].toUpperCase()}</div>
+                                                    <div className="avatar-round avatar-primary">{(notice.memberName || notice.memberId || 'U')[0].toUpperCase()}</div>
                                                     <span>{notice.memberName || notice.memberId || '알수없음'}</span>
                                                 </div>
                                             </td>
-                                            <td style={{ padding: '16px 24px', color: 'var(--text-muted)', fontSize: '0.9rem' }}>{formatDate(notice.createdAt)}</td>
-                                            <td style={{ padding: '16px 24px' }}>
+                                            <td style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>{formatDate(notice.createdAt)}</td>
+                                            <td>
                                                 <div style={{ display: 'flex', gap: '6px' }} onClick={(e) => e.stopPropagation()}>
                                                     {notice.attachments && notice.attachments.map(att => (
                                                         <a
@@ -385,12 +383,12 @@ const NoticePage = () => {
                         exit={{ opacity: 0, x: -20 }}
                         style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}
                     >
-                        <button onClick={() => { setView('list'); fetchNotices(); }} style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-muted)', border: 'none', background: 'none', cursor: 'pointer', padding: 0 }}><ArrowLeft size={18} /> 목록으로 돌아가기</button>
+                        <button onClick={() => { setView('list'); fetchNotices(); }} className="btn btn-ghost" style={{ gap: '8px', padding: 0 }}><ArrowLeft size={18} /> 목록으로 돌아가기</button>
 
-                        <div className="glass-card" style={{ padding: '40px', borderRadius: '32px' }}>
+                        <div className="glass-panel" style={{ padding: '40px' }}>
                             <div style={{ marginBottom: '32px', borderBottom: '1px solid var(--glass-border)', paddingBottom: '24px' }}>
                                 <div style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
-                                    <span style={{ padding: '4px 12px', borderRadius: '20px', background: 'rgba(59, 130, 246, 0.1)', color: 'var(--primary)', fontSize: '0.75rem', fontWeight: 600 }}>NOTICE</span>
+                                    <span className="badge badge-notice">NOTICE</span>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '16px', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
                                         <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><User size={14} /> {selectedNotice.memberName || selectedNotice.memberId || '알수없음'}</span>
                                         <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Clock size={14} /> {formatDate(selectedNotice.createdAt)}</span>
@@ -433,24 +431,24 @@ const NoticePage = () => {
 
                             {/* Detail Buttons */}
                             <div style={{ marginTop: '40px', display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
-                                <button onClick={() => { setIsReply(true); setIsEdit(false); setView('form'); setFormTitle(`RE: ${selectedNotice.title}`); }} className="glass-button" style={{ padding: '10px 20px', borderRadius: '12px', background: 'rgba(255,255,255,0.05)', color: 'white', border: '1px solid var(--glass-border)', cursor: 'pointer' }}>답글 쓰기</button>
+                                <button onClick={() => { setIsReply(true); setIsEdit(false); setView('form'); setFormTitle(`RE: ${selectedNotice.title}`); }} className="btn btn-secondary">답글 쓰기</button>
                                 {user?.username === selectedNotice.memberId && (
                                     <>
-                                        <button onClick={handleEditNotice} className="glass-button" style={{ padding: '10px 20px', borderRadius: '12px', background: 'rgba(59, 130, 246, 0.1)', color: 'var(--primary)', border: '1px solid rgba(59, 130, 246, 0.2)', cursor: 'pointer' }}>수정</button>
-                                        <button onClick={() => handleDeleteNotice(selectedNotice.id)} className="glass-button" style={{ padding: '10px 20px', borderRadius: '12px', background: 'rgba(255,22,255,0.05)', color: '#ff4444', border: '1px solid rgba(255,68,68,0.2)', cursor: 'pointer' }}>삭제</button>
+                                        <button onClick={handleEditNotice} className="btn btn-outline-primary">수정</button>
+                                        <button onClick={() => handleDeleteNotice(selectedNotice.id)} className="btn btn-danger">삭제</button>
                                     </>
                                 )}
                             </div>
                         </div>
 
                         {/* Comments Section */}
-                        <div className="glass-card" style={{ padding: '32px', borderRadius: '32px' }}>
+                        <div className="glass-panel" style={{ padding: '32px' }}>
                             <h3 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '8px' }}><MessageSquare size={20} /> 댓글 ({selectedNotice.comments?.length || 0})</h3>
 
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginBottom: '32px' }}>
                                 {selectedNotice.comments?.map(comment => (
                                     <div key={comment.id} style={{ display: 'flex', gap: '16px', marginLeft: (comment.depth || 0) * 32 + 'px' }}>
-                                        <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem' }}>
+                                        <div className="avatar-round">
                                             {comment.parentId && <CornerDownRight size={12} style={{ marginRight: '4px', opacity: 0.5 }} />}
                                             {(comment.memberName || comment.memberId || 'U')[0].toUpperCase()}
                                         </div>
@@ -458,9 +456,9 @@ const NoticePage = () => {
                                             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                                     <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>{comment.memberName || comment.memberId || '알수없음'}</span>
-                                                    <button onClick={() => setReplyToCommentId(replyToCommentId === comment.id ? null : comment.id)} style={{ background: 'none', border: 'none', color: 'var(--primary)', fontSize: '0.75rem', cursor: 'pointer', padding: '2px 4px', opacity: 0.8 }}>답글</button>
+                                                    <button onClick={() => setReplyToCommentId(replyToCommentId === comment.id ? null : comment.id)} className="btn btn-ghost" style={{ color: 'var(--primary)' }}>답글</button>
                                                     {user?.username === comment.memberId && (
-                                                        <button onClick={() => handleDeleteComment(comment.id)} style={{ background: 'none', border: 'none', color: '#ff4444', fontSize: '0.75rem', cursor: 'pointer', padding: '2px 4px', opacity: 0.7 }}>삭제</button>
+                                                        <button onClick={() => handleDeleteComment(comment.id)} className="btn btn-ghost" style={{ color: '#ff4444' }}>삭제</button>
                                                     )}
                                                 </div>
                                                 <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>{formatDate(comment.createdAt)}</span>
@@ -474,11 +472,12 @@ const NoticePage = () => {
                                                         value={commentText}
                                                         onChange={(e) => setCommentText(e.target.value)}
                                                         autoFocus
-                                                        style={{ flex: 1, padding: '12px', borderRadius: '12px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--glass-border)', color: 'white', outline: 'none', minHeight: '60px', resize: 'none', fontSize: '0.9rem' }}
+                                                        className="textarea-control"
+                                                        style={{ flex: 1, minHeight: '60px' }}
                                                     />
                                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                                                        <button onClick={handleAddComment} style={{ background: 'var(--primary)', border: 'none', borderRadius: '8px', padding: '8px 16px', color: 'white', fontWeight: 600, cursor: 'pointer', fontSize: '0.85rem' }}>등록</button>
-                                                        <button onClick={() => setReplyToCommentId(null)} style={{ background: 'rgba(255,255,255,0.05)', border: 'none', borderRadius: '8px', padding: '8px 16px', color: 'white', cursor: 'pointer', fontSize: '0.85rem' }}>취소</button>
+                                                        <button onClick={handleAddComment} className="btn btn-primary" style={{ padding: '8px 16px', fontSize: '0.85rem' }}>등록</button>
+                                                        <button onClick={() => setReplyToCommentId(null)} className="btn btn-secondary" style={{ padding: '8px 16px', fontSize: '0.85rem' }}>취소</button>
                                                     </div>
                                                 </div>
                                             )}
@@ -492,11 +491,13 @@ const NoticePage = () => {
                                     placeholder="댓글을 입력하세요..."
                                     value={commentText}
                                     onChange={(e) => setCommentText(e.target.value)}
-                                    style={{ width: '100%', padding: '16px', borderRadius: '16px', background: 'rgba(255,255,255,0.03)', border: '1px solid var(--glass-border)', color: 'white', outline: 'none', minHeight: '100px', resize: 'none' }}
+                                    className="textarea-control"
+                                    style={{ minHeight: '100px' }}
                                 />
                                 <button
                                     onClick={handleAddComment}
-                                    style={{ position: 'absolute', right: '12px', bottom: '12px', background: 'var(--primary)', border: 'none', borderRadius: '10px', padding: '8px 16px', color: 'white', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
+                                    className="btn btn-primary"
+                                    style={{ position: 'absolute', right: '12px', bottom: '12px' }}
                                 >
                                     <Send size={16} /> 등록
                                 </button>
@@ -509,12 +510,12 @@ const NoticePage = () => {
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.95 }}
-                        className="glass-card"
-                        style={{ padding: '40px', borderRadius: '32px' }}
+                        className="glass-panel"
+                        style={{ padding: '40px' }}
                     >
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '32px' }}>
                             <h2 style={{ fontSize: '1.75rem', fontWeight: 700 }}>{isEdit ? '공지사항 수정' : isReply ? '답글 작성' : '공지사항 작성'}</h2>
-                            <button onClick={() => setView('list')} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}><X size={24} /></button>
+                            <button onClick={() => setView('list')} className="btn btn-ghost" style={{ opacity: 1 }}><X size={24} /></button>
                         </div>
 
                         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
@@ -527,7 +528,7 @@ const NoticePage = () => {
                                         value={formTitle}
                                         onChange={(e) => setFormTitle(e.target.value)}
                                         placeholder="공지사항 제목을 입력하세요."
-                                        style={{ width: '100%', padding: '14px', borderRadius: '12px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--glass-border)', color: 'white', outline: 'none' }}
+                                        className="input-control"
                                     />
                                 </div>
                                 <div>
@@ -538,7 +539,8 @@ const NoticePage = () => {
                                             type="date"
                                             value={formStartDate}
                                             onChange={(e) => setFormStartDate(e.target.value)}
-                                            style={{ width: '100%', padding: '14px 14px 14px 40px', borderRadius: '12px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--glass-border)', color: 'white', outline: 'none' }}
+                                            className="input-control"
+                                            style={{ paddingLeft: '40px' }}
                                         />
                                     </div>
                                 </div>
@@ -550,7 +552,8 @@ const NoticePage = () => {
                                             type="date"
                                             value={formEndDate}
                                             onChange={(e) => setFormEndDate(e.target.value)}
-                                            style={{ width: '100%', padding: '14px 14px 14px 40px', borderRadius: '12px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--glass-border)', color: 'white', outline: 'none' }}
+                                            className="input-control"
+                                            style={{ paddingLeft: '40px' }}
                                         />
                                     </div>
                                 </div>
@@ -561,16 +564,15 @@ const NoticePage = () => {
                                         value={formContent}
                                         onChange={(e) => setFormContent(e.target.value)}
                                         placeholder="내용을 상세히 입력해 주세요."
-                                        style={{ width: '100%', padding: '16px', borderRadius: '16px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--glass-border)', color: 'white', outline: 'none', minHeight: '300px', resize: 'vertical' }}
+                                        className="textarea-control"
+                                        style={{ minHeight: '300px' }}
                                     />
                                 </div>
                                 <div style={{ gridColumn: 'span 2' }}>
                                     <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.9rem', color: 'var(--text-muted)' }}>첨부파일</label>
                                     <div
                                         onClick={() => fileInputRef.current?.click()}
-                                        style={{ padding: '30px', border: '2px dashed var(--glass-border)', borderRadius: '16px', textAlign: 'center', cursor: 'pointer', background: 'rgba(255,255,255,0.02)', transition: 'border-color 0.2s' }}
-                                        onMouseEnter={(e) => e.currentTarget.style.borderColor = 'var(--primary)'}
-                                        onMouseLeave={(e) => e.currentTarget.style.borderColor = 'var(--glass-border)'}
+                                        className="dropzone"
                                     >
                                         <input
                                             type="file"
@@ -599,28 +601,13 @@ const NoticePage = () => {
                             </div>
 
                             <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '20px' }}>
-                                <button type="button" onClick={() => setView('list')} className="glass-button" style={{ padding: '14px 30px', borderRadius: '14px', background: 'none', color: 'white', border: '1px solid var(--glass-border)', fontWeight: 600, cursor: 'pointer' }}>취소</button>
-                                <button type="submit" className="glass-button" style={{ padding: '14px 40px', borderRadius: '14px', background: 'var(--primary)', color: 'white', border: 'none', fontWeight: 700, cursor: 'pointer', boxShadow: '0 8px 20px rgba(59, 130, 246, 0.3)' }}>저장하기</button>
+                                <button type="button" onClick={() => setView('list')} className="btn btn-secondary" style={{ padding: '14px 30px' }}>취소</button>
+                                <button type="submit" className="btn btn-primary" style={{ padding: '14px 40px' }}>저장하기</button>
                             </div>
                         </form>
                     </motion.div>
                 )}
             </AnimatePresence>
-
-            <style jsx>{`
-                .glass-card {
-                    background: rgba(255, 255, 255, 0.03);
-                    backdrop-filter: blur(12px);
-                    border: 1px solid var(--glass-border);
-                }
-                .glass-button:hover {
-                    filter: brightness(1.2);
-                    transform: translateY(-1px);
-                }
-                .glass-button:active {
-                    transform: translateY(0);
-                }
-            `}</style>
         </div>
     );
 };
