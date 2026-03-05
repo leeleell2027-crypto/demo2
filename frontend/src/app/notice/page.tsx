@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect, useRef, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { useAuth } from '@/components/AuthContext';
+import { useAuthStore } from '@/store/authStore';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Search,
@@ -66,13 +67,11 @@ interface Comment {
 }
 
 const NoticePage = () => {
-    const { user } = useAuth();
+    const { user } = useAuthStore();
+    const queryClient = useQueryClient();
     const [view, setView] = useState<'list' | 'detail' | 'form'>('list');
-    const [notices, setNotices] = useState<Notice[]>([]);
-    const [selectedNotice, setSelectedNotice] = useState<Notice | null>(null);
-    const [loading, setLoading] = useState(true);
+    const [selectedId, setSelectedId] = useState<number | null>(null);
     const [page, setPage] = useState(0);
-    const [totalPages, setTotalPages] = useState(0);
     const [searchTerm, setSearchTerm] = useState('');
     const [isReply, setIsReply] = useState(false);
     const [isEdit, setIsEdit] = useState(false);
@@ -91,37 +90,41 @@ const NoticePage = () => {
     const searchParams = useSearchParams();
     const noticeIdParam = searchParams.get('id');
 
+    // List Query
+    const { data: listData, isLoading: listLoading } = useQuery({
+        queryKey: ['notices', page, searchTerm],
+        queryKeyHashFn: (key) => JSON.stringify(key),
+        queryFn: async () => {
+            const res = await fetch(`/api/notices?page=${page}&size=10&searchTitle=${searchTerm}`);
+            return res.json();
+        }
+    });
+
+    // Detail Query
+    const { data: detailData, isLoading: detailLoading } = useQuery({
+        queryKey: ['notice', selectedId],
+        queryFn: async () => {
+            if (!selectedId) return null;
+            const res = await fetch(`/api/notices/${selectedId}`);
+            return res.json();
+        },
+        enabled: !!selectedId
+    });
+
+    const notices = listData?.notices || [];
+    const totalPages = listData?.totalPages || 0;
+    const selectedNotice = detailData || null;
+    const loading = listLoading || detailLoading;
+
     useEffect(() => {
         if (noticeIdParam) {
             handleDetail(parseInt(noticeIdParam));
-        } else {
-            fetchNotices();
         }
-    }, [page, searchTerm, noticeIdParam]);
+    }, [noticeIdParam]);
 
-    const fetchNotices = async () => {
-        try {
-            setLoading(true);
-            const res = await fetch(`/api/notices?page=${page}&size=10&searchTitle=${searchTerm}`);
-            const data = await res.json();
-            setNotices(data.notices);
-            setTotalPages(data.totalPages);
-        } catch (error) {
-            console.error("Fetch notices failed:", error);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleDetail = async (id: number) => {
-        try {
-            const res = await fetch(`/api/notices/${id}`);
-            const data = await res.json();
-            setSelectedNotice(data);
-            setView('detail');
-        } catch (error) {
-            console.error("Fetch notice detail failed:", error);
-        }
+    const handleDetail = (id: number) => {
+        setSelectedId(id);
+        setView('detail');
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -154,7 +157,10 @@ const NoticePage = () => {
             if (res.ok) {
                 alert(isEdit ? "공지사항이 수정되었습니다." : isReply ? "답글이 등록되었습니다." : "공지사항이 등록되었습니다.");
                 setView('list');
-                fetchNotices();
+                queryClient.invalidateQueries({ queryKey: ['notices'] });
+                if (isEdit || isReply) {
+                    queryClient.invalidateQueries({ queryKey: ['notice', selectedId] });
+                }
                 resetForm();
             }
         } catch (error) {
@@ -169,7 +175,7 @@ const NoticePage = () => {
             if (res.ok) {
                 alert("삭제되었습니다.");
                 setView('list');
-                fetchNotices();
+                queryClient.invalidateQueries({ queryKey: ['notices'] });
             } else {
                 const err = await res.text();
                 alert(err || "삭제 권한이 없습니다.");
@@ -205,7 +211,7 @@ const NoticePage = () => {
             if (res.ok) {
                 setCommentText('');
                 setReplyToCommentId(null);
-                handleDetail(selectedNotice.id); // 새로고침
+                queryClient.invalidateQueries({ queryKey: ['notice', selectedNotice.id] });
             }
         } catch (error) {
             console.error("Add comment failed:", error);
@@ -217,7 +223,7 @@ const NoticePage = () => {
         try {
             const res = await fetch(`/api/notices/comments/${commentId}`, { method: 'DELETE' });
             if (res.ok) {
-                handleDetail(selectedNotice!.id);
+                queryClient.invalidateQueries({ queryKey: ['notice', selectedNotice!.id] });
             } else {
                 alert("삭제 권한이 없습니다.");
             }
@@ -245,6 +251,15 @@ const NoticePage = () => {
             hour: '2-digit',
             minute: '2-digit'
         });
+    };
+
+    const isToday = (dateString: string) => {
+        if (!dateString) return false;
+        const d = new Date(dateString);
+        const now = new Date();
+        return d.getDate() === now.getDate() &&
+            d.getMonth() === now.getMonth() &&
+            d.getFullYear() === now.getFullYear();
     };
 
     return (
@@ -314,7 +329,7 @@ const NoticePage = () => {
                                         <tr>
                                             <td colSpan={5} style={{ padding: '100px', textAlign: 'center', color: 'var(--text-muted)' }}>게시글이 없습니다.</td>
                                         </tr>
-                                    ) : notices.map((notice) => (
+                                    ) : notices.map((notice: Notice) => (
                                         <tr
                                             key={notice.id}
                                             onClick={() => handleDetail(notice.id)}
@@ -331,6 +346,18 @@ const NoticePage = () => {
                                                         </div>
                                                     )}
                                                     <span style={{ fontWeight: 500 }}>{notice.title}</span>
+                                                    {isToday(notice.createdAt) && (
+                                                        <span style={{
+                                                            fontSize: '0.7rem',
+                                                            backgroundColor: '#ef4444',
+                                                            color: 'white',
+                                                            padding: '2px 6px',
+                                                            borderRadius: '4px',
+                                                            fontWeight: 800,
+                                                            marginLeft: '4px',
+                                                            lineHeight: 1
+                                                        }}>N</span>
+                                                    )}
                                                 </div>
                                             </td>
                                             <td style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
@@ -345,7 +372,7 @@ const NoticePage = () => {
                                             <td style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>{formatDate(notice.createdAt)}</td>
                                             <td>
                                                 <div style={{ display: 'flex', gap: '6px' }} onClick={(e) => e.stopPropagation()}>
-                                                    {notice.attachments && notice.attachments.map(att => (
+                                                    {notice.attachments && notice.attachments.map((att: Attachment) => (
                                                         <a
                                                             key={att.id}
                                                             href={att.filePath}
@@ -390,7 +417,7 @@ const NoticePage = () => {
                         exit={{ opacity: 0, x: -20 }}
                         style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}
                     >
-                        <button onClick={() => { setView('list'); fetchNotices(); }} className="btn btn-ghost" style={{ gap: '8px', padding: 0 }}><ArrowLeft size={18} /> 목록으로 돌아가기</button>
+                        <button onClick={() => { setView('list'); queryClient.invalidateQueries({ queryKey: ['notices'] }); }} className="btn btn-ghost" style={{ gap: '8px', padding: 0 }}><ArrowLeft size={18} /> 목록으로 돌아가기</button>
 
                         <div className="glass-panel" style={{ padding: '40px' }}>
                             <div style={{ marginBottom: '32px', borderBottom: '1px solid var(--glass-border)', paddingBottom: '24px' }}>
@@ -419,7 +446,7 @@ const NoticePage = () => {
                                 <div style={{ marginTop: '40px', padding: '20px', borderRadius: '20px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--glass-border)' }}>
                                     <h4 style={{ fontSize: '0.9rem', fontWeight: 600, marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}><Paperclip size={16} /> 첨부파일 ({selectedNotice.attachments.length})</h4>
                                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
-                                        {selectedNotice.attachments.map(att => (
+                                        {selectedNotice.attachments.map((att: Attachment) => (
                                             <a
                                                 key={att.id}
                                                 href={att.filePath}
@@ -453,7 +480,7 @@ const NoticePage = () => {
                             <h3 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '8px' }}><MessageSquare size={20} /> 댓글 ({selectedNotice.comments?.length || 0})</h3>
 
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginBottom: '32px' }}>
-                                {selectedNotice.comments?.map(comment => (
+                                {selectedNotice.comments?.map((comment: Comment) => (
                                     <div key={comment.id} style={{ display: 'flex', gap: '16px', marginLeft: (comment.depth || 0) * 32 + 'px' }}>
                                         <div className="avatar-round">
                                             {comment.parentId && <CornerDownRight size={12} style={{ marginRight: '4px', opacity: 0.5 }} />}

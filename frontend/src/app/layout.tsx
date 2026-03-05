@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { AuthProvider } from "@/components/AuthContext";
 import DashboardLayout from "@/components/DashboardLayout";
+import Providers from "@/components/Providers";
+import AuthInitializer from "@/components/AuthInitializer";
 
 export const metadata: Metadata = {
   title: "Next.js Demo | Premium Dashboard",
@@ -16,11 +17,13 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <body>
-        <AuthProvider>
-          <DashboardLayout>
-            {children}
-          </DashboardLayout>
-        </AuthProvider>
+        <Providers>
+          <AuthInitializer>
+            <DashboardLayout>
+              {children}
+            </DashboardLayout>
+          </AuthInitializer>
+        </Providers>
       </body>
     </html>
   );

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { Shield, Users, Lock, Plus, Edit2, Trash2, X, ChevronLeft, ChevronRight, Save } from 'lucide-react';
-import { useAuth } from '@/components/AuthContext';
+import { useAuthStore } from '@/store/authStore';
 
 interface Member {
     id: string;
@@ -22,7 +22,7 @@ const ROLES = [
 ];
 
 export default function AdminManagementPage() {
-    const { user } = useAuth();
+    const { user } = useAuthStore();
     const [members, setMembers] = useState<Member[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [page, setPage] = useState(1);

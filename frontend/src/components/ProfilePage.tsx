@@ -4,19 +4,32 @@ import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { User, LogOut, ShieldCheck, Mail, Calendar, Hash, BadgeCheck, Image as ImageIcon, CreditCard } from 'lucide-react';
 import Link from 'next/link';
+import { useAuthStore } from '@/store/authStore';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 interface ProfilePageProps {
-    user: { name: string };
     onLogout: () => void;
 }
 
-const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout }) => {
-    const [recentNotices, setRecentNotices] = React.useState<any[]>([]);
-    const [loadingNotices, setLoadingNotices] = React.useState(true);
+const ProfilePage: React.FC<ProfilePageProps> = ({ onLogout }) => {
+    const { user, logout: storeLogout } = useAuthStore();
+    const queryClient = useQueryClient();
+
+    // Recent Notices Query
+    const { data: recentNoticesData, isLoading: loadingNotices } = useQuery({
+        queryKey: ['notices', 'recent'],
+        queryFn: async () => {
+            const res = await fetch('/api/notices?page=0&size=5');
+            const data = await res.json();
+            return data.notices || [];
+        }
+    });
+
+    const recentNotices = recentNoticesData || [];
 
     const handleLogout = async () => {
         try {
-            await fetch('/auth/logout', { method: 'POST' });
+            await storeLogout();
             onLogout();
         } catch (error) {
             console.error('Logout failed', error);
@@ -24,26 +37,11 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout }) => {
         }
     };
 
-    useEffect(() => {
-        const fetchRecentNotices = async () => {
-            try {
-                const res = await fetch('/api/notices?page=0&size=5');
-                const data = await res.json();
-                setRecentNotices(data.notices || []);
-            } catch (error) {
-                console.error("Fetch recent notices failed:", error);
-            } finally {
-                setLoadingNotices(false);
-            }
-        };
-        fetchRecentNotices();
-    }, []);
-
     // Mocking more detailed member information for display
     const memberInfo = [
-        { icon: <Mail size={18} />, label: "Email Address", value: `${user.name.toLowerCase()}@example.com` },
+        { icon: <Mail size={18} />, label: "Email Address", value: `${user?.name.toLowerCase() || 'user'}@example.com` },
         { icon: <Hash size={18} />, label: "Member ID", value: `MEM-8842` },
-        { icon: <BadgeCheck size={18} />, label: "Role", value: "Premium Member" },
+        { icon: <BadgeCheck size={18} />, label: "Role", value: user?.role || "Premium Member" },
         { icon: <Calendar size={18} />, label: "Joined Date", value: "February 2026" },
     ];
 
@@ -52,6 +50,15 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout }) => {
             month: '2-digit',
             day: '2-digit'
         });
+    };
+
+    const isToday = (dateString: string) => {
+        if (!dateString) return false;
+        const d = new Date(dateString);
+        const now = new Date();
+        return d.getDate() === now.getDate() &&
+            d.getMonth() === now.getMonth() &&
+            d.getFullYear() === now.getFullYear();
     };
 
     return (
@@ -101,7 +108,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout }) => {
                 </motion.div>
 
                 <div style={{ marginBottom: '40px' }}>
-                    <h2 style={{ fontSize: '1.75rem', fontWeight: 700, marginBottom: '8px' }}>{user.name} 님</h2>
+                    <h2 style={{ fontSize: '1.75rem', fontWeight: 700, marginBottom: '8px' }}>{user?.name} 님</h2>
                     <p style={{ color: 'var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontSize: '0.9rem' }}>
                         <ShieldCheck size={16} /> 인증된 회원 계정
                     </p>
@@ -256,7 +263,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout }) => {
                         <div style={{ padding: '20px', textAlign: 'center', color: 'var(--text-muted)' }}>로딩 중...</div>
                     ) : recentNotices.length === 0 ? (
                         <div style={{ padding: '20px', textAlign: 'center', color: 'var(--text-muted)' }}>공지사항이 없습니다.</div>
-                    ) : recentNotices.map((notice) => (
+                    ) : recentNotices.map((notice: any) => (
                         <Link
                             key={notice.id}
                             href={`/notice?id=${notice.id}`}
@@ -275,7 +282,21 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout }) => {
                                 }}
                             >
                                 <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginRight: '10px' }}>
-                                    <div style={{ fontSize: '0.95rem', fontWeight: 600, marginBottom: '2px' }}>{notice.title}</div>
+                                    <div style={{ fontSize: '0.95rem', fontWeight: 600, marginBottom: '2px', display: 'flex', alignItems: 'center' }}>
+                                        {notice.title}
+                                        {isToday(notice.createdAt) && (
+                                            <span style={{
+                                                fontSize: '0.6rem',
+                                                backgroundColor: '#ef4444',
+                                                color: 'white',
+                                                padding: '1px 4px',
+                                                borderRadius: '3px',
+                                                fontWeight: 800,
+                                                marginLeft: '6px',
+                                                lineHeight: 1
+                                            }}>NEW</span>
+                                        )}
+                                    </div>
                                     <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{notice.memberName || notice.memberId}</div>
                                 </div>
                                 <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>

@@ -23,7 +23,7 @@ import {
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useMemo } from 'react';
-import { useAuth } from './AuthContext';
+import { useAuthStore } from '@/store/authStore';
 
 interface NavItem {
     label: string;
@@ -72,7 +72,7 @@ const categories: Category[] = [
 ];
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-    const { user, loading: authLoading, logout: contextLogout } = useAuth();
+    const { user, loading: authLoading, logout: storeLogout } = useAuthStore();
     const pathname = usePathname();
     const router = useRouter();
 
@@ -130,8 +130,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
     const handleLogout = async () => {
         try {
-            await fetch('/auth/logout', { method: 'POST' });
-            contextLogout();
+            await storeLogout();
             router.push('/');
         } catch (error) {
             console.error('Logout failed', error);

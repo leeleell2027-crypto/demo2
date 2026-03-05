@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { Calendar, Plus, Edit2, Trash2, X, Save, Shield, ChevronLeft, ChevronRight } from 'lucide-react';
-import { useAuth } from '@/components/AuthContext';
+import { useAuthStore } from '@/store/authStore';
 
 interface Holiday {
     id: number;
@@ -12,7 +12,7 @@ interface Holiday {
 }
 
 export default function HolidayManagementPage() {
-    const { user } = useAuth();
+    const { user } = useAuthStore();
     const [holidays, setHolidays] = useState<Holiday[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
