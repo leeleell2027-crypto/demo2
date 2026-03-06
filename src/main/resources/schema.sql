@@ -104,3 +104,29 @@ CREATE TABLE IF NOT EXISTS notice_comments (
     FOREIGN KEY (notice_id) REFERENCES notices(id) ON DELETE CASCADE,
     FOREIGN KEY (parent_id) REFERENCES notice_comments(id) ON DELETE CASCADE
 );
+
+CREATE TABLE trade_history (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '고유 거래 식별자',
+    executed_at DATETIME NOT NULL COMMENT '체결시간',
+    coin VARCHAR(100) NOT NULL COMMENT '코인 (예: BTC, ETH)',
+    market VARCHAR(10) NOT NULL COMMENT '마켓 (예: KRW-BTC)',
+    side VARCHAR(10) NOT NULL COMMENT '종류 (예: BUY, SELL)',
+    quantity VARCHAR(100) NOT NULL COMMENT '거래수량',
+    price VARCHAR(20) NOT NULL COMMENT '거래단가',
+    total_amount VARCHAR(20) NOT NULL COMMENT '거래금액',
+    fee VARCHAR(20) NOT NULL COMMENT '수수료',
+    settlement_amount VARCHAR(20) NOT NULL COMMENT '정산금액',
+    ordered_at DATETIME NOT NULL COMMENT '주문시간'
+) ;
+
+
+CREATE TABLE `trade_btc_history` (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '고유 거래 식별자', 
+  `ordered_at` varchar(10) NOT NULL COMMENT '날짜',
+  `btc_price` varchar(100) NOT NULL COMMENT '가격', 
+  PRIMARY KEY (`id`)
+);
+
+-- https://api.upbit.com/v1/candles/days?market=KRW-BTC&count=1&to=2023-06-06%2023:59:00
+
+

@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.demo2.mapper.TradeHistoryMapper">
+
+    <insert id="insertTradeHistory" parameterType="com.example.demo2.model.TradeHistory">
+        INSERT INTO trade_history (
+            executed_at, coin, market, side, quantity, price,
+            total_amount, fee, settlement_amount, ordered_at
+        ) VALUES (
+            #{executedAt}, #{coin}, #{market}, #{side}, #{quantity}, #{price},
+            #{totalAmount}, #{fee}, #{settlementAmount}, #{orderedAt}
+        )
+    </insert>
+
+    <select id="getAllTradeHistories" resultType="com.example.demo2.model.TradeHistory">
+        SELECT 
+            t.id,
+            t.executed_at as executedAt,
+            t.coin,
+            t.market,
+            t.side,
+            t.quantity,
+            CASE 
+                WHEN t.market = 'BTC' AND b.btc_price IS NOT NULL 
+                THEN CAST(CAST(REPLACE(t.price, ',', '') AS DOUBLE) * CAST(REPLACE(b.btc_price, ',', '') AS DOUBLE) AS CHAR)
+                ELSE t.price 
+            END as price,
+            CASE 
+                WHEN t.market = 'BTC' AND b.btc_price IS NOT NULL 
+                THEN CAST(CAST(REPLACE(t.total_amount, ',', '') AS DOUBLE) * CAST(REPLACE(b.btc_price, ',', '') AS DOUBLE) AS CHAR)
+                ELSE t.total_amount 
+            END as totalAmount,
+            CASE 
+                WHEN t.market = 'BTC' AND b.btc_price IS NOT NULL 
+                THEN CAST(CAST(REPLACE(t.fee, ',', '') AS DOUBLE) * CAST(REPLACE(b.btc_price, ',', '') AS DOUBLE) AS CHAR)
+                ELSE t.fee 
+            END as fee,
+            CASE 
+                WHEN t.market = 'BTC' AND b.btc_price IS NOT NULL 
+                THEN CAST(CAST(REPLACE(t.settlement_amount, ',', '') AS DOUBLE) * CAST(REPLACE(b.btc_price, ',', '') AS DOUBLE) AS CHAR)
+                ELSE t.settlement_amount 
+            END as settlementAmount,
+            t.ordered_at as orderedAt
+        FROM trade_history t
+        LEFT JOIN trade_btc_history b ON DATE_FORMAT(t.executed_at, '%Y-%m-%d') = b.ordered_at
+        ORDER BY t.executed_at DESC
+    </select>
+
+    <select id="getTradeHistories" resultType="com.example.demo2.model.TradeHistory">
+        SELECT 
+            t.id,
+            t.executed_at as executedAt,
+            t.coin,
+            t.market,
+            t.side,
+            t.quantity,
+            CASE 
+                WHEN t.market = 'BTC' AND b.btc_price IS NOT NULL 
+                THEN CAST(CAST(REPLACE(t.price, ',', '') AS DOUBLE) * CAST(REPLACE(b.btc_price, ',', '') AS DOUBLE) AS CHAR)
+                ELSE t.price 
+            END as price,
+            CASE 
+                WHEN t.market = 'BTC' AND b.btc_price IS NOT NULL 
+                THEN CAST(CAST(REPLACE(t.total_amount, ',', '') AS DOUBLE) * CAST(REPLACE(b.btc_price, ',', '') AS DOUBLE) AS CHAR)
+                ELSE t.total_amount 
+            END as totalAmount,
+            CASE 
+                WHEN t.market = 'BTC' AND b.btc_price IS NOT NULL 
+                THEN CAST(CAST(REPLACE(t.fee, ',', '') AS DOUBLE) * CAST(REPLACE(b.btc_price, ',', '') AS DOUBLE) AS CHAR)
+                ELSE t.fee 
+            END as fee,
+            CASE 
+                WHEN t.market = 'BTC' AND b.btc_price IS NOT NULL 
+                THEN CAST(CAST(REPLACE(t.settlement_amount, ',', '') AS DOUBLE) * CAST(REPLACE(b.btc_price, ',', '') AS DOUBLE) AS CHAR)
+                ELSE t.settlement_amount 
+            END as settlementAmount,
+            t.ordered_at as orderedAt
+        FROM trade_history t
+        LEFT JOIN trade_btc_history b ON DATE_FORMAT(t.executed_at, '%Y-%m-%d') = b.ordered_at
+        <where>
+            <if test="startDate != null and startDate != ''">
+                AND executed_at &gt;= #{startDate}
+            </if>
+            <if test="endDate != null and endDate != ''">
+                AND executed_at &lt;= #{endDate}
+            </if>
+            <if test="coin != null and coin != ''">
+                AND coin LIKE CONCAT('%', #{coin}, '%')
+            </if>
+            <if test="side != null and side != '' and side != '전체'">
+                AND side = #{side}
+            </if>
+        </where>
+        ORDER BY executed_at DESC
+        <if test="limit != null and limit > 0">
+            LIMIT #{limit} OFFSET #{offset}
+        </if>
+    </select>
+
+    <select id="getTotalCount" resultType="int">
+        SELECT COUNT(*)
+        FROM trade_history
+        <where>
+            <if test="startDate != null and startDate != ''">
+                AND executed_at &gt;= #{startDate}
+            </if>
+            <if test="endDate != null and endDate != ''">
+                AND executed_at &lt;= #{endDate}
+            </if>
+            <if test="coin != null and coin != ''">
+                AND coin LIKE CONCAT('%', #{coin}, '%')
+            </if>
+            <if test="side != null and side != '' and side != '전체'">
+                AND side = #{side}
+            </if>
+        </where>
+    </select>
+
+    <select id="getUniqueCoins" resultType="string">
+        SELECT DISTINCT coin 
+        FROM trade_history
+        ORDER BY coin
+    </select>
+
+    <select id="getStatsByDate" resultType="java.util.Map">
+        SELECT 
+            t.coin as "coinName",
+            SUM(
+                CASE 
+                    WHEN t.side = '매수' THEN CAST(REPLACE(t.settlement_amount, ',', '') AS DOUBLE) * CASE WHEN (t.market = 'BTC' OR t.market = 'btc') AND b.btc_price IS NOT NULL THEN CAST(REPLACE(b.btc_price, ',', '') AS DOUBLE) ELSE 1 END
+                    WHEN t.side = '매도' THEN -CAST(REPLACE(t.settlement_amount, ',', '') AS DOUBLE) * CASE WHEN (t.market = 'BTC' OR t.market = 'btc') AND b.btc_price IS NOT NULL THEN CAST(REPLACE(b.btc_price, ',', '') AS DOUBLE) ELSE 1 END
+                    WHEN t.side = '입금' THEN CAST(REPLACE(t.settlement_amount, ',', '') AS DOUBLE) * CASE WHEN (t.market = 'BTC' OR t.market = 'btc') AND b.btc_price IS NOT NULL THEN CAST(REPLACE(b.btc_price, ',', '') AS DOUBLE) ELSE 1 END
+                    WHEN t.side = '출금' THEN -(CAST(REPLACE(t.settlement_amount, ',', '') AS DOUBLE) + CAST(REPLACE(t.fee, ',', '') AS DOUBLE)) * CASE WHEN (t.market = 'BTC' OR t.market = 'btc') AND b.btc_price IS NOT NULL THEN CAST(REPLACE(b.btc_price, ',', '') AS DOUBLE) ELSE 1 END
+                    ELSE 0 
+                END
+            ) as "totalValue",
+            SUM(
+                CASE 
+                    WHEN t.side = '매수' THEN CAST(REPLACE(t.quantity, ',', '') AS DOUBLE)
+                    WHEN t.side = '매도' THEN -CAST(REPLACE(t.quantity, ',', '') AS DOUBLE)
+                    WHEN t.side = '입금' THEN CAST(REPLACE(t.quantity, ',', '') AS DOUBLE)
+                    WHEN t.side = '출금' THEN -(CAST(REPLACE(t.quantity, ',', '') AS DOUBLE) + CAST(REPLACE(t.fee, ',', '') AS DOUBLE))
+                    ELSE 0 
+                END
+            ) as "totalQuantity"
+        FROM trade_history t
+        LEFT JOIN trade_btc_history b ON DATE_FORMAT(t.executed_at, '%Y-%m-%d') = b.ordered_at
+        <where>
+            <!-- <if test="!includeBtc">
+                AND t.market != 'BTC' and t.market != 'btc'
+            </if> -->
+            <if test="endDate != null and endDate != ''">
+                AND t.executed_at &lt;= CONCAT(#{endDate}, ' 23:59:59')
+            </if>
+            <if test="coin != null and coin != ''">
+                AND t.coin LIKE CONCAT('%', #{coin}, '%')
+            </if>
+            <if test="side != null and side != '' and side != '전체'">
+                AND t.side = #{side}
+            </if>
+        </where>
+        GROUP BY t.coin
+    </select>
+
+    <delete id="truncateTradeHistory">
+        TRUNCATE TABLE trade_history
+    </delete>
+
+    <select id="getBtcMarketHistory" resultType="java.util.Map">
+        SELECT 
+            id as "id",
+            ordered_at as "date",
+            btc_price as "price"
+        FROM trade_btc_history
+        ORDER BY ordered_at DESC
+    </select>
+
+    <update id="updateBtcPrice">
+        UPDATE trade_btc_history
+        SET btc_price = #{price}
+        WHERE id = #{id}
+    </update>
+</mapper>

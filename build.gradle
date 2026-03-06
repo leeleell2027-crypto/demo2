@@ -27,6 +27,11 @@ dependencies {
 	implementation 'org.apache.tomcat.embed:tomcat-embed-jasper'
 	implementation 'jakarta.servlet.jsp.jstl:jakarta.servlet.jsp.jstl-api'
 	implementation 'org.glassfish.web:jakarta.servlet.jsp.jstl'
+    
+    // CSV, Excel parsing
+	implementation 'org.apache.commons:commons-csv:1.10.0'
+	implementation 'org.apache.poi:poi-ooxml:5.2.5'
+
 	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.5'
 	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.5'
 	runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
@@ -34,8 +39,15 @@ dependencies {
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+	// log4jdbc for SQL logging with parameters
+	implementation 'org.bgee.log4jdbc-log4j2:log4jdbc-log4j2-jdbc4.1:1.16'
 }
 
 tasks.named('test') {
 	useJUnitPlatform()
+}
+
+tasks.named('bootRun') {
+	jvmArgs += "-Dfile.encoding=UTF-8"
 }
