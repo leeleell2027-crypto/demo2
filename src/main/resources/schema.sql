@@ -130,3 +130,9 @@ CREATE TABLE `trade_btc_history` (
 -- https://api.upbit.com/v1/candles/days?market=KRW-BTC&count=1&to=2023-06-06%2023:59:00
 
 
+        -- select * from trade_history th where th.market in ('KRW', 'BTC')
+        
+        -- select coin,count(market) as cnt from (
+        -- select coin, market from trade_history where market !='-' group by coin ,market
+        -- ) a  group by a.coin
+        
