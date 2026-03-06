@@ -124,7 +124,12 @@ public class TradeHistoryService {
         try (BufferedReader fileReader = new BufferedReader(
                 new InputStreamReader(file.getInputStream(), StandardCharsets.UTF_8));
                 CSVParser csvParser = new CSVParser(fileReader,
-                        CSVFormat.DEFAULT.withFirstRecordAsHeader().withIgnoreHeaderCase().withTrim())) {
+                        CSVFormat.DEFAULT.builder()
+                                .setHeader()
+                                .setSkipHeaderRecord(true)
+                                .setIgnoreHeaderCase(true)
+                                .setTrim(true)
+                                .build())) {
 
             List<TradeHistory> tradeHistories = new ArrayList<>();
             // 체결시간,코인,마켓,종류,거래수량,거래단가,거래금액,수수료,정산금액,주문시간

@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
+import Pagination from '@/components/Pagination';
 import {
     Search,
     Plus,
@@ -401,14 +402,15 @@ const NoticePage = () => {
                             </tbody>
                         </table>
 
-                        {/* Pagination */}
-                        <div style={{ padding: '20px 24px', display: 'flex', justifyContent: 'center', gap: '8px', borderTop: '1px solid var(--glass-border)' }}>
-                            <button disabled={page === 0} onClick={() => setPage(page - 1)} style={{ padding: '8px', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', border: 'none', cursor: 'pointer', color: page === 0 ? '#444' : 'white' }}><ChevronLeft size={18} /></button>
-                            {[...Array(totalPages)].map((_, i) => (
-                                <button key={i} onClick={() => setPage(i)} style={{ padding: '8px 12px', borderRadius: '8px', background: page === i ? 'var(--primary)' : 'rgba(255,255,255,0.05)', border: 'none', cursor: 'pointer', color: 'white' }}>{i + 1}</button>
-                            ))}
-                            <button disabled={page >= totalPages - 1} onClick={() => setPage(page + 1)} style={{ padding: '8px', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', border: 'none', cursor: 'pointer', color: page >= totalPages - 1 ? '#444' : 'white' }}><ChevronRight size={18} /></button>
-                        </div>
+                        {/* Pagination Controls */}
+                        <Pagination
+                            currentPage={page}
+                            totalPages={totalPages}
+                            totalCount={listData?.totalCount || 0}
+                            onPageChange={setPage}
+                            zeroIndexed={true}
+                            style={{ borderTop: '1px solid var(--glass-border)', background: 'rgba(255,255,255,0.01)', padding: '24px 0 24px' }}
+                        />
                     </div>
                 </motion.div>
             ) : view === 'detail' && selectedNotice ? (

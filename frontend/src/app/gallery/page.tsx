@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Image as ImageIcon, Plus, Home, X, Upload, Calendar, Tag, FileText, ReceiptText, ChevronLeft, ChevronRight, Pencil, Trash2, Search } from 'lucide-react';
 import Link from 'next/link';
+import Pagination from '@/components/Pagination';
 
 interface Board {
     id: number;
@@ -593,46 +594,14 @@ const GalleryPage = () => {
                 </AnimatePresence>
 
                 {/* Pagination Controls */}
-                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px', padding: '24px 0 0', borderTop: '1px solid rgba(255,255,255,0.05)', marginTop: '40px' }}>
-                    <button
-                        disabled={currentPage === 0}
-                        onClick={() => setCurrentPage(p => p - 1)}
-                        style={{ background: 'transparent', border: 'none', color: currentPage === 0 ? 'rgba(255,255,255,0.2)' : 'white', cursor: currentPage === 0 ? 'default' : 'pointer', display: 'flex', padding: '4px' }}
-                    >
-                        <ChevronLeft size={20} />
-                    </button>
-
-                    <div style={{ display: 'flex', gap: '6px' }}>
-                        {Array.from({ length: Math.max(1, totalPages) }).map((_, i) => (
-                            <button
-                                key={i}
-                                onClick={() => setCurrentPage(i)}
-                                style={{
-                                    width: '32px',
-                                    height: '32px',
-                                    borderRadius: '8px',
-                                    border: 'none',
-                                    background: currentPage === i ? 'var(--primary)' : 'rgba(255,255,255,0.05)',
-                                    color: currentPage === i ? 'black' : 'white',
-                                    fontWeight: 700,
-                                    fontSize: '0.85rem',
-                                    cursor: 'pointer',
-                                    transition: 'all 0.2s'
-                                }}
-                            >
-                                {i + 1}
-                            </button>
-                        ))}
-                    </div>
-
-                    <button
-                        disabled={currentPage >= totalPages - 1}
-                        onClick={() => setCurrentPage(p => p + 1)}
-                        style={{ background: 'transparent', border: 'none', color: currentPage >= totalPages - 1 ? 'rgba(255,255,255,0.2)' : 'white', cursor: currentPage >= totalPages - 1 ? 'default' : 'pointer', display: 'flex', padding: '4px' }}
-                    >
-                        <ChevronRight size={20} />
-                    </button>
-                </div>
+                <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    totalCount={totalCount}
+                    onPageChange={setCurrentPage}
+                    zeroIndexed={true}
+                    style={{ marginTop: '12px' }}
+                />
 
                 {/* Upload Modal */}
                 <AnimatePresence>

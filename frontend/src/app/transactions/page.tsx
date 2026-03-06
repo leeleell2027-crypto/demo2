@@ -2,10 +2,11 @@
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { CreditCard, Search, ArrowLeft, Download, Filter, Calendar, MapPin, ReceiptText, ChevronLeft, ChevronRight, LayoutGrid, Table, BarChart2 } from 'lucide-react';
+import { CreditCard, Search, ArrowLeft, Download, Upload, Filter, Calendar, MapPin, ReceiptText, ChevronLeft, ChevronRight, LayoutGrid, Table, BarChart2 } from 'lucide-react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
+import Pagination from '@/components/Pagination';
 
 interface Transaction {
     date: string;
@@ -64,6 +65,8 @@ const TransactionsContent = () => {
     const dateParam = searchParams.get('date');
     const [transactions, setTransactions] = useState<Transaction[]>([]);
     const [loading, setLoading] = useState(false);
+    const [uploading, setUploading] = useState(false);
+    const [file, setFile] = useState<File | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [searchMerchant, setSearchMerchant] = useState('');
     const [viewMode, setViewMode] = useState<'table' | 'calendar' | 'chart'>('table');
@@ -208,6 +211,41 @@ const TransactionsContent = () => {
         };
     }, [page, pageSize, viewMode, searchMerchant, startDate, endDate]);
 
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            setFile(e.target.files[0]);
+        }
+    };
+
+    const handleUpload = async () => {
+        if (!file) return;
+        setUploading(true);
+        const formData = new FormData();
+        formData.append('file', file);
+
+        try {
+            const res = await fetch('/api/transactions/upload', {
+                method: 'POST',
+                body: formData,
+            });
+            const message = await res.text();
+            if (res.ok) {
+                alert(message || '업로드 성공');
+                setFile(null);
+                setPage(1);
+                // Trigger a refresh of the page (simulated by updating state that the effect depends on)
+                window.location.reload();
+            } else {
+                alert(message || '업로드 실패');
+            }
+        } catch (error) {
+            console.error('Error uploading transactions:', error);
+            alert('업로드 중 오류가 발생했습니다.');
+        } finally {
+            setUploading(false);
+        }
+    };
+
     const allSearchFilteredTransactions = useMemo(() => {
         return transactions.filter(t => {
             // Use specific merchant search based on view mode
@@ -299,6 +337,14 @@ const TransactionsContent = () => {
                 {/* Header Section */}
                 {/* Header Section - Split into 2 Rows */}
                 <div style={{ marginBottom: '40px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                    {/* Uploading Overlay */}
+                    {uploading && (
+                        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.7)', zIndex: 9999, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', backdropFilter: 'blur(4px)' }}>
+                            <div style={{ width: '50px', height: '50px', border: '4px solid rgba(255,255,255,0.1)', borderTopColor: 'var(--primary)', borderRadius: '50%', animation: 'spin 1s linear infinite', marginBottom: '20px' }}></div>
+                            <div style={{ color: 'white', fontSize: '1.2rem', fontWeight: 600 }}>파일 업로드 중...</div>
+                            <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginTop: '8px' }}>데이터가 많을 경우 시간이 소요될 수 있습니다.</div>
+                        </div>
+                    )}
                     {/* Row 1: Title & View Mode Tabs */}
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
@@ -430,9 +476,33 @@ const TransactionsContent = () => {
                         </div>
 
                         <div style={{ display: 'flex', gap: '12px' }}>
-                            <button className="btn btn-secondary">
-                                <Filter size={18} /> Filter
-                            </button>
+                            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                <input
+                                    type="file"
+                                    accept=".csv,.xlsx,.xls"
+                                    onChange={handleFileChange}
+                                    style={{ display: 'none' }}
+                                    id="transaction-file-upload"
+                                />
+                                <label
+                                    htmlFor="transaction-file-upload"
+                                    className="btn btn-secondary"
+                                    style={{ cursor: 'pointer', padding: '10px 16px', borderRadius: '10px', height: '44px', display: 'flex', alignItems: 'center' }}
+                                >
+                                    {file ? file.name : '파일 선택 (CSV/Excel)'}
+                                </label>
+
+                                <button
+                                    onClick={handleUpload}
+                                    disabled={!file || uploading}
+                                    className="btn btn-primary"
+                                    style={{ color: 'black', display: 'flex', gap: '8px', alignItems: 'center', height: '44px' }}
+                                >
+                                    <Upload size={18} />
+                                    업로드
+                                </button>
+                            </div>
+
                             <button
                                 className="btn btn-primary"
                                 style={{ color: 'black' }}
@@ -558,46 +628,13 @@ const TransactionsContent = () => {
                         </div>
 
                         {/* Pagination Controls */}
-                        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px', padding: '24px 0 24px', borderTop: '1px solid rgba(255,255,255,0.05)', background: 'rgba(255,255,255,0.01)' }}>
-                            <button
-                                disabled={page === 1}
-                                onClick={() => setPage(p => p - 1)}
-                                style={{ background: 'transparent', border: 'none', color: page === 1 ? 'rgba(255,255,255,0.2)' : 'white', cursor: page === 1 ? 'default' : 'pointer', display: 'flex', padding: '4px' }}
-                            >
-                                <ChevronLeft size={20} />
-                            </button>
-
-                            <div style={{ display: 'flex', gap: '6px' }}>
-                                {Array.from({ length: Math.max(1, totalPages) }).map((_, i) => (
-                                    <button
-                                        key={i + 1}
-                                        onClick={() => setPage(i + 1)}
-                                        style={{
-                                            width: '32px',
-                                            height: '32px',
-                                            borderRadius: '8px',
-                                            border: 'none',
-                                            background: page === i + 1 ? 'var(--primary)' : 'rgba(255,255,255,0.05)',
-                                            color: page === i + 1 ? 'black' : 'white',
-                                            fontWeight: 700,
-                                            fontSize: '0.85rem',
-                                            cursor: 'pointer',
-                                            transition: 'all 0.2s'
-                                        }}
-                                    >
-                                        {i + 1}
-                                    </button>
-                                ))}
-                            </div>
-
-                            <button
-                                disabled={page >= totalPages}
-                                onClick={() => setPage(p => p + 1)}
-                                style={{ background: 'transparent', border: 'none', color: page >= totalPages ? 'rgba(255,255,255,0.2)' : 'white', cursor: page >= totalPages ? 'default' : 'pointer', display: 'flex', padding: '4px' }}
-                            >
-                                <ChevronRight size={20} />
-                            </button>
-                        </div>
+                        <Pagination
+                            currentPage={page}
+                            totalPages={totalPages}
+                            totalCount={total}
+                            onPageChange={setPage}
+                            style={{ borderTop: '1px solid rgba(255,255,255,0.05)', background: 'rgba(255,255,255,0.01)', padding: '24px 0 24px' }}
+                        />
                     </div>
                 ) : viewMode === 'calendar' ? (
                     <CalendarView

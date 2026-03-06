@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Calendar, Plus, Edit2, Trash2, X, Save, Shield, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
+import Pagination from '@/components/Pagination';
 
 interface Holiday {
     id: number;
@@ -181,45 +182,14 @@ export default function HolidayManagementPage() {
                     </tbody>
                 </table>
 
-                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', padding: '24px 0 0', marginTop: '12px' }}>
-                    <button
-                        disabled={currentPage === 1}
-                        onClick={() => handlePageChange(currentPage - 1)}
-                        className="btn"
-                        style={{ padding: '8px', background: 'transparent', color: currentPage === 1 ? 'rgba(255,255,255,0.1)' : 'white' }}
-                    >
-                        <ChevronLeft size={20} />
-                    </button>
-
-                    <div style={{ display: 'flex', gap: '6px' }}>
-                        {Array.from({ length: Math.max(1, totalPages) }).map((_, i) => (
-                            <button
-                                key={i + 1}
-                                onClick={() => handlePageChange(i + 1)}
-                                className={`btn ${currentPage === i + 1 ? 'btn-primary' : ''}`}
-                                style={{
-                                    width: '36px',
-                                    height: '36px',
-                                    padding: 0,
-                                    borderRadius: '10px',
-                                    background: currentPage === i + 1 ? 'var(--primary)' : 'rgba(255,255,255,0.05)',
-                                    color: currentPage === i + 1 ? 'black' : 'white',
-                                }}
-                            >
-                                {i + 1}
-                            </button>
-                        ))}
-                    </div>
-
-                    <button
-                        disabled={currentPage >= totalPages}
-                        onClick={() => handlePageChange(currentPage + 1)}
-                        className="btn"
-                        style={{ padding: '8px', background: 'transparent', color: currentPage >= totalPages ? 'rgba(255,255,255,0.1)' : 'white' }}
-                    >
-                        <ChevronRight size={20} />
-                    </button>
-                </div>
+                {/* Pagination Controls */}
+                <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    totalCount={totalElements}
+                    onPageChange={handlePageChange}
+                    style={{ padding: '24px 0 40px', marginTop: '12px' }}
+                />
             </div>
 
             {isModalOpen && (

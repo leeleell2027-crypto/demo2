@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Shield, Users, Lock, Plus, Edit2, Trash2, X, ChevronLeft, ChevronRight, Save } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
+import Pagination from '@/components/Pagination';
 
 interface Member {
     id: string;
@@ -216,46 +217,15 @@ export default function AdminManagementPage() {
                         ))}
                     </tbody>
                 </table>
-            </div>
 
-            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', padding: '24px 0 0' }}>
-                <button
-                    disabled={page === 1}
-                    onClick={() => setPage(p => p - 1)}
-                    className="btn"
-                    style={{ padding: '8px', background: 'transparent', color: page === 1 ? 'rgba(255,255,255,0.1)' : 'white' }}
-                >
-                    <ChevronLeft size={20} />
-                </button>
-
-                <div style={{ display: 'flex', gap: '6px' }}>
-                    {Array.from({ length: Math.max(1, Math.ceil(total / pageSize)) }).map((_, i) => (
-                        <button
-                            key={i + 1}
-                            onClick={() => setPage(i + 1)}
-                            className={`btn ${page === i + 1 ? 'btn-primary' : ''}`}
-                            style={{
-                                width: '36px',
-                                height: '36px',
-                                padding: 0,
-                                borderRadius: '10px',
-                                background: page === i + 1 ? 'var(--primary)' : 'rgba(255,255,255,0.05)',
-                                color: page === i + 1 ? 'black' : 'white',
-                            }}
-                        >
-                            {i + 1}
-                        </button>
-                    ))}
-                </div>
-
-                <button
-                    disabled={page >= Math.ceil(total / pageSize)}
-                    onClick={() => setPage(p => p + 1)}
-                    className="btn"
-                    style={{ padding: '8px', background: 'transparent', color: page >= Math.ceil(total / pageSize) ? 'rgba(255,255,255,0.1)' : 'white' }}
-                >
-                    <ChevronRight size={20} />
-                </button>
+                {/* Pagination Controls - Moved inside glass-panel */}
+                <Pagination
+                    currentPage={page}
+                    totalPages={Math.max(1, Math.ceil(total / pageSize))}
+                    totalCount={total}
+                    onPageChange={setPage}
+                    style={{ padding: '24px 0 24px', borderTop: '1px solid rgba(255,255,255,0.05)', background: 'rgba(255,255,255,0.01)' }}
+                />
             </div>
             {/* Modal */}
             {isModalOpen && (

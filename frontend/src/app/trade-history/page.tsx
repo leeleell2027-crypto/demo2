@@ -4,6 +4,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Upload, Trash2, ArrowLeft, RefreshCw, Table, BarChart2, ChevronLeft, ChevronRight, ChevronUp, ChevronDown } from 'lucide-react';
 import Link from 'next/link';
+import Pagination from '@/components/Pagination';
 
 interface TradeHistory {
     id: number;
@@ -529,26 +530,14 @@ export default function TradeHistoryPage() {
                             </table>
                         </div>
 
-                        {/* Pagination */}
-                        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '16px', marginTop: '10px' }}>
-                            <button
-                                disabled={page === 1}
-                                onClick={() => setPage(p => Math.max(1, p - 1))}
-                                style={{ padding: '8px 16px', borderRadius: '8px', background: page === 1 ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.1)', color: page === 1 ? 'var(--text-muted)' : 'white', border: 'none', cursor: page === 1 ? 'not-allowed' : 'pointer' }}
-                            >
-                                이전
-                            </button>
-                            <span style={{ color: 'var(--text-muted)' }}>
-                                {page} / {totalPages === 0 ? 1 : totalPages} (총 {totalElements}건)
-                            </span>
-                            <button
-                                disabled={page >= totalPages}
-                                onClick={() => setPage(p => p + 1)}
-                                style={{ padding: '8px 16px', borderRadius: '8px', background: page >= totalPages ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.1)', color: page >= totalPages ? 'var(--text-muted)' : 'white', border: 'none', cursor: page >= totalPages ? 'not-allowed' : 'pointer' }}
-                            >
-                                다음
-                            </button>
-                        </div>
+                        {/* Pagination Controls */}
+                        <Pagination
+                            currentPage={page}
+                            totalPages={totalPages}
+                            totalCount={totalElements}
+                            onPageChange={setPage}
+                            style={{ borderTop: '1px solid rgba(255,255,255,0.05)', background: 'rgba(255,255,255,0.01)', padding: '24px 0 24px' }}
+                        />
                     </div>
                 ) : viewMode === 'chart' ? (
                     <ChartView
