@@ -15,6 +15,9 @@
             <if test="searchMerchant != null and searchMerchant != ''">
                 AND merchant LIKE CONCAT('%', #{searchMerchant}, '%')
             </if>
+            <if test="searchCard != null and searchCard != ''">
+                AND card LIKE CONCAT('%', #{searchCard}, '%')
+            </if>
             <if test="startDate != null and startDate != ''">
                 AND date &gt;= #{startDate}
             </if>
@@ -34,6 +37,9 @@
             <if test="searchMerchant != null and searchMerchant != ''">
                 AND merchant LIKE CONCAT('%', #{searchMerchant}, '%')
             </if>
+            <if test="searchCard != null and searchCard != ''">
+                AND card LIKE CONCAT('%', #{searchCard}, '%')
+            </if>
             <if test="startDate != null and startDate != ''">
                 AND date &gt;= #{startDate}
             </if>
@@ -43,6 +49,26 @@
         </where>
         ORDER BY date DESC, time DESC
         LIMIT #{size} OFFSET #{offset}
+    </select>
+
+    <select id="findByRange" resultType="com.example.demo2.model.Transaction">
+        SELECT * 
+        FROM transactions 
+        <where>
+            <if test="searchMerchant != null and searchMerchant != ''">
+                AND merchant LIKE CONCAT('%', #{searchMerchant}, '%')
+            </if>
+            <if test="searchCard != null and searchCard != ''">
+                AND card LIKE CONCAT('%', #{searchCard}, '%')
+            </if>
+            <if test="startDate != null and startDate != ''">
+                AND date &gt;= #{startDate}
+            </if>
+            <if test="endDate != null and endDate != ''">
+                AND date &lt;= #{endDate}
+            </if>
+        </where>
+        ORDER BY date DESC, time DESC
     </select>
     
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
@@ -70,6 +96,9 @@
             </if>
             <if test="searchMerchant != null and searchMerchant != ''">
                 AND merchant LIKE CONCAT('%', #{searchMerchant}, '%')
+            </if>
+            <if test="searchCard != null and searchCard != ''">
+                AND card LIKE CONCAT('%', #{searchCard}, '%')
             </if>
             <if test="startDate != null and startDate != ''">
                 AND date &gt;= #{startDate}

@@ -268,7 +268,7 @@ const NoticePage = () => {
     };
 
     return (
-        <div className="page-container">
+        <div className="page-container-full">
             {/* Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
@@ -659,7 +659,7 @@ const NoticePage = () => {
 };
 
 const WrappedNoticePage = () => (
-    <Suspense fallback={<div className="page-container"><div className="glass-panel" style={{ padding: '100px', textAlign: 'center' }}>Loading...</div></div>}>
+    <Suspense fallback={<div className="page-container-full"><div className="glass-panel" style={{ padding: '100px', textAlign: 'center' }}>Loading...</div></div>}>
         <NoticePage />
     </Suspense>
 );

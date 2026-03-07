@@ -6,8 +6,19 @@
     display: flex;
     flex-direction: column;
     gap: 24px;
-    max-width: 1200px;
+    max-width: 1400px;
+    /* 기존 1200px에서 약간 확장 */
     margin: 0 auto;
+    width: 100%;
+}
+
+.page-container-full {
+    padding: 24px;
+    /* 일관된 좌우 여백 적용 */
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
 }
 
 .header-title {

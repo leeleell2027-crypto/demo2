@@ -62,7 +62,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ onLogout }) => {
     };
 
     return (
-        <div style={{ display: 'flex', gap: '30px', alignItems: 'flex-start', justifyContent: 'center', width: '100%', maxWidth: '900px' }}>
+        <div style={{ display: 'flex', gap: '30px', alignItems: 'flex-start', justifyContent: 'center', width: '100%' }}>
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}

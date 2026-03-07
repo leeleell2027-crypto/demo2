@@ -5,7 +5,7 @@ import { User } from 'lucide-react';
 
 export default function ProfilePage() {
     return (
-        <div className="page-container" style={{ color: 'white' }}>
+        <div className="page-container-full" style={{ color: 'white' }}>
             <h1 className="header-title" style={{ fontSize: '2.5rem' }}>
                 <User size={32} color="var(--primary)" />
                 My Profile

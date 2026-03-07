@@ -95,7 +95,7 @@ const MapPage = () => {
     }, [mapLoaded, useFallback]);
 
     return (
-        <div className="page-container" style={{ height: '100%', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        <div className="page-container-full" style={{ height: '100%', display: 'flex', flexDirection: 'column', gap: '20px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
                     <h1 className="header-title" style={{ fontSize: '1.75rem', marginBottom: '4px' }}>지도 서비스 (Google Maps)</h1>

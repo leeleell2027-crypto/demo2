@@ -219,7 +219,7 @@ export default function TradeHistoryPage() {
     };
 
     return (
-        <div className="page-container" style={{ color: 'white', minHeight: '100vh', padding: '40px 20px', position: 'relative' }}>
+        <div className="page-container-full" style={{ color: 'white', minHeight: '100vh', position: 'relative' }}>
             {/* Uploading Overlay */}
             {uploading && (
                 <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.7)', zIndex: 9999, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', backdropFilter: 'blur(4px)' }}>
@@ -229,216 +229,202 @@ export default function TradeHistoryPage() {
                 </div>
             )}
 
-            <div style={{ maxWidth: '1400px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '24px' }}>
 
-                {/* Header */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-                        <Link href="/" style={{ color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none', transition: 'color 0.2s' }}>
-                            <ArrowLeft size={20} />
-                            <span>Back to Home</span>
-                        </Link>
-                        <div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--primary)', marginBottom: '4px' }}>
-                                <Table size={20} />
-                                <span style={{ fontWeight: 600, fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Crypto</span>
+                {/* Header Section */}
+                <div style={{ marginBottom: '40px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+                            <Link href="/" style={{ color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none', transition: 'color 0.2s' }}>
+                                <ArrowLeft size={20} />
+                                <span>Back</span>
+                            </Link>
+                            <div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--primary)', marginBottom: '4px' }}>
+                                    <Table size={20} />
+                                    <span style={{ fontWeight: 600, fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Crypto Assets</span>
+                                </div>
+                                <h1 className="header-title" style={{ fontSize: '2.5rem', margin: 0 }}>Trade History</h1>
                             </div>
-                            <h1 className="header-title" style={{ fontSize: '2.5rem', margin: 0 }}>Trade History</h1>
+                        </div>
+
+                        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                            <div className="glass-panel view-mode-tabs" style={{ display: 'flex', padding: '4px', borderRadius: '12px' }}>
+                                <button
+                                    onClick={() => setViewMode('table')}
+                                    className={`btn ${viewMode === 'table' ? 'btn-primary' : ''}`}
+                                    style={{
+                                        padding: '8px 16px',
+                                        borderRadius: '8px',
+                                        background: viewMode === 'table' ? 'var(--primary)' : 'transparent',
+                                        color: viewMode === 'table' ? 'black' : 'white',
+                                    }}
+                                >
+                                    <Table size={16} /> Table
+                                </button>
+                                <button
+                                    onClick={() => setViewMode('chart')}
+                                    className={`btn ${viewMode === 'chart' ? 'btn-primary' : ''}`}
+                                    style={{
+                                        padding: '8px 16px',
+                                        borderRadius: '8px',
+                                        background: viewMode === 'chart' ? 'var(--primary)' : 'transparent',
+                                        color: viewMode === 'chart' ? 'black' : 'white',
+                                    }}
+                                >
+                                    <BarChart2 size={16} /> Stats
+                                </button>
+                                <button
+                                    onClick={() => setViewMode('btc')}
+                                    className={`btn ${viewMode === 'btc' ? 'btn-primary' : ''}`}
+                                    style={{
+                                        padding: '8px 16px',
+                                        borderRadius: '8px',
+                                        background: viewMode === 'btc' ? 'var(--primary)' : 'transparent',
+                                        color: viewMode === 'btc' ? 'black' : 'white',
+                                    }}
+                                >
+                                    <RefreshCw size={16} /> BTC
+                                </button>
+                            </div>
+
+                            <div style={{ display: 'flex', gap: '8px' }}>
+                                <input
+                                    type="file"
+                                    accept=".csv,.xlsx,.xls"
+                                    onChange={handleFileChange}
+                                    style={{ display: 'none' }}
+                                    id="file-upload"
+                                />
+                                <label
+                                    htmlFor="file-upload"
+                                    className="btn btn-secondary"
+                                    style={{ cursor: 'pointer', fontSize: '0.85rem' }}
+                                >
+                                    {file ? file.name : 'Select File'}
+                                </label>
+                                <button
+                                    onClick={handleUpload}
+                                    disabled={!file || uploading}
+                                    className="btn btn-primary"
+                                    style={{ color: 'black' }}
+                                >
+                                    <Upload size={18} />
+                                </button>
+                                <button
+                                    onClick={handleDeleteAll}
+                                    className="btn"
+                                    style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.2)' }}
+                                >
+                                    <Trash2 size={18} />
+                                </button>
+                            </div>
                         </div>
                     </div>
 
-                    <div className="glass-panel view-mode-tabs" style={{ display: 'flex', background: 'rgba(255,255,255,0.02)', padding: '6px', borderRadius: '14px' }}>
-                        <button
-                            onClick={() => setViewMode('table')}
-                            className={`btn ${viewMode === 'table' ? 'btn-primary' : ''}`}
-                            style={{
-                                padding: '10px 16px',
-                                borderRadius: '10px',
-                                background: viewMode === 'table' ? 'var(--primary)' : 'transparent',
-                                color: viewMode === 'table' ? 'black' : 'white',
-                                border: 'none',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '8px',
-                                fontWeight: 600,
-                                cursor: 'pointer',
-                                transition: 'all 0.2s'
-                            }}
-                        >
-                            <Table size={18} /> Table
-                        </button>
-                        <button
-                            onClick={() => setViewMode('chart')}
-                            style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '8px',
-                                padding: '10px 16px',
-                                borderRadius: '10px',
-                                border: 'none',
-                                background: viewMode === 'chart' ? 'var(--primary)' : 'transparent',
-                                color: viewMode === 'chart' ? 'black' : 'white',
-                                cursor: 'pointer',
-                                fontWeight: 600,
-                                transition: 'all 0.2s'
-                            }}
-                        >
-                            <BarChart2 size={18} /> 통계 (Chart)
-                        </button>
-                        <button
-                            onClick={() => setViewMode('btc')}
-                            style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '8px',
-                                padding: '10px 16px',
-                                borderRadius: '10px',
-                                border: 'none',
-                                background: viewMode === 'btc' ? 'var(--primary)' : 'transparent',
-                                color: viewMode === 'btc' ? 'black' : 'white',
-                                cursor: 'pointer',
-                                fontWeight: 600,
-                                transition: 'all 0.2s'
-                            }}
-                        >
-                            <RefreshCw size={18} /> BTC 내역
-                        </button>
-                    </div>
-                </div>
+                    {/* Filter Section (Row 2) */}
+                    {viewMode !== 'btc' && (
+                        <div className="glass-panel" style={{ padding: '24px', display: 'flex', flexWrap: 'wrap', gap: '24px', alignItems: 'flex-end', background: 'rgba(255,255,255,0.02)' }}>
+                            <div style={{ flex: '1', minWidth: '300px', display: 'flex', gap: '16px' }}>
+                                {viewMode === 'table' ? (
+                                    <div style={{ flex: 1 }}>
+                                        <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '8px', textTransform: 'uppercase' }}>Period</label>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                            <input
+                                                type="date"
+                                                value={startDate}
+                                                onChange={(e) => setStartDate(e.target.value)}
+                                                className="input-control"
+                                                style={{ padding: '8px 12px' }}
+                                            />
+                                            <span style={{ color: 'var(--text-muted)' }}>~</span>
+                                            <input
+                                                type="date"
+                                                value={endDate}
+                                                onChange={(e) => setEndDate(e.target.value)}
+                                                className="input-control"
+                                                style={{ padding: '8px 12px' }}
+                                            />
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div style={{ flex: 1 }}>
+                                        <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '8px', textTransform: 'uppercase' }}>Base Date</label>
+                                        <input
+                                            type="date"
+                                            value={chartDate}
+                                            onChange={(e) => setChartDate(e.target.value)}
+                                            className="input-control"
+                                            style={{ padding: '8px 12px' }}
+                                        />
+                                    </div>
+                                )}
+                            </div>
 
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    {/* Controls */}
-                    <div className="glass-panel" style={{ display: 'flex', gap: '16px', alignItems: 'center', padding: '16px', borderRadius: '16px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <input
-                                type="file"
-                                accept=".csv,.xlsx,.xls"
-                                onChange={handleFileChange}
-                                style={{ display: 'none' }}
-                                id="file-upload"
-                            />
-                            <label
-                                htmlFor="file-upload"
-                                className="btn"
-                                style={{ background: 'rgba(255,255,255,0.1)', cursor: 'pointer', padding: '8px 16px', borderRadius: '8px' }}
-                            >
-                                {file ? file.name : '파일 선택 (CSV/Excel)'}
-                            </label>
+                            <div style={{ display: 'flex', gap: '16px' }}>
+                                <div>
+                                    <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '8px', textTransform: 'uppercase' }}>Coin</label>
+                                    <select
+                                        value={coin}
+                                        onChange={(e) => { setCoin(e.target.value); setPage(1); }}
+                                        className="input-control"
+                                        style={{ padding: '8px 12px', minWidth: '120px' }}
+                                    >
+                                        <option value="" style={{ color: 'black' }}>All Coins</option>
+                                        {availableCoins.map((c) => (
+                                            <option key={c} value={c} style={{ color: 'black' }}>{c}</option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '8px', textTransform: 'uppercase' }}>Side</label>
+                                    <select
+                                        value={side}
+                                        onChange={(e) => setSide(e.target.value)}
+                                        className="input-control"
+                                        style={{ padding: '8px 12px', minWidth: '100px' }}
+                                    >
+                                        <option value="전체" style={{ color: 'black' }}>All</option>
+                                        <option value="매수" style={{ color: 'black' }}>Buy</option>
+                                        <option value="매도" style={{ color: 'black' }}>Sell</option>
+                                    </select>
+                                </div>
+
+                                {viewMode === 'table' && (
+                                    <div>
+                                        <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '8px', textTransform: 'uppercase' }}>Rows</label>
+                                        <select
+                                            value={size}
+                                            onChange={(e) => { setSize(Number(e.target.value)); setPage(1); }}
+                                            className="input-control"
+                                            style={{ padding: '8px 12px', minWidth: '100px' }}
+                                        >
+                                            <option value={20} style={{ color: 'black' }}>20 rows</option>
+                                            <option value={50} style={{ color: 'black' }}>50 rows</option>
+                                            <option value={100} style={{ color: 'black' }}>100 rows</option>
+                                        </select>
+                                    </div>
+                                )}
+                            </div>
 
                             <button
-                                onClick={handleUpload}
-                                disabled={!file || uploading}
+                                onClick={() => {
+                                    if (viewMode === 'table') {
+                                        setPage(1);
+                                        fetchHistories(1);
+                                    } else {
+                                        fetchStats();
+                                    }
+                                }}
                                 className="btn btn-primary"
-                                style={{ color: 'black', display: 'flex', gap: '8px', alignItems: 'center' }}
+                                style={{ color: 'black', padding: '10px 32px', fontWeight: 'bold' }}
                             >
-                                {uploading ? <RefreshCw className="spin" size={18} /> : <Upload size={18} />}
-                                업로드
+                                Search
                             </button>
                         </div>
-
-                        <div style={{ width: '1px', height: '30px', background: 'rgba(255,255,255,0.2)' }}></div>
-
-                        <button
-                            onClick={handleDeleteAll}
-                            className="btn"
-                            style={{ background: 'rgba(239, 68, 68, 0.2)', color: '#ef4444', display: 'flex', gap: '8px', alignItems: 'center' }}
-                        >
-                            <Trash2 size={18} />
-                            전체 삭제
-                        </button>
-                    </div>
+                    )}
                 </div>
-
-                {/* Filters */}
-                {viewMode !== 'btc' && (
-                    <div className="glass-panel" style={{ display: 'flex', gap: '16px', alignItems: 'center', padding: '16px', borderRadius: '16px', flexWrap: 'wrap' }}>
-                        {viewMode === 'table' ? (
-                            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                                <label style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>체결기간</label>
-                                <input
-                                    type="date"
-                                    value={startDate}
-                                    onChange={(e) => setStartDate(e.target.value)}
-                                    className="input-control"
-                                    style={{ background: 'rgba(255,255,255,0.1)', color: 'white', border: '1px solid rgba(255,255,255,0.2)', padding: '8px', borderRadius: '8px' }}
-                                />
-                                <span style={{ color: 'var(--text-muted)' }}>~</span>
-                                <input
-                                    type="date"
-                                    value={endDate}
-                                    onChange={(e) => setEndDate(e.target.value)}
-                                    className="input-control"
-                                    style={{ background: 'rgba(255,255,255,0.1)', color: 'white', border: '1px solid rgba(255,255,255,0.2)', padding: '8px', borderRadius: '8px' }}
-                                />
-                            </div>
-                        ) : (
-                            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                                <label style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>기준일자 (이전 누적합산)</label>
-                                <input
-                                    type="date"
-                                    value={chartDate}
-                                    onChange={(e) => setChartDate(e.target.value)}
-                                    className="input-control"
-                                    style={{ background: 'rgba(255,255,255,0.1)', color: 'white', border: '1px solid rgba(255,255,255,0.2)', padding: '8px', borderRadius: '8px' }}
-                                />
-                            </div>
-                        )}
-
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <label style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>코인</label>
-                            <select
-                                value={coin}
-                                onChange={(e) => { setCoin(e.target.value); setPage(1); }}
-                                style={{ background: 'rgba(255,255,255,0.1)', color: 'white', border: '1px solid rgba(255,255,255,0.2)', padding: '8px', borderRadius: '8px', minWidth: '120px' }}>
-                                <option value="" style={{ color: 'black' }}>전체</option>
-                                {availableCoins.map((c) => (
-                                    <option key={c} value={c} style={{ color: 'black' }}>{c}</option>
-                                ))}
-                            </select>
-                        </div>
-
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <label style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>종류</label>
-                            <select
-                                value={side}
-                                onChange={(e) => { setSide(e.target.value); }}
-                                style={{ background: 'rgba(255,255,255,0.1)', color: 'white', border: '1px solid rgba(255,255,255,0.2)', padding: '8px', borderRadius: '8px' }}>
-                                <option value="전체" style={{ color: 'black' }}>전체</option>
-                                <option value="매수" style={{ color: 'black' }}>매수</option>
-                                <option value="매도" style={{ color: 'black' }}>매도</option>
-                            </select>
-                        </div>
-
-                        {viewMode === 'table' && (
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <label style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>목록 수</label>
-                                <select
-                                    value={size}
-                                    onChange={(e) => { setSize(Number(e.target.value)); setPage(1); }}
-                                    style={{ background: 'rgba(255,255,255,0.1)', color: 'white', border: '1px solid rgba(255,255,255,0.2)', padding: '8px', borderRadius: '8px' }}>
-                                    <option value={20} style={{ color: 'black' }}>20개씩</option>
-                                    <option value={50} style={{ color: 'black' }}>50개씩</option>
-                                    <option value={100} style={{ color: 'black' }}>100개씩</option>
-                                </select>
-                            </div>
-                        )}
-
-                        <button
-                            onClick={() => {
-                                if (viewMode === 'table') {
-                                    setPage(1);
-                                    fetchHistories(1);
-                                } else {
-                                    fetchStats();
-                                }
-                            }}
-                            className="btn btn-primary"
-                            style={{ color: 'black', padding: '8px 24px', marginLeft: 'auto', fontWeight: 'bold' }}
-                        >
-                            조회
-                        </button>
-                    </div>
-                )}
 
                 {/* Content Section */}
                 {viewMode === 'table' ? (

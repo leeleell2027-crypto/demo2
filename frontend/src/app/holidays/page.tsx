@@ -119,7 +119,7 @@ export default function HolidayManagementPage() {
     }
 
     return (
-        <div className="page-container" style={{ color: 'white' }}>
+        <div className="page-container-full" style={{ color: 'white' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '40px' }}>
                 <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--primary)', marginBottom: '8px' }}>

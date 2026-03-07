@@ -268,8 +268,8 @@ const GalleryPage = () => {
     const displayItems = gridItems.slice(0, 16);
 
     return (
-        <div className="page-container" style={{ color: 'white' }}>
-            <div style={{ maxWidth: '1200px', margin: '0 auto', width: '100%', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+        <div className="page-container-full" style={{ color: 'white' }}>
+            <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '24px' }}>
                 {/* Header */}
                 {/* Header Section */}
                 <div style={{ marginBottom: '40px' }}>

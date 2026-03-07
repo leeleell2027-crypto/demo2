@@ -100,6 +100,9 @@ const TransactionsContent = () => {
     const [dateRangeType, setDateRangeType] = useState(dateParam ? 'custom' : 'month'); // today, week, month, custom
     const [calendarSearchMerchant, setCalendarSearchMerchant] = useState('');
     const [chartSearchMerchant, setChartSearchMerchant] = useState('');
+    const [searchCard, setSearchCard] = useState('');
+    const [calendarSearchCard, setCalendarSearchCard] = useState('');
+    const [chartSearchCard, setChartSearchCard] = useState('');
 
     // Refs for optimization
     const abortControllerRef = useRef<AbortController | null>(null);
@@ -141,7 +144,38 @@ const TransactionsContent = () => {
         // Prevent empty date searches
         if (!startDate || !endDate) return;
 
-        const currentParams = JSON.stringify({ page, pageSize, viewMode, searchMerchant, startDate, endDate });
+        // Calculate month range for calendar/chart views
+        let rangeStartDate = startDate;
+        let rangeEndDate = endDate;
+        if (viewMode === 'calendar' || viewMode === 'chart') {
+            const year = currentMonth.getFullYear();
+            const month = currentMonth.getMonth();
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+
+            const formatDate = (date: Date) => {
+                const y = date.getFullYear();
+                const m = String(date.getMonth() + 1).padStart(2, '0');
+                const d = String(date.getDate()).padStart(2, '0');
+                return `${y}-${m}-${d}`;
+            };
+            rangeStartDate = formatDate(firstDay);
+            rangeEndDate = formatDate(lastDay);
+        }
+
+        const currentParams = JSON.stringify({
+            page,
+            pageSize,
+            viewMode,
+            searchMerchant,
+            searchCard,
+            startDate: rangeStartDate,
+            endDate: rangeEndDate,
+            calendarSearchMerchant,
+            calendarSearchCard,
+            chartSearchMerchant,
+            chartSearchCard
+        });
 
         // Debounce: Wait for 100ms before initiating the fetch
         const debounceTimer = setTimeout(() => {
@@ -157,9 +191,15 @@ const TransactionsContent = () => {
                 setLoading(true);
                 try {
                     if (viewMode === 'calendar' || viewMode === 'chart') {
+                        // Use mode-specific search terms
+                        const mSearch = viewMode === 'calendar' ? calendarSearchMerchant : chartSearchMerchant;
+                        const cSearch = viewMode === 'calendar' ? calendarSearchCard : chartSearchCard;
+
+                        const transactionUrl = `/api/transactions?startDate=${rangeStartDate}&endDate=${rangeEndDate}&searchMerchant=${encodeURIComponent(mSearch)}&searchCard=${encodeURIComponent(cSearch)}`;
+
                         // Fetch Transactions and Holidays in parallel using cache
                         const [transactionData, holidayData] = await Promise.all([
-                            fetchWithCache('/api/transactions', signal),
+                            fetchWithCache(transactionUrl, signal),
                             fetchWithCache('/api/holidays/all', signal)
                         ]);
 
@@ -170,7 +210,7 @@ const TransactionsContent = () => {
                         setTotal(transactionData.length);
                         setTotalPages(1);
                     } else {
-                        const url = `/api/transactions/paged?page=${page}&size=${pageSize}&searchMerchant=${encodeURIComponent(searchMerchant)}&startDate=${startDate}&endDate=${endDate}`;
+                        const url = `/api/transactions/paged?page=${page}&size=${pageSize}&searchMerchant=${encodeURIComponent(searchMerchant)}&searchCard=${encodeURIComponent(searchCard)}&startDate=${startDate}&endDate=${endDate}`;
                         const data = await fetchWithCache(url, signal);
 
                         if (signal.aborted) return;
@@ -209,7 +249,7 @@ const TransactionsContent = () => {
                 lastInitiatedParams.current = "";
             }
         };
-    }, [page, pageSize, viewMode, searchMerchant, startDate, endDate]);
+    }, [page, pageSize, viewMode, searchMerchant, searchCard, startDate, endDate, currentMonth, calendarSearchMerchant, calendarSearchCard, chartSearchMerchant, chartSearchCard]);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
@@ -247,13 +287,10 @@ const TransactionsContent = () => {
     };
 
     const allSearchFilteredTransactions = useMemo(() => {
-        return transactions.filter(t => {
-            // Use specific merchant search based on view mode
-            const merchantToMatch = viewMode === 'calendar' ? calendarSearchMerchant : chartSearchMerchant;
-            const merchantMatch = !merchantToMatch || (t.merchant || '').toLowerCase().includes(merchantToMatch.toLowerCase());
-            return merchantMatch;
-        });
-    }, [transactions, calendarSearchMerchant, chartSearchMerchant, viewMode]);
+        // Since the data is already filtered by the API for calendar/chart view,
+        // we just return the transactions array directly.
+        return transactions;
+    }, [transactions]);
 
     const filteredTransactions = useMemo(() => {
         if (viewMode === 'calendar' || viewMode === 'chart') {
@@ -332,151 +369,62 @@ const TransactionsContent = () => {
     };
 
     return (
-        <div className="page-container" style={{ color: 'white' }}>
-            <div style={{ maxWidth: '1400px', margin: '0 auto', width: '100%', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+        <div className="page-container-full" style={{ color: 'white' }}>
+            <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '24px' }}>
                 {/* Header Section */}
-                {/* Header Section - Split into 2 Rows */}
-                <div style={{ marginBottom: '40px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                    {/* Uploading Overlay */}
-                    {uploading && (
-                        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.7)', zIndex: 9999, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', backdropFilter: 'blur(4px)' }}>
-                            <div style={{ width: '50px', height: '50px', border: '4px solid rgba(255,255,255,0.1)', borderTopColor: 'var(--primary)', borderRadius: '50%', animation: 'spin 1s linear infinite', marginBottom: '20px' }}></div>
-                            <div style={{ color: 'white', fontSize: '1.2rem', fontWeight: 600 }}>파일 업로드 중...</div>
-                            <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginTop: '8px' }}>데이터가 많을 경우 시간이 소요될 수 있습니다.</div>
-                        </div>
-                    )}
-                    {/* Row 1: Title & View Mode Tabs */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ marginBottom: '40px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
                             <div>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--primary)', marginBottom: '4px' }}>
                                     <CreditCard size={20} />
-                                    <span style={{ fontWeight: 600, fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Card Statement</span>
+                                    <span style={{ fontWeight: 600, fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Card Assets</span>
                                 </div>
-                                <h1 className="header-title" style={{ fontSize: '2.5rem' }}>Transaction History</h1>
+                                <h1 className="header-title" style={{ fontSize: '2.5rem', margin: 0 }}>Transaction History</h1>
                             </div>
                         </div>
 
-                        <div className="glass-panel view-mode-tabs">
-                            <button
-                                onClick={() => setViewMode('table')}
-                                className={`btn ${viewMode === 'table' ? 'btn-primary' : ''} view-mode-tab`}
-                                style={{
-                                    padding: '10px 16px',
-                                    borderRadius: '10px',
-                                    background: viewMode === 'table' ? 'var(--primary)' : 'transparent',
-                                    color: viewMode === 'table' ? 'black' : 'white',
-                                }}
-                            >
-                                <Table size={18} /> Table
-                            </button>
-                            <button
-                                onClick={() => setViewMode('calendar')}
-                                style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '8px',
-                                    padding: '10px 16px',
-                                    borderRadius: '10px',
-                                    border: 'none',
-                                    background: viewMode === 'calendar' ? 'var(--primary)' : 'transparent',
-                                    color: viewMode === 'calendar' ? 'black' : 'white',
-                                    cursor: 'pointer',
-                                    fontWeight: 600,
-                                    transition: 'all 0.2s'
-                                }}
-                            >
-                                <LayoutGrid size={18} /> Calendar
-                            </button>
-                            <button
-                                onClick={() => setViewMode('chart')}
-                                style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '8px',
-                                    padding: '10px 16px',
-                                    borderRadius: '10px',
-                                    border: 'none',
-                                    background: viewMode === 'chart' ? 'var(--primary)' : 'transparent',
-                                    color: viewMode === 'chart' ? 'black' : 'white',
-                                    cursor: 'pointer',
-                                    fontWeight: 600,
-                                    transition: 'all 0.2s'
-                                }}
-                            >
-                                <BarChart2 size={18} /> Chart
-                            </button>
-                        </div>
-                    </div>
-
-                    {/* Row 2: Search & Filter Controls */}
-                    <div className="glass-panel" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 24px', background: 'rgba(255,255,255,0.02)' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                            {viewMode === 'table' && (
-                                <>
-                                    <div className="glass-panel" style={{ display: 'flex', gap: '4px', padding: '4px', borderRadius: '12px', marginRight: '8px' }}>
-                                        {['today', 'week', 'month'].map((type) => (
-                                            <button
-                                                key={type}
-                                                onClick={() => handleDateRangeChange(type)}
-                                                className={`btn ${dateRangeType === type ? 'btn-primary' : ''}`}
-                                                style={{
-                                                    padding: '8px 12px',
-                                                    borderRadius: '8px',
-                                                    fontSize: '0.85rem',
-                                                    background: dateRangeType === type ? 'var(--primary)' : 'transparent',
-                                                    color: dateRangeType === type ? 'black' : 'white',
-                                                }}
-                                            >
-                                                {type === 'today' ? '당일' : type === 'week' ? '주간' : '월간'}
-                                            </button>
-                                        ))}
-                                    </div>
-                                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                                        <input
-                                            type="date"
-                                            value={startDate}
-                                            onChange={(e) => {
-                                                setStartDate(e.target.value);
-                                                setDateRangeType('custom');
-                                            }}
-                                            className="input-control"
-                                            style={{ padding: '8px 12px' }}
-                                        />
-                                        <span style={{ color: 'var(--text-muted)' }}>~</span>
-                                        <input
-                                            type="date"
-                                            value={endDate}
-                                            onChange={(e) => {
-                                                setEndDate(e.target.value);
-                                                setDateRangeType('custom');
-                                            }}
-                                            className="input-control"
-                                            style={{ padding: '8px 12px' }}
-                                        />
-                                    </div>
-                                    <div style={{ width: '1px', height: '24px', background: 'var(--glass-border)', margin: '0 8px' }} />
-                                </>
-                            )}
-                            <div style={{ position: 'relative' }}>
-                                <Search size={18} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-                                <input
-                                    type="text"
-                                    placeholder="가맹점 검색..."
-                                    value={viewMode === 'table' ? searchMerchant : viewMode === 'calendar' ? calendarSearchMerchant : chartSearchMerchant}
-                                    onChange={(e) => {
-                                        if (viewMode === 'table') setSearchMerchant(e.target.value);
-                                        else if (viewMode === 'calendar') setCalendarSearchMerchant(e.target.value);
-                                        else setChartSearchMerchant(e.target.value);
+                        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                            <div className="glass-panel view-mode-tabs" style={{ display: 'flex', padding: '4px', borderRadius: '12px' }}>
+                                <button
+                                    onClick={() => setViewMode('table')}
+                                    className={`btn ${viewMode === 'table' ? 'btn-primary' : ''}`}
+                                    style={{
+                                        padding: '8px 16px',
+                                        borderRadius: '8px',
+                                        background: viewMode === 'table' ? 'var(--primary)' : 'transparent',
+                                        color: viewMode === 'table' ? 'black' : 'white',
                                     }}
-                                    className="input-control"
-                                    style={{ paddingLeft: '44px', width: '220px' }}
-                                />
+                                >
+                                    <Table size={16} /> Table
+                                </button>
+                                <button
+                                    onClick={() => setViewMode('calendar')}
+                                    className={`btn ${viewMode === 'calendar' ? 'btn-primary' : ''}`}
+                                    style={{
+                                        padding: '8px 16px',
+                                        borderRadius: '8px',
+                                        background: viewMode === 'calendar' ? 'var(--primary)' : 'transparent',
+                                        color: viewMode === 'calendar' ? 'black' : 'white',
+                                    }}
+                                >
+                                    <LayoutGrid size={16} /> Calendar
+                                </button>
+                                <button
+                                    onClick={() => setViewMode('chart')}
+                                    className={`btn ${viewMode === 'chart' ? 'btn-primary' : ''}`}
+                                    style={{
+                                        padding: '8px 16px',
+                                        borderRadius: '8px',
+                                        background: viewMode === 'chart' ? 'var(--primary)' : 'transparent',
+                                        color: viewMode === 'chart' ? 'black' : 'white',
+                                    }}
+                                >
+                                    <BarChart2 size={16} /> Stats
+                                </button>
                             </div>
-                        </div>
 
-                        <div style={{ display: 'flex', gap: '12px' }}>
-                            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                            <div style={{ display: 'flex', gap: '8px' }}>
                                 <input
                                     type="file"
                                     accept=".csv,.xlsx,.xls"
@@ -487,44 +435,134 @@ const TransactionsContent = () => {
                                 <label
                                     htmlFor="transaction-file-upload"
                                     className="btn btn-secondary"
-                                    style={{ cursor: 'pointer', padding: '10px 16px', borderRadius: '10px', height: '44px', display: 'flex', alignItems: 'center' }}
+                                    style={{ cursor: 'pointer', fontSize: '0.85rem' }}
                                 >
-                                    {file ? file.name : '파일 선택 (CSV/Excel)'}
+                                    {file ? file.name : 'Select File'}
                                 </label>
-
                                 <button
                                     onClick={handleUpload}
                                     disabled={!file || uploading}
                                     className="btn btn-primary"
-                                    style={{ color: 'black', display: 'flex', gap: '8px', alignItems: 'center', height: '44px' }}
+                                    style={{ color: 'black' }}
                                 >
                                     <Upload size={18} />
-                                    업로드
+                                </button>
+                                <button
+                                    className="btn btn-secondary"
+                                    onClick={() => window.location.reload()}
+                                >
+                                    <Download size={18} />
                                 </button>
                             </div>
-
-                            <button
-                                className="btn btn-primary"
-                                style={{ color: 'black' }}
-                                onClick={() => window.location.reload()}
-                            >
-                                <Download size={18} /> Export
-                            </button>
                         </div>
+                    </div>
+
+                    {/* Filter Section (Row 2) */}
+                    <div className="glass-panel" style={{ padding: '24px', display: 'flex', flexWrap: 'wrap', gap: '24px', alignItems: 'flex-end', background: 'rgba(255,255,255,0.02)' }}>
+                        <div style={{ flex: '1', minWidth: '300px', display: 'flex', gap: '16px' }}>
+                            {viewMode === 'table' && (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
+                                    <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Period</label>
+                                    <div style={{ display: 'flex', gap: '4px', padding: '4px', borderRadius: '12px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--glass-border)', width: 'fit-content' }}>
+                                        {['today', 'week', 'month'].map((type) => (
+                                            <button
+                                                key={type}
+                                                onClick={() => handleDateRangeChange(type)}
+                                                className={`btn ${dateRangeType === type ? 'btn-primary' : ''}`}
+                                                style={{
+                                                    padding: '6px 12px',
+                                                    borderRadius: '8px',
+                                                    fontSize: '0.75rem',
+                                                    background: dateRangeType === type ? 'var(--primary)' : 'transparent',
+                                                    color: dateRangeType === type ? 'black' : 'white',
+                                                }}
+                                            >
+                                                {type === 'today' ? 'DAILY' : type === 'week' ? 'WEEKLY' : 'MONTHLY'}
+                                            </button>
+                                        ))}
+                                    </div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                        <input
+                                            type="date"
+                                            value={startDate}
+                                            onChange={(e) => { setStartDate(e.target.value); setDateRangeType('custom'); }}
+                                            className="input-control"
+                                            style={{ padding: '8px 12px' }}
+                                        />
+                                        <span style={{ color: 'var(--text-muted)' }}>~</span>
+                                        <input
+                                            type="date"
+                                            value={endDate}
+                                            onChange={(e) => { setEndDate(e.target.value); setDateRangeType('custom'); }}
+                                            className="input-control"
+                                            style={{ padding: '8px 12px' }}
+                                        />
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        <div style={{ display: 'flex', gap: '16px' }}>
+                            <div>
+                                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '8px', textTransform: 'uppercase' }}>Merchant</label>
+                                <div style={{ position: 'relative' }}>
+                                    <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+                                    <input
+                                        type="text"
+                                        placeholder="Search merchant..."
+                                        value={viewMode === 'table' ? searchMerchant : viewMode === 'calendar' ? calendarSearchMerchant : chartSearchMerchant}
+                                        onChange={(e) => {
+                                            if (viewMode === 'table') setSearchMerchant(e.target.value);
+                                            else if (viewMode === 'calendar') setCalendarSearchMerchant(e.target.value);
+                                            else setChartSearchMerchant(e.target.value);
+                                        }}
+                                        className="input-control"
+                                        style={{ paddingLeft: '36px', width: '180px' }}
+                                    />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '8px', textTransform: 'uppercase' }}>Card</label>
+                                <div style={{ position: 'relative' }}>
+                                    <CreditCard size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+                                    <input
+                                        type="text"
+                                        placeholder="Search card..."
+                                        value={viewMode === 'table' ? searchCard : viewMode === 'calendar' ? calendarSearchCard : chartSearchCard}
+                                        onChange={(e) => {
+                                            if (viewMode === 'table') setSearchCard(e.target.value);
+                                            else if (viewMode === 'calendar') setCalendarSearchCard(e.target.value);
+                                            else setChartSearchCard(e.target.value);
+                                        }}
+                                        className="input-control"
+                                        style={{ paddingLeft: '36px', width: '180px' }}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        <button
+                            className="btn btn-primary"
+                            style={{ color: 'black', padding: '10px 32px', fontWeight: 'bold' }}
+                            onClick={() => { /* Filters are reactive, but button provides feedback */ }}
+                        >
+                            Search
+                        </button>
                     </div>
                 </div>
 
                 {/* Statistics Cards */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px', marginBottom: '40px' }}>
                     {[
-                        { label: viewMode === 'calendar' ? 'Monthly Total' : 'Total Spending', value: `${formatCurrency(stats.total)} 원`, icon: <ReceiptText size={20} />, color: '#6366f1' },
-                        { label: viewMode === 'calendar' ? 'Daily Average' : 'Avg Monthly', value: `${formatCurrency(viewMode === 'calendar' ? stats.dailyAvg : stats.avgMonthly)} 원`, icon: <Calendar size={20} />, color: '#10b981' },
-                        { label: viewMode === 'calendar' ? 'Monthly Max' : 'Max Transaction', value: `${formatCurrency(stats.max)} 원`, icon: <MapPin size={20} />, color: '#f59e0b' },
-                        { label: viewMode === 'calendar' ? 'Monthly Points' : 'Total Points', value: `${formatCurrency(stats.points)} P`, icon: <CreditCard size={20} />, color: '#ec4899' },
+                        { label: viewMode === 'calendar' ? 'MONTHLY TOTAL' : 'TOTAL SPENDING', value: `${formatCurrency(stats.total)} 원`, icon: <ReceiptText size={20} />, color: '#6366f1' },
+                        { label: viewMode === 'calendar' ? 'DAILY AVERAGE' : 'AVG MONTHLY', value: `${formatCurrency(viewMode === 'calendar' ? stats.dailyAvg : stats.avgMonthly)} 원`, icon: <Calendar size={20} />, color: '#10b981' },
+                        { label: viewMode === 'calendar' ? 'MONTHLY MAX' : 'MAX TRANSACTION', value: `${formatCurrency(stats.max)} 원`, icon: <MapPin size={20} />, color: '#f59e0b' },
+                        { label: viewMode === 'calendar' ? 'MONTHLY POINTS' : 'TOTAL POINTS', value: `${formatCurrency(stats.points)} P`, icon: <CreditCard size={20} />, color: '#ec4899' },
                     ].map((stat, i) => (
                         <div key={i} className="glass-panel" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: 600 }}>{stat.label}</span>
+                                <span style={{ color: 'var(--text-muted)', fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.05em' }}>{stat.label}</span>
                                 <div style={{ background: `${stat.color}15`, color: stat.color, padding: '8px', borderRadius: '10px' }}>{stat.icon}</div>
                             </div>
                             <div style={{ fontSize: '1.5rem', fontWeight: 800 }}>{stat.value}</div>
@@ -540,6 +578,7 @@ const TransactionsContent = () => {
                                 <thead>
                                     <tr>
                                         <th>Date & Time</th>
+                                        <th>Card</th>
                                         <th>Merchant (이용하신곳)</th>
                                         <th style={{ textAlign: 'right' }}>Amount (KRW)</th>
                                         <th>Method</th>
@@ -551,14 +590,14 @@ const TransactionsContent = () => {
                                 <tbody>
                                     {loading ? (
                                         <tr>
-                                            <td colSpan={7} style={{ padding: '80px 0', textAlign: 'center' }}>
+                                            <td colSpan={8} style={{ padding: '80px 0', textAlign: 'center' }}>
                                                 <div style={{ display: 'inline-block', width: '30px', height: '30px', border: '3px solid rgba(255,255,255,0.1)', borderTopColor: 'var(--primary)', borderRadius: '50%', animation: 'spin 1s linear infinite', marginBottom: '16px' }}></div>
                                                 <div style={{ color: 'var(--text-muted)' }}>Loading transactions...</div>
                                             </td>
                                         </tr>
                                     ) : error ? (
                                         <tr>
-                                            <td colSpan={7} style={{ padding: '80px 24px', textAlign: 'center' }}>
+                                            <td colSpan={8} style={{ padding: '80px 24px', textAlign: 'center' }}>
                                                 <div style={{ color: '#ef4444', marginBottom: '8px', fontWeight: 600 }}>{error}</div>
                                                 <motion.button
                                                     whileHover={{ scale: 1.05 }}
@@ -572,7 +611,7 @@ const TransactionsContent = () => {
                                         </tr>
                                     ) : filteredTransactions.length === 0 ? (
                                         <tr>
-                                            <td colSpan={7} style={{ padding: '80px 0', textAlign: 'center', color: 'var(--text-muted)' }}>
+                                            <td colSpan={8} style={{ padding: '80px 0', textAlign: 'center', color: 'var(--text-muted)' }}>
                                                 <ReceiptText size={48} style={{ opacity: 0.1, marginBottom: '16px' }} />
                                                 <p>No transactions found.</p>
                                             </td>
@@ -591,8 +630,11 @@ const TransactionsContent = () => {
                                                 <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{t.time}</div>
                                             </td>
                                             <td style={{ padding: '18px 24px' }}>
+                                                <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{t.card}</div>
+                                            </td>
+                                            <td style={{ padding: '18px 24px' }}>
                                                 <div style={{ fontWeight: 700, color: '#f8fafc' }}>{t.merchant}</div>
-                                                <div style={{ fontSize: '0.75rem', color: t.merchantInfo ? '#a78bfa' : 'var(--text-muted)' }}>{t.merchantInfo || t.card}</div>
+                                                <div style={{ fontSize: '0.75rem', color: t.merchantInfo ? '#a78bfa' : 'var(--text-muted)' }}>{t.merchantInfo}</div>
                                             </td>
                                             <td style={{ padding: '18px 24px', textAlign: 'right', fontWeight: 800, fontSize: '1rem' }}>
                                                 {t.amountKrw} 원

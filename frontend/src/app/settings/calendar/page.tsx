@@ -82,8 +82,8 @@ export default function CalendarPage() {
     }
 
     return (
-        <div className="page-container" style={{ color: 'white' }}>
-            <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+        <div className="page-container-full" style={{ color: 'white' }}>
+            <div style={{ width: '100%' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
                     <h1 className="header-title" style={{ fontSize: '2.5rem' }}>
                         <Calendar size={32} color="var(--primary)" />

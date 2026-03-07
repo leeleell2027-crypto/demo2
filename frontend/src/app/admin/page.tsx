@@ -140,7 +140,7 @@ export default function AdminManagementPage() {
     }
 
     return (
-        <div className="page-container" style={{ color: 'white' }}>
+        <div className="page-container-full" style={{ color: 'white' }}>
             {/* Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '40px' }}>
                 <div>

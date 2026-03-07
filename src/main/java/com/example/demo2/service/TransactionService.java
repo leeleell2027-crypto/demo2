@@ -33,15 +33,20 @@ public class TransactionService {
         return transactionMapper.findAll();
     }
 
+    public List<Transaction> getTransactionsByRange(String searchMerchant, String searchCard, String startDate,
+            String endDate) {
+        return transactionMapper.findByRange(searchMerchant, searchCard, startDate, endDate);
+    }
+
     public Map<String, Object> getPagedTransactions(int page, int size, String searchDate, String searchMerchant,
-            String startDate, String endDate) {
+            String searchCard, String startDate, String endDate) {
         int offset = (page - 1) * size;
         List<Transaction> transactions = transactionMapper.findPaged(offset, size, searchDate, searchMerchant,
-                startDate, endDate);
-        int total = transactionMapper.count(searchDate, searchMerchant, startDate, endDate);
+                searchCard, startDate, endDate);
+        int total = transactionMapper.count(searchDate, searchMerchant, searchCard, startDate, endDate);
         int totalPages = (int) Math.ceil((double) total / size);
-        Map<String, Object> stats = transactionMapper.getSearchStatistics(searchDate, searchMerchant, startDate,
-                endDate);
+        Map<String, Object> stats = transactionMapper.getSearchStatistics(searchDate, searchMerchant, searchCard,
+                startDate, endDate);
 
         Map<String, Object> result = new HashMap<>();
         result.put("transactions", transactions);

@@ -18,7 +18,14 @@ public class TransactionController {
     private TransactionService transactionService;
 
     @GetMapping
-    public List<Transaction> getTransactions() {
+    public List<Transaction> getTransactions(
+            @RequestParam(required = false) String searchMerchant,
+            @RequestParam(required = false) String searchCard,
+            @RequestParam(required = false) String startDate,
+            @RequestParam(required = false) String endDate) {
+        if (startDate != null || endDate != null || searchMerchant != null || searchCard != null) {
+            return transactionService.getTransactionsByRange(searchMerchant, searchCard, startDate, endDate);
+        }
         return transactionService.getAllTransactions();
     }
 
@@ -28,9 +35,11 @@ public class TransactionController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) String searchDate,
             @RequestParam(required = false) String searchMerchant,
+            @RequestParam(required = false) String searchCard,
             @RequestParam(required = false) String startDate,
             @RequestParam(required = false) String endDate) {
-        return transactionService.getPagedTransactions(page, size, searchDate, searchMerchant, startDate, endDate);
+        return transactionService.getPagedTransactions(page, size, searchDate, searchMerchant, searchCard, startDate,
+                endDate);
     }
 
     @PostMapping("/upload")

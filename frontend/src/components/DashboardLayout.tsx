@@ -66,6 +66,7 @@ const categories: Category[] = [
             { label: 'Profile', href: '/profile', icon: <User size={18} /> },
             { label: 'General', href: '/settings', icon: <Settings size={18} /> },
             { label: 'Calendar', href: '/settings/calendar', icon: <Calendar size={18} /> },
+            { label: 'Image Explorer', href: '/settings/image-explorer', icon: <ImageIcon size={18} /> },
             { label: 'Admin Management', href: '/admin', icon: <Shield size={18} /> },
             { label: 'Holiday Management', href: '/holidays', icon: <Calendar size={18} /> },
         ]
@@ -118,6 +119,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     }, [pathname, filteredCategories, router]);
 
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+    const [isHeaderOpen, setIsHeaderOpen] = useState(true);
 
     // Sync activeCategory with pathname
     useEffect(() => {
@@ -151,72 +153,186 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     }
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', width: '100vw', background: '#0f172a', color: 'white', overflow: 'hidden' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', width: '100vw', background: '#0f172a', color: 'white', overflow: 'hidden', position: 'relative' }}>
+
+            {/* Floating Toggle for Header when closed */}
+            <AnimatePresence>
+                {!isHeaderOpen && (
+                    <motion.button
+                        initial={{ opacity: 0, y: -20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -20 }}
+                        onClick={() => setIsHeaderOpen(true)}
+                        style={{
+                            position: 'fixed',
+                            top: '10px',
+                            right: '24px',
+                            zIndex: 1001,
+                            background: 'rgba(255, 255, 255, 0.1)',
+                            backdropFilter: 'blur(8px)',
+                            border: '1px solid rgba(255, 255, 255, 0.2)',
+                            color: 'white',
+                            padding: '8px',
+                            borderRadius: '50%',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                        }}
+                        title="Show Header"
+                    >
+                        <ChevronRight size={20} style={{ transform: 'rotate(90deg)' }} />
+                    </motion.button>
+                )}
+            </AnimatePresence>
+
+            {/* Floating Toggle for Sidebar when closed */}
+            <AnimatePresence>
+                {!isSidebarOpen && (
+                    <motion.button
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -20 }}
+                        onClick={() => setIsSidebarOpen(true)}
+                        style={{
+                            position: 'fixed',
+                            left: '10px',
+                            top: isHeaderOpen ? '85px' : '24px',
+                            zIndex: 1001,
+                            background: 'rgba(99, 102, 241, 0.2)',
+                            backdropFilter: 'blur(8px)',
+                            border: '1px solid rgba(99, 102, 241, 0.3)',
+                            color: 'white',
+                            padding: '8px',
+                            borderRadius: '0 12px 12px 0',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            boxShadow: '4px 0 15px rgba(0,0,0,0.3)'
+                        }}
+                        title="Show Sidebar"
+                    >
+                        <ChevronRight size={20} />
+                    </motion.button>
+                )}
+            </AnimatePresence>
+
             {/* Top Navigation */}
-            <header className="glass-panel" style={{
-                height: '70px',
-                borderRadius: 0,
-                borderTop: 'none',
-                borderLeft: 'none',
-                borderRight: 'none',
-                padding: '0 24px',
-                zIndex: 100,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between'
-            }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '40px' }}>
-                    <Link href="/" style={{ textDecoration: 'none', color: 'inherit' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                            <div style={{ background: 'var(--primary)', padding: '8px', borderRadius: '12px' }}>
-                                <LayoutDashboard size={24} color="white" />
-                            </div>
-                            <span style={{ fontSize: '1.25rem', fontWeight: 800, letterSpacing: '-0.02em' }}>DEMO APP</span>
-                        </div>
-                    </Link>
-
-                    <nav style={{ display: 'flex', gap: '8px' }}>
-                        {filteredCategories.map((cat) => (
+            <AnimatePresence>
+                {isHeaderOpen && (
+                    <motion.header
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: '70px', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        className="glass-panel"
+                        style={{
+                            borderRadius: 0,
+                            borderTop: 'none',
+                            borderLeft: 'none',
+                            borderRight: 'none',
+                            padding: '0 24px',
+                            zIndex: 100,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            overflow: 'hidden'
+                        }}
+                    >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
                             <button
-                                key={cat.id}
-                                onClick={() => {
-                                    setActiveCategory(cat.id);
-                                    if (cat.items.length > 0) {
-                                        router.push(cat.items[0].href);
-                                    }
-                                }}
-                                className={`btn ${activeCategory === cat.id ? 'btn-primary' : ''}`}
+                                onClick={() => setIsSidebarOpen(!isSidebarOpen)}
                                 style={{
-                                    padding: '10px 16px',
-                                    borderRadius: '12px',
-                                    background: activeCategory === cat.id ? 'rgba(255,255,255,0.05)' : 'transparent',
-                                    color: activeCategory === cat.id ? 'white' : 'var(--text-muted)',
+                                    background: isSidebarOpen ? 'rgba(255,255,255,0.05)' : 'none',
+                                    border: 'none',
+                                    color: 'white',
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    padding: '8px',
+                                    borderRadius: '8px',
+                                    transition: 'background 0.2s'
                                 }}
+                                className="nav-toggle-btn"
                             >
-                                {cat.icon}
-                                {cat.label}
+                                <Menu size={24} />
                             </button>
-                        ))}
-                    </nav>
-                </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-                    <div style={{ position: 'relative' }}>
-                        <Search size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-                        <input
-                            type="text"
-                            placeholder="Search..."
-                            className="input-control"
-                            style={{
-                                padding: '8px 12px 8px 38px',
-                                width: '200px'
-                            }}
-                        />
-                    </div>
-                    <button style={{ color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer' }}><Bell size={20} /></button>
-                    <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'linear-gradient(45deg, var(--primary), #ec4899)', border: '2px solid rgba(255,255,255,0.2)' }} />
-                </div>
-            </header>
+                            <Link href="/" style={{ textDecoration: 'none', color: 'inherit' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                    <div style={{ background: 'var(--primary)', padding: '8px', borderRadius: '12px' }}>
+                                        <LayoutDashboard size={24} color="white" />
+                                    </div>
+                                    <span style={{ fontSize: '1.25rem', fontWeight: 800, letterSpacing: '-0.02em', whiteSpace: 'nowrap' }}>DEMO APP</span>
+                                </div>
+                            </Link>
+
+                            <nav style={{ display: 'flex', gap: '8px', marginLeft: '20px' }}>
+                                {filteredCategories.map((cat) => (
+                                    <button
+                                        key={cat.id}
+                                        onClick={() => {
+                                            setActiveCategory(cat.id);
+                                            if (cat.items.length > 0) {
+                                                router.push(cat.items[0].href);
+                                            }
+                                        }}
+                                        className={`btn ${activeCategory === cat.id ? 'btn-primary' : ''}`}
+                                        style={{
+                                            padding: '8px 14px',
+                                            borderRadius: '10px',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '8px',
+                                            fontSize: '0.9rem',
+                                            background: activeCategory === cat.id ? 'rgba(255,255,255,0.08)' : 'transparent',
+                                            color: activeCategory === cat.id ? 'white' : 'var(--text-muted)',
+                                        }}
+                                    >
+                                        {cat.icon}
+                                        {cat.label}
+                                    </button>
+                                ))}
+                            </nav>
+                        </div>
+
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                            <div style={{ position: 'relative' }}>
+                                <Search size={16} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+                                <input
+                                    type="text"
+                                    placeholder="Search..."
+                                    className="input-control"
+                                    style={{
+                                        padding: '6px 10px 6px 32px',
+                                        width: '180px',
+                                        fontSize: '0.85rem'
+                                    }}
+                                />
+                            </div>
+                            <button style={{ color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer' }}><Bell size={18} /></button>
+                            <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'linear-gradient(45deg, var(--primary), #ec4899)', border: '1px solid rgba(255,255,255,0.2)' }} title={user.username} />
+
+                            {/* Header Close Button */}
+                            <button
+                                onClick={() => setIsHeaderOpen(false)}
+                                style={{
+                                    background: 'rgba(255,255,255,0.05)',
+                                    border: '1px solid rgba(255,255,255,0.1)',
+                                    color: 'white',
+                                    padding: '6px',
+                                    borderRadius: '8px',
+                                    cursor: 'pointer',
+                                    display: 'flex'
+                                }}
+                                title="Hide Header"
+                            >
+                                <ChevronRight size={18} style={{ transform: 'rotate(-90deg)' }} />
+                            </button>
+                        </div>
+                    </motion.header>
+                )}
+            </AnimatePresence>
 
             <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
                 {/* Side Navigation */}
@@ -225,16 +341,39 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     animate={{ width: isSidebarOpen ? '260px' : '0px', opacity: isSidebarOpen ? 1 : 0 }}
                     style={{
                         background: 'rgba(15, 23, 42, 0.5)',
-                        borderRight: '1px solid rgba(255,255,255,0.1)',
+                        borderRight: isSidebarOpen ? '1px solid rgba(255,255,255,0.1)' : 'none',
                         display: 'flex',
                         flexDirection: 'column',
                         overflow: 'hidden',
-                        whiteSpace: 'nowrap'
+                        whiteSpace: 'nowrap',
+                        position: 'relative'
                     }}
                 >
+                    {/* Sidebar Close Button */}
+                    {isSidebarOpen && (
+                        <button
+                            onClick={() => setIsSidebarOpen(false)}
+                            style={{
+                                position: 'absolute',
+                                top: '12px',
+                                right: '12px',
+                                background: 'rgba(255,255,255,0.05)',
+                                border: 'none',
+                                color: 'var(--text-muted)',
+                                padding: '4px',
+                                borderRadius: '6px',
+                                cursor: 'pointer',
+                                zIndex: 10
+                            }}
+                            title="Close Sidebar"
+                        >
+                            <ChevronRight size={18} style={{ transform: 'rotate(180deg)' }} />
+                        </button>
+                    )}
+
                     <div style={{ padding: '24px 16px', flex: 1 }}>
-                        <div style={{ color: 'var(--text-muted)', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '16px', padding: '0 12px' }}>
-                            {currentCategory?.label} Menu
+                        <div style={{ color: 'var(--text-muted)', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '16px', padding: '0 12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <span>{currentCategory?.label} Menu</span>
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                             {currentCategory?.items.map((item: NavItem) => {
@@ -304,14 +443,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     flex: 1,
                     overflowY: 'auto',
                     background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
-                    position: 'relative'
+                    position: 'relative',
+                    width: '100%'
                 }}>
-                    <AnimatePresence>
+                    <AnimatePresence mode="wait">
                         <motion.div
                             key={pathname}
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             transition={{ duration: 0.15 }}
+                            style={{ width: '100%', height: '100%' }}
                         >
                             {children}
                         </motion.div>
