@@ -87,7 +87,7 @@
                 AND executed_at &lt;= #{endDate}
             </if>
             <if test="coin != null and coin != ''">
-                AND coin LIKE CONCAT('%', #{coin}, '%')
+                AND coin = #{coin}
             </if>
             <if test="side != null and side != '' and side != '전체'">
                 AND side = #{side}
@@ -110,7 +110,7 @@
                 AND executed_at &lt;= #{endDate}
             </if>
             <if test="coin != null and coin != ''">
-                AND coin LIKE CONCAT('%', #{coin}, '%')
+                AND coin = #{coin}
             </if>
             <if test="side != null and side != '' and side != '전체'">
                 AND side = #{side}
@@ -155,7 +155,7 @@
                 AND t.executed_at &lt;= CONCAT(#{endDate}, ' 23:59:59')
             </if>
             <if test="coin != null and coin != ''">
-                AND t.coin LIKE CONCAT('%', #{coin}, '%')
+                AND t.coin = #{coin}
             </if>
             <if test="side != null and side != '' and side != '전체'">
                 AND t.side = #{side}

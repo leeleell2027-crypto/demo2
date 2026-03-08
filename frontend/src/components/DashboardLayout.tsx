@@ -47,6 +47,7 @@ const categories: Category[] = [
             { label: 'Transactions', href: '/transactions', icon: <CreditCard size={18} /> },
             { label: 'Notice', href: '/notice', icon: <Hash size={18} /> },
             { label: 'Trade History', href: '/trade-history', icon: <Wallet size={18} /> },
+            { label: 'Coin Status', href: '/coin-status', icon: <LayoutDashboard size={18} /> },
         ]
     },
     {
