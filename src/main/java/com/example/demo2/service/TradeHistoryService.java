@@ -26,6 +26,9 @@ public class TradeHistoryService {
     @Autowired
     private TradeHistoryMapper tradeHistoryMapper;
 
+    @Autowired
+    private UpbitService upbitService;
+
     public List<TradeHistory> getAllTradeHistories() {
         return tradeHistoryMapper.getAllTradeHistories();
     }
@@ -35,7 +38,41 @@ public class TradeHistoryService {
     }
 
     public List<Map<String, Object>> getStatsByDate(String endDate, String coin, String side, Boolean includeBtc) {
-        return tradeHistoryMapper.getStatsByDate(endDate, coin, side, includeBtc);
+        List<Map<String, Object>> stats = tradeHistoryMapper.getStatsByDate(endDate, coin, side, includeBtc);
+
+        // Filter out "KRW"
+        stats.removeIf(s -> "KRW".equals(s.get("coinName")));
+
+        if (stats.isEmpty())
+            return stats;
+
+        // Fetch current prices from Upbit
+        List<String> coinNames = stats.stream()
+                .map(s -> (String) s.get("coinName"))
+                .collect(java.util.stream.Collectors.toList());
+
+        List<com.example.demo2.model.UpbitTickerDto> tickers = upbitService.getTickers(coinNames);
+        Map<String, Double> priceMap = tickers.stream()
+                .collect(java.util.stream.Collectors.toMap(
+                        t -> t.getMarket().replace("KRW-", ""),
+                        t -> t.getTradePrice()));
+
+        // Add current price and valuation
+        for (Map<String, Object> stat : stats) {
+            String name = (String) stat.get("coinName");
+            Double currentPrice = priceMap.get(name);
+            Double totalQuantity = ((Number) stat.get("totalQuantity")).doubleValue();
+
+            if (currentPrice != null) {
+                stat.put("currentPrice", currentPrice);
+                stat.put("currentValue", currentPrice * totalQuantity);
+            } else {
+                stat.put("currentPrice", 0.0);
+                stat.put("currentValue", 0.0);
+            }
+        }
+
+        return stats;
     }
 
     public List<Map<String, Object>> getBtcMarketHistory() {

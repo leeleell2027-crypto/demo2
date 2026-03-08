@@ -126,42 +126,58 @@
 
     <select id="getStatsByDate" resultType="java.util.Map">
         SELECT 
-            t.coin as "coinName",
-            SUM(
+            sub.coinName as "coinName",
+            SUM(sub.val) as "totalValue",
+            SUM(sub.qty) as "totalQuantity"
+        FROM (
+            SELECT 
+                t.coin as coinName,
                 CASE 
                     WHEN t.side = '매수' THEN CAST(REPLACE(t.settlement_amount, ',', '') AS DOUBLE) * CASE WHEN (t.market = 'BTC' OR t.market = 'btc') AND b.btc_price IS NOT NULL THEN CAST(REPLACE(b.btc_price, ',', '') AS DOUBLE) ELSE 1 END
                     WHEN t.side = '매도' THEN -CAST(REPLACE(t.settlement_amount, ',', '') AS DOUBLE) * CASE WHEN (t.market = 'BTC' OR t.market = 'btc') AND b.btc_price IS NOT NULL THEN CAST(REPLACE(b.btc_price, ',', '') AS DOUBLE) ELSE 1 END
                     WHEN t.side = '입금' THEN CAST(REPLACE(t.settlement_amount, ',', '') AS DOUBLE) * CASE WHEN (t.market = 'BTC' OR t.market = 'btc') AND b.btc_price IS NOT NULL THEN CAST(REPLACE(b.btc_price, ',', '') AS DOUBLE) ELSE 1 END
                     WHEN t.side = '출금' THEN -(CAST(REPLACE(t.settlement_amount, ',', '') AS DOUBLE) + CAST(REPLACE(t.fee, ',', '') AS DOUBLE)) * CASE WHEN (t.market = 'BTC' OR t.market = 'btc') AND b.btc_price IS NOT NULL THEN CAST(REPLACE(b.btc_price, ',', '') AS DOUBLE) ELSE 1 END
                     ELSE 0 
-                END
-            ) as "totalValue",
-            SUM(
+                END as val,
                 CASE 
                     WHEN t.side = '매수' THEN CAST(REPLACE(t.quantity, ',', '') AS DOUBLE)
                     WHEN t.side = '매도' THEN -CAST(REPLACE(t.quantity, ',', '') AS DOUBLE)
                     WHEN t.side = '입금' THEN CAST(REPLACE(t.quantity, ',', '') AS DOUBLE)
                     WHEN t.side = '출금' THEN -(CAST(REPLACE(t.quantity, ',', '') AS DOUBLE) + CAST(REPLACE(t.fee, ',', '') AS DOUBLE))
                     ELSE 0 
-                END
-            ) as "totalQuantity"
-        FROM trade_history t
-        LEFT JOIN trade_btc_history b ON DATE_FORMAT(t.executed_at, '%Y-%m-%d') = b.ordered_at
-        <where>
-            <!-- <if test="!includeBtc">
-                AND t.market != 'BTC' and t.market != 'btc'
-            </if> -->
-            <if test="endDate != null and endDate != ''">
-                AND t.executed_at &lt;= CONCAT(#{endDate}, ' 23:59:59')
-            </if>
-            <if test="coin != null and coin != ''">
-                AND t.coin = #{coin}
-            </if>
-            <if test="side != null and side != '' and side != '전체'">
-                AND t.side = #{side}
-            </if>
-        </where>
-        GROUP BY t.coin
+                END as qty
+            FROM trade_history t
+            LEFT JOIN trade_btc_history b ON DATE_FORMAT(t.executed_at, '%Y-%m-%d') = b.ordered_at
+            <where>
+                <if test="endDate != null and endDate != ''">
+                    AND t.executed_at &lt;= CONCAT(#{endDate}, ' 23:59:59')
+                </if>
+            </where>
+
+            UNION ALL
+
+            SELECT 
+                'BTC' as coinName,
+                CASE 
+                    WHEN t.side = '매수' THEN -CAST(REPLACE(t.settlement_amount, ',', '') AS DOUBLE) * CASE WHEN b.btc_price IS NOT NULL THEN CAST(REPLACE(b.btc_price, ',', '') AS DOUBLE) ELSE 1 END
+                    WHEN t.side = '매도' THEN CAST(REPLACE(t.settlement_amount, ',', '') AS DOUBLE) * CASE WHEN b.btc_price IS NOT NULL THEN CAST(REPLACE(b.btc_price, ',', '') AS DOUBLE) ELSE 1 END
+                    ELSE 0 
+                END as val,
+                CASE 
+                    WHEN t.side = '매수' THEN -CAST(REPLACE(t.settlement_amount, ',', '') AS DOUBLE)
+                    WHEN t.side = '매도' THEN CAST(REPLACE(t.settlement_amount, ',', '') AS DOUBLE)
+                    ELSE 0 
+                END as qty
+            FROM trade_history t
+            LEFT JOIN trade_btc_history b ON DATE_FORMAT(t.executed_at, '%Y-%m-%d') = b.ordered_at
+            <where>
+                AND (t.market = 'BTC' OR t.market = 'btc') AND t.coin != 'BTC'
+                <if test="endDate != null and endDate != ''">
+                    AND t.executed_at &lt;= CONCAT(#{endDate}, ' 23:59:59')
+                </if>
+            </where>
+        ) sub
+        GROUP BY sub.coinName
     </select>
 
     <delete id="truncateTradeHistory">

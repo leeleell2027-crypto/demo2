@@ -105,6 +105,15 @@ CREATE TABLE IF NOT EXISTS notice_comments (
     FOREIGN KEY (parent_id) REFERENCES notice_comments(id) ON DELETE CASCADE
 );
 
+-- Notice Read Status Table
+CREATE TABLE IF NOT EXISTS notice_read_status (
+    notice_id INT NOT NULL,
+    member_id VARCHAR(100) NOT NULL,
+    read_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (notice_id, member_id),
+    FOREIGN KEY (notice_id) REFERENCES notices(id) ON DELETE CASCADE
+);
+
 CREATE TABLE trade_history (
     id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '고유 거래 식별자',
     executed_at DATETIME NOT NULL COMMENT '체결시간',

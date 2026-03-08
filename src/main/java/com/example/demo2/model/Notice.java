@@ -21,6 +21,7 @@ public class Notice {
     private String memberName;
     private Integer commentCount;
     private Integer attachmentCount;
+    private Boolean isRead;
 
     private List<NoticeAttachment> attachments;
     private List<NoticeComment> comments;
@@ -168,5 +169,13 @@ public class Notice {
 
     public void setAttachmentCount(Integer attachmentCount) {
         this.attachmentCount = attachmentCount;
+    }
+
+    public Boolean getIsRead() {
+        return isRead;
+    }
+
+    public void setIsRead(Boolean isRead) {
+        this.isRead = isRead;
     }
 }

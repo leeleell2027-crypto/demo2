@@ -58,4 +58,45 @@ public class UpbitService {
             return Collections.emptyList();
         }
     }
+
+    public List<UpbitTickerDto> getTickers(List<String> coins) {
+        if (coins == null || coins.isEmpty())
+            return Collections.emptyList();
+
+        try {
+            // 1. Fetch all valid markets first to avoid 404 on invalid/delisted coins
+            String marketUrl = "https://api.upbit.com/v1/market/all";
+            String marketResponse = restTemplate.getForObject(marketUrl, String.class);
+            List<Map<String, String>> allMarkets = objectMapper.readValue(marketResponse,
+                    new TypeReference<List<Map<String, String>>>() {
+                    });
+
+            if (allMarkets == null)
+                return Collections.emptyList();
+
+            Set<String> validKrwMarkets = allMarkets.stream()
+                    .map(m -> m.get("market"))
+                    .filter(m -> m.startsWith("KRW-"))
+                    .collect(Collectors.toSet());
+
+            // 2. Filter input coins to only include those available in KRW market
+            String markets = coins.stream()
+                    .map(c -> "KRW-" + c)
+                    .filter(validKrwMarkets::contains)
+                    .collect(Collectors.joining(","));
+
+            if (markets.isEmpty())
+                return Collections.emptyList();
+
+            // 3. Fetch tickers for valid markets
+            String tickerUrl = "https://api.upbit.com/v1/ticker?markets=" + markets;
+            String tickerResponse = restTemplate.getForObject(tickerUrl, String.class);
+
+            return objectMapper.readValue(tickerResponse, new TypeReference<List<UpbitTickerDto>>() {
+            });
+        } catch (Exception e) {
+            log.error("Error fetching tickers for coins: " + coins, e);
+            return Collections.emptyList();
+        }
+    }
 }

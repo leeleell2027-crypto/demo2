@@ -24,7 +24,8 @@ import {
     Download,
     X,
     Calendar,
-    Hash
+    Hash,
+    CheckCheck
 } from 'lucide-react';
 
 interface Notice {
@@ -44,6 +45,7 @@ interface Notice {
     memberName: string;
     commentCount: number;
     attachmentCount: number;
+    isRead?: boolean;
     attachments?: Attachment[];
     comments?: Comment[];
 }
@@ -108,7 +110,11 @@ const NoticePage = () => {
         queryFn: async () => {
             if (!selectedId) return null;
             const res = await fetch(`/api/notices/${selectedId}`);
-            return res.json();
+            const data = await res.json();
+            // After fetching detail (which marks as read on server), invalidate unread count
+            queryClient.invalidateQueries({ queryKey: ['notices-unread-count'] });
+            queryClient.invalidateQueries({ queryKey: ['notices'] });
+            return data;
         },
         enabled: !!selectedId
     });
@@ -130,6 +136,19 @@ const NoticePage = () => {
     const handleDetail = (id: number) => {
         setSelectedId(id);
         setView('detail');
+    };
+
+    const handleMarkAllRead = async () => {
+        if (!window.confirm("모든 공지사항을 읽음 처리하시겠습니까?")) return;
+        try {
+            const res = await fetch('/api/notices/mark-all-read', { method: 'POST' });
+            if (res.ok) {
+                queryClient.invalidateQueries({ queryKey: ['notices-unread-count'] });
+                queryClient.invalidateQueries({ queryKey: ['notices'] });
+            }
+        } catch (error) {
+            console.error("Mark all read failed:", error);
+        }
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -161,8 +180,17 @@ const NoticePage = () => {
 
             if (res.ok) {
                 alert(isEdit ? "공지사항이 수정되었습니다." : isReply ? "답글이 등록되었습니다." : "공지사항이 등록되었습니다.");
+
+                // If it's a new notice or reply, reset to first page to see it
+                if (!isEdit) {
+                    setPage(0);
+                }
+
                 setView('list');
+                // Invalidate all related queries
                 queryClient.invalidateQueries({ queryKey: ['notices'] });
+                queryClient.invalidateQueries({ queryKey: ['notices-unread-count'] });
+
                 if (isEdit || isReply) {
                     queryClient.invalidateQueries({ queryKey: ['notice', selectedId] });
                 }
@@ -181,6 +209,7 @@ const NoticePage = () => {
                 alert("삭제되었습니다.");
                 setView('list');
                 queryClient.invalidateQueries({ queryKey: ['notices'] });
+                queryClient.invalidateQueries({ queryKey: ['notices-unread-count'] });
             } else {
                 const err = await res.text();
                 alert(err || "삭제 권한이 없습니다.");
@@ -276,13 +305,23 @@ const NoticePage = () => {
                     <p className="header-subtitle">시스템 공지사항 및 안내를 확인하세요.</p>
                 </div>
                 {view === 'list' && (
-                    <button
-                        onClick={() => { resetForm(); setView('form'); }}
-                        className="btn btn-primary"
-                    >
-                        <Plus size={20} />
-                        공지 작성
-                    </button>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                        <button
+                            onClick={handleMarkAllRead}
+                            className="btn btn-secondary"
+                            style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+                        >
+                            <CheckCheck size={18} />
+                            모두 읽음
+                        </button>
+                        <button
+                            onClick={() => { resetForm(); setView('form'); }}
+                            className="btn btn-primary"
+                        >
+                            <Plus size={20} />
+                            공지 작성
+                        </button>
+                    </div>
                 )}
             </div>
 

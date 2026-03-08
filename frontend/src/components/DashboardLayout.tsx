@@ -24,6 +24,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useMemo } from 'react';
 import { useAuthStore } from '@/store/authStore';
+import { useQuery } from '@tanstack/react-query';
 
 interface NavItem {
     label: string;
@@ -78,6 +79,21 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     const { user, loading: authLoading, logout: storeLogout } = useAuthStore();
     const pathname = usePathname();
     const router = useRouter();
+
+    const { data: unreadCount = 0 } = useQuery({
+        queryKey: ['notices-unread-count', user?.username],
+        queryFn: async () => {
+            const res = await fetch('/api/notices/unread-count');
+            return res.json();
+        },
+        enabled: !!user,
+        staleTime: 1000 * 30, // 30 seconds
+        refetchInterval: 1000 * 60, // 1 minute
+    });
+
+    const hasNewNotices = useMemo(() => {
+        return unreadCount > 0;
+    }, [unreadCount]);
 
     const filteredCategories = useMemo(() => {
         if (!user) return [];
@@ -311,7 +327,37 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                                     }}
                                 />
                             </div>
-                            <button style={{ color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer' }}><Bell size={18} /></button>
+                            <button
+                                onClick={() => router.push('/notice')}
+                                style={{
+                                    color: 'var(--text-muted)',
+                                    background: 'none',
+                                    border: 'none',
+                                    cursor: 'pointer',
+                                    position: 'relative',
+                                    padding: '4px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    transition: 'color 0.2s'
+                                }}
+                                onMouseEnter={(e) => e.currentTarget.style.color = 'white'}
+                                onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-muted)'}
+                            >
+                                <Bell size={18} />
+                                {hasNewNotices && (
+                                    <span style={{
+                                        position: 'absolute',
+                                        top: '4px',
+                                        right: '4px',
+                                        width: '8px',
+                                        height: '8px',
+                                        backgroundColor: '#ef4444',
+                                        borderRadius: '50%',
+                                        border: '2px solid #0f172a'
+                                    }} />
+                                )}
+                            </button>
                             <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'linear-gradient(45deg, var(--primary), #ec4899)', border: '1px solid rgba(255,255,255,0.2)' }} title={user.username} />
 
                             {/* Header Close Button */}

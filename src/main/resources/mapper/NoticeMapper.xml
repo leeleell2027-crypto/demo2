@@ -20,14 +20,17 @@
         <result property="memberName" column="memberName" />
         <result property="commentCount" column="commentCount" />
         <result property="attachmentCount" column="attachmentCount" />
+        <result property="isRead" column="isRead" />
     </resultMap>
 
     <select id="findAll" resultMap="NoticeResultMap">
         SELECT n.*, m.name as memberName, 
                (SELECT COUNT(*) FROM notice_comments WHERE notice_id = n.id) as commentCount,
-               (SELECT COUNT(*) FROM notice_attachments WHERE notice_id = n.id) as attachmentCount
+               (SELECT COUNT(*) FROM notice_attachments WHERE notice_id = n.id) as attachmentCount,
+               CASE WHEN rs.notice_id IS NOT NULL THEN 1 ELSE 0 END as isRead
         FROM notices n
         LEFT JOIN member m ON n.member_id = m.username OR n.member_id = m.id
+        LEFT JOIN notice_read_status rs ON n.id = rs.notice_id AND rs.member_id = #{currentMemberId}
         <where>
             <if test="searchTitle != null and searchTitle != ''">
                 AND n.title LIKE CONCAT('%', #{searchTitle}, '%')
@@ -153,5 +156,33 @@
     <delete id="deleteComment">
         DELETE FROM notice_comments WHERE id = #{id}
     </delete>
+
+    <!-- Read Status -->
+    <insert id="insertReadStatus">
+        INSERT IGNORE INTO notice_read_status(notice_id, member_id)
+        VALUES(#{noticeId}, #{memberId})
+    </insert>
+
+    <select id="countReadStatus" resultType="int">
+        SELECT COUNT(*) FROM notice_read_status 
+        WHERE notice_id = #{noticeId} AND member_id = #{memberId}
+    </select>
+
+    <select id="countUnread" resultType="int">
+        SELECT COUNT(*) FROM notices n
+        WHERE NOT EXISTS (
+            SELECT 1 FROM notice_read_status rs 
+            WHERE rs.notice_id = n.id AND rs.member_id = #{memberId}
+        )
+    </select>
+
+    <insert id="insertAllReadStatus">
+        INSERT IGNORE INTO notice_read_status(notice_id, member_id)
+        SELECT id, #{memberId} FROM notices n
+        WHERE NOT EXISTS (
+            SELECT 1 FROM notice_read_status rs 
+            WHERE rs.notice_id = n.id AND rs.member_id = #{memberId}
+        )
+    </insert>
 
 </mapper>

@@ -25,13 +25,16 @@ public class NoticeController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) String searchTitle,
-            @RequestParam(required = false) String memberId) {
-        return ResponseEntity.ok(noticeService.getPaginatedNotices(page, size, searchTitle, memberId));
+            @RequestParam(required = false) String memberId,
+            Authentication authentication) {
+        String currentMemberId = (authentication != null) ? authentication.getName() : null;
+        return ResponseEntity.ok(noticeService.getPaginatedNotices(page, size, searchTitle, memberId, currentMemberId));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Notice> getNotice(@PathVariable Long id) {
-        Notice notice = noticeService.getNoticeDetail(id);
+    public ResponseEntity<Notice> getNotice(@PathVariable Long id, Authentication authentication) {
+        String currentMemberId = (authentication != null) ? authentication.getName() : null;
+        Notice notice = noticeService.getNoticeDetail(id, currentMemberId);
         if (notice == null)
             return ResponseEntity.notFound().build();
         return ResponseEntity.ok(notice);
@@ -87,6 +90,21 @@ public class NoticeController {
     @DeleteMapping("/comments/{commentId}")
     public ResponseEntity<?> deleteComment(@PathVariable Long commentId, Authentication authentication) {
         noticeService.deleteComment(commentId, authentication.getName());
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/unread-count")
+    public ResponseEntity<Integer> getUnreadCount(Authentication authentication) {
+        if (authentication == null)
+            return ResponseEntity.ok(0);
+        return ResponseEntity.ok(noticeService.getUnreadCount(authentication.getName()));
+    }
+
+    @PostMapping("/mark-all-read")
+    public ResponseEntity<?> markAllAsRead(Authentication authentication) {
+        if (authentication == null)
+            return ResponseEntity.badRequest().build();
+        noticeService.markAllAsRead(authentication.getName());
         return ResponseEntity.ok().build();
     }
 }

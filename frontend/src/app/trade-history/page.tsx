@@ -101,7 +101,7 @@ export default function TradeHistoryPage() {
 
             const res = await fetch(`/api/trade-history/stats?${query.toString()}`);
             if (res.ok) {
-                const data: { coinName: string, totalValue: number, totalQuantity: number }[] = await res.json();
+                const data: { coinName: string, totalValue: number, totalQuantity: number, currentPrice: number, currentValue: number }[] = await res.json();
 
                 const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#f97316', '#14b8a6', '#f43f5e'];
                 let colorIndex = 0;
@@ -109,6 +109,10 @@ export default function TradeHistoryPage() {
                 const formattedData = data.map((item) => ({
                     name: item.coinName,
                     value: chartMetric === 'amount' ? item.totalValue : item.totalQuantity,
+                    currentPrice: item.currentPrice,
+                    currentValue: item.currentValue,
+                    costBasis: item.totalValue,
+                    heldQuantity: item.totalQuantity,
                     color: colors[colorIndex++ % colors.length]
                 }));
                 setChartData(formattedData);
@@ -547,6 +551,7 @@ export default function TradeHistoryPage() {
 }
 
 const ChartView = ({ data, chartDate, chartMetric, setChartMetric, formatCurrency, formatQuantity }: { data: any[], chartDate: string, chartMetric: string, setChartMetric: (m: 'amount' | 'quantity') => void, formatCurrency: any, formatQuantity: any }) => {
+    const [statMode, setStatMode] = useState<'history' | 'realtime'>('history');
     const [sortBy, setSortBy] = useState<'name' | 'value'>('value');
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
     const filteredData = useMemo(() => {
@@ -574,7 +579,9 @@ const ChartView = ({ data, chartDate, chartMetric, setChartMetric, formatCurrenc
             if (sortBy === 'name') {
                 return sortOrder === 'asc' ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name);
             } else {
-                return sortOrder === 'asc' ? a.value - b.value : b.value - a.value;
+                const valA = statMode === 'history' ? a.value : (chartMetric === 'amount' ? a.currentValue : a.currentPrice);
+                const valB = statMode === 'history' ? b.value : (chartMetric === 'amount' ? b.currentValue : b.currentPrice);
+                return sortOrder === 'asc' ? valA - valB : valB - valA;
             }
         });
     }, [filteredData, sortBy, sortOrder]);
@@ -583,8 +590,12 @@ const ChartView = ({ data, chartDate, chartMetric, setChartMetric, formatCurrenc
         return sortedFullData.filter(item => selectedCoins.has(item.name));
     }, [sortedFullData, selectedCoins]);
 
-    let cumulativePercent = 0;
-    const totalValue = filteredForChart.reduce((sum, item) => sum + item.value, 0);
+    const totalHistoryCost = filteredForChart.reduce((sum, item) => sum + item.costBasis, 0);
+    const totalCurrentValuation = filteredForChart.reduce((sum, item) => sum + item.currentValue, 0);
+
+    // For sorting and list display, we still might use displayTotal if it's based on the selected metric, 
+    // but the user wants the PIE CHART and TOTAL SUM at the bottom to be monetary.
+    const displayTotal = statMode === 'history' ? totalHistoryCost : totalCurrentValuation;
 
     const handleSort = (key: 'name' | 'value') => {
         if (sortBy === key) {
@@ -600,6 +611,8 @@ const ChartView = ({ data, chartDate, chartMetric, setChartMetric, formatCurrenc
         const y = Math.sin(2 * Math.PI * percent);
         return [x, y];
     };
+
+    let cumulativePercent = 0;
 
     if (data.length === 0) {
         return (
@@ -629,46 +642,80 @@ const ChartView = ({ data, chartDate, chartMetric, setChartMetric, formatCurrenc
             }}
         >
             <div style={{ flex: '1 1 400px', maxWidth: '450px', display: 'flex', flexDirection: 'column' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px' }}>
-                    <div>
-                        <h3 style={{ fontSize: '1.5rem', fontWeight: 700, margin: 0 }}>
-                            코인별 누적 합산
-                        </h3>
-                        <p style={{ color: 'var(--text-muted)', margin: '4px 0 0 0', fontSize: '0.9rem' }}>기준일: {chartDate} 이전 데이터</p>
+                <div style={{ marginBottom: '24px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                        <div>
+                            <h3 style={{ fontSize: '1.5rem', fontWeight: 700, margin: 0 }}>
+                                코인별 누적 합산
+                            </h3>
+                            <p style={{ color: 'var(--text-muted)', margin: '4px 0 0 0', fontSize: '0.9rem' }}>기준일: {chartDate} 이전 데이터</p>
+                        </div>
+                        <div className="glass-panel" style={{ display: 'flex', background: 'rgba(255,255,255,0.05)', borderRadius: '12px', padding: '4px' }}>
+                            <button
+                                onClick={(e) => { e.stopPropagation(); setChartMetric('amount'); }}
+                                style={{
+                                    padding: '6px 14px',
+                                    borderRadius: '10px',
+                                    border: 'none',
+                                    backgroundColor: chartMetric === 'amount' ? 'var(--primary)' : 'transparent',
+                                    color: chartMetric === 'amount' ? 'black' : 'white',
+                                    fontWeight: 'bold',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.3s',
+                                    fontSize: '0.85rem'
+                                }}
+                            >
+                                금액
+                            </button>
+                            <button
+                                onClick={(e) => { e.stopPropagation(); setChartMetric('quantity'); }}
+                                style={{
+                                    padding: '6px 14px',
+                                    borderRadius: '10px',
+                                    border: 'none',
+                                    backgroundColor: chartMetric === 'quantity' ? 'var(--primary)' : 'transparent',
+                                    color: chartMetric === 'quantity' ? 'black' : 'white',
+                                    fontWeight: 'bold',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.3s',
+                                    fontSize: '0.85rem'
+                                }}
+                            >
+                                수량
+                            </button>
+                        </div>
                     </div>
 
-                    <div className="glass-panel" style={{ display: 'flex', background: 'rgba(255,255,255,0.05)', borderRadius: '12px', padding: '4px' }}>
+                    <div style={{ display: 'flex', gap: '8px' }}>
                         <button
-                            onClick={(e) => { e.stopPropagation(); setChartMetric('amount'); }}
+                            onClick={() => setStatMode('history')}
+                            className={`btn ${statMode === 'history' ? 'btn-primary' : ''}`}
                             style={{
-                                padding: '6px 14px',
+                                flex: 1,
+                                padding: '8px',
                                 borderRadius: '10px',
-                                border: 'none',
-                                backgroundColor: chartMetric === 'amount' ? 'var(--primary)' : 'transparent',
-                                color: chartMetric === 'amount' ? 'black' : 'white',
-                                fontWeight: 'bold',
-                                cursor: 'pointer',
-                                transition: 'all 0.3s',
-                                fontSize: '0.85rem'
+                                background: statMode === 'history' ? 'var(--primary)' : 'rgba(255,255,255,0.05)',
+                                color: statMode === 'history' ? 'black' : 'white',
+                                fontSize: '0.85rem',
+                                fontWeight: 600
                             }}
                         >
-                            금액
+                            누적합산 (History)
                         </button>
                         <button
-                            onClick={(e) => { e.stopPropagation(); setChartMetric('quantity'); }}
+                            onClick={() => setStatMode('realtime')}
+                            className={`btn ${statMode === 'realtime' ? 'btn-primary' : ''}`}
                             style={{
-                                padding: '6px 14px',
+                                flex: 1,
+                                padding: '8px',
                                 borderRadius: '10px',
-                                border: 'none',
-                                backgroundColor: chartMetric === 'quantity' ? 'var(--primary)' : 'transparent',
-                                color: chartMetric === 'quantity' ? 'black' : 'white',
-                                fontWeight: 'bold',
-                                cursor: 'pointer',
-                                transition: 'all 0.3s',
-                                fontSize: '0.85rem'
+                                background: statMode === 'realtime' ? 'var(--primary)' : 'rgba(255,255,255,0.05)',
+                                color: statMode === 'realtime' ? 'black' : 'white',
+                                fontSize: '0.85rem',
+                                fontWeight: 600
                             }}
                         >
-                            코인갯수
+                            실시간평가 (Current)
                         </button>
                     </div>
                 </div>
@@ -687,7 +734,9 @@ const ChartView = ({ data, chartDate, chartMetric, setChartMetric, formatCurrenc
                             onClick={() => handleSort('value')}
                             style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: '0.85rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', padding: 0 }}
                         >
-                            {chartMetric === 'amount' ? '금액' : '수량'}
+                            {statMode === 'history'
+                                ? (chartMetric === 'amount' ? '누적금액' : '누적수량')
+                                : (chartMetric === 'amount' ? '현재가치' : '현재수량')}
                             {sortBy === 'value' && (sortOrder === 'asc' ? <ChevronUp size={14} /> : <ChevronDown size={14} />)}
                         </button>
                     </div>
@@ -709,19 +758,57 @@ const ChartView = ({ data, chartDate, chartMetric, setChartMetric, formatCurrenc
                                     <span style={{ fontWeight: 600, color: selectedCoins.has(item.name) ? 'white' : 'var(--text-muted)' }}>{item.name}</span>
                                 </div>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                                    <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-                                        {totalValue > 0 && selectedCoins.has(item.name) ? ((item.value / totalValue) * 100).toFixed(1) : '0.0'}%
-                                    </span>
-                                    <span style={{ fontWeight: 700, color: selectedCoins.has(item.name) ? 'white' : 'var(--text-muted)' }}>
-                                        {chartMetric === 'quantity' ? formatQuantity(item.value) : formatCurrency(item.value)}{chartMetric === 'quantity' ? '개' : '원'}
-                                    </span>
+                                    <div style={{ textAlign: 'right' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'flex-end' }}>
+                                            <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>
+                                                {selectedCoins.has(item.name)
+                                                    ? (((statMode === 'history' ? item.costBasis : item.currentValue) / (statMode === 'history' ? totalHistoryCost : totalCurrentValuation || 1)) * 100).toFixed(1)
+                                                    : '0.0'}%
+                                            </span>
+                                            <span style={{ fontWeight: 700, color: selectedCoins.has(item.name) ? 'white' : 'var(--text-muted)' }}>
+                                                {statMode === 'history'
+                                                    ? (chartMetric === 'quantity' ? formatQuantity(item.heldQuantity) + '개' : formatCurrency(item.costBasis) + '원')
+                                                    : (chartMetric === 'amount' ? formatCurrency(item.currentValue) + '원' : formatQuantity(item.heldQuantity) + '개')
+                                                }
+                                            </span>
+                                        </div>
+                                        {statMode === 'realtime' && (
+                                            <div style={{ fontSize: '0.75rem', marginTop: '2px' }}>
+                                                {chartMetric === 'amount' ? (
+                                                    <span style={{ color: item.currentValue >= item.costBasis ? '#10b981' : '#ef4444' }}>
+                                                        {item.currentValue >= item.costBasis ? '▲' : '▼'}
+                                                        {formatCurrency(Math.abs(item.currentValue - item.costBasis))}원
+                                                        ({(((item.currentValue - item.costBasis) / (Math.abs(item.costBasis) || 1)) * 100).toFixed(2)}%)
+                                                    </span>
+                                                ) : (
+                                                    <span style={{ color: 'var(--text-muted)' }}>
+                                                        현재가: {formatCurrency(item.currentPrice)}원
+                                                    </span>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         ))}
                     </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px', paddingTop: '12px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
-                        <span style={{ fontWeight: 600, color: 'var(--text-muted)' }}>총합계 (Total)</span>
-                        <span style={{ fontWeight: 800, fontSize: '1.1rem', color: 'var(--primary)' }}>{chartMetric === 'quantity' ? formatQuantity(totalValue) : formatCurrency(totalValue)}{chartMetric === 'quantity' ? '개' : '원'}</span>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '12px', paddingTop: '12px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <span style={{ fontWeight: 600, color: 'var(--text-muted)' }}>전체 총합계 (Total Value)</span>
+                            <span style={{ fontWeight: 800, fontSize: '1.25rem', color: 'var(--primary)' }}>
+                                {statMode === 'history' ? formatCurrency(totalHistoryCost) : formatCurrency(totalCurrentValuation)}원
+                            </span>
+                        </div>
+                        {statMode === 'realtime' && (
+                            <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '12px' }}>
+                                <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>총 손익:</span>
+                                <span style={{ fontWeight: 700, color: totalCurrentValuation >= totalHistoryCost ? '#10b981' : '#ef4444' }}>
+                                    {totalCurrentValuation >= totalHistoryCost ? '▲' : '▼'}
+                                    {formatCurrency(Math.abs(totalCurrentValuation - totalHistoryCost))}원
+                                    ({(((totalCurrentValuation - totalHistoryCost) / (Math.abs(totalHistoryCost) || 1)) * 100).toFixed(2)}%)
+                                </span>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
@@ -729,7 +816,8 @@ const ChartView = ({ data, chartDate, chartMetric, setChartMetric, formatCurrenc
             <div style={{ flex: '1 1 300px', display: 'flex', justifyContent: 'center', position: 'relative' }}>
                 <svg viewBox="-1 -1 2 2" style={{ transform: 'rotate(-90deg)', width: '100%', maxWidth: '300px', height: 'auto', filter: 'drop-shadow(0 10px 20px rgba(0,0,0,0.5))' }}>
                     {filteredForChart.map((slice) => {
-                        const percent = slice.value / (totalValue || 1);
+                        const val = statMode === 'history' ? slice.costBasis : slice.currentValue;
+                        const percent = val / (displayTotal || 1);
                         const [startX, startY] = getCoordinatesForPercent(cumulativePercent);
                         cumulativePercent += percent;
                         const [endX, endY] = getCoordinatesForPercent(cumulativePercent);

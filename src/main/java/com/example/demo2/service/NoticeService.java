@@ -25,9 +25,10 @@ public class NoticeService {
     private final String uploadPath = System.getProperty("user.dir") + File.separator + "uploads" + File.separator
             + "notices";
 
-    public NoticePageResponse getPaginatedNotices(int page, int size, String searchTitle, String memberId) {
+    public NoticePageResponse getPaginatedNotices(int page, int size, String searchTitle, String memberId,
+            String currentMemberId) {
         int offset = page * size;
-        List<Notice> notices = noticeMapper.findAll(size, offset, searchTitle, memberId);
+        List<Notice> notices = noticeMapper.findAll(size, offset, searchTitle, memberId, currentMemberId);
 
         if (!notices.isEmpty()) {
             List<Long> noticeIds = notices.stream().map(Notice::getId).collect(Collectors.toList());
@@ -76,8 +77,11 @@ public class NoticeService {
     }
 
     @Transactional
-    public Notice getNoticeDetail(Long id) {
+    public Notice getNoticeDetail(Long id, String currentMemberId) {
         noticeMapper.updateViewCount(id);
+        if (currentMemberId != null) {
+            noticeMapper.insertReadStatus(id, currentMemberId);
+        }
         Notice notice = noticeMapper.findById(id);
         if (notice != null) {
             notice.setAttachments(noticeMapper.findAttachmentsByNoticeId(id));
@@ -141,6 +145,15 @@ public class NoticeService {
             throw new RuntimeException("삭제 권한이 없습니다.");
         }
         noticeMapper.deleteComment(commentId);
+    }
+
+    public int getUnreadCount(String memberId) {
+        return noticeMapper.countUnread(memberId);
+    }
+
+    @Transactional
+    public void markAllAsRead(String memberId) {
+        noticeMapper.insertAllReadStatus(memberId);
     }
 
     // Helper methods

@@ -10,10 +10,6 @@ import java.util.List;
 @Mapper
 public interface NoticeMapper {
         // Notice
-        List<Notice> findAll(@Param("limit") int limit,
-                        @Param("offset") int offset,
-                        @Param("searchTitle") String searchTitle,
-                        @Param("memberId") String memberId);
 
         int countAll(@Param("searchTitle") String searchTitle,
                         @Param("memberId") String memberId);
@@ -52,4 +48,19 @@ public interface NoticeMapper {
         NoticeComment findCommentById(Long id);
 
         int deleteComment(Long id);
+
+        // Read Status
+        int insertReadStatus(@Param("noticeId") Long noticeId, @Param("memberId") String memberId);
+
+        int countReadStatus(@Param("noticeId") Long noticeId, @Param("memberId") String memberId);
+
+        List<Notice> findAll(@Param("limit") int limit,
+                        @Param("offset") int offset,
+                        @Param("searchTitle") String searchTitle,
+                        @Param("memberId") String memberId,
+                        @Param("currentMemberId") String currentMemberId);
+
+        int countUnread(@Param("memberId") String memberId);
+
+        int insertAllReadStatus(@Param("memberId") String memberId);
 }
