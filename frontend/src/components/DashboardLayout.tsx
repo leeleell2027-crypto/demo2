@@ -18,8 +18,15 @@ import {
     LogOut,
     Shield,
     Map as MapIcon,
-    Hash
+    Hash,
+    Plus,
+    Edit2,
+    Trash2,
+    Check,
+    ChevronDown,
+    Lock
 } from 'lucide-react';
+import * as LucideIcons from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useMemo } from 'react';
@@ -39,41 +46,22 @@ interface Category {
     items: NavItem[];
 }
 
-const categories: Category[] = [
-    {
-        id: 'finance',
-        label: 'Financial',
-        icon: <Wallet size={20} />,
-        items: [
-            { label: 'Transactions', href: '/transactions', icon: <CreditCard size={18} /> },
-            { label: 'Notice', href: '/notice', icon: <Hash size={18} /> },
-            { label: 'Trade History', href: '/trade-history', icon: <Wallet size={18} /> },
-            { label: 'Coin Status', href: '/coin-status', icon: <LayoutDashboard size={18} /> },
-        ]
-    },
-    {
-        id: 'asset',
-        label: 'Asset',
-        icon: <ImageIcon size={20} />,
-        items: [
-            { label: 'Gallery', href: '/gallery', icon: <ImageIcon size={18} /> },
-            { label: 'Map', href: '/map', icon: <MapIcon size={18} /> },
-        ]
-    },
-    {
-        id: 'settings',
-        label: 'Settings',
-        icon: <Settings size={20} />,
-        items: [
-            { label: 'Profile', href: '/profile', icon: <User size={18} /> },
-            { label: 'General', href: '/settings', icon: <Settings size={18} /> },
-            { label: 'Calendar', href: '/settings/calendar', icon: <Calendar size={18} /> },
-            { label: 'Image Explorer', href: '/settings/image-explorer', icon: <ImageIcon size={18} /> },
-            { label: 'Admin Management', href: '/admin', icon: <Shield size={18} /> },
-            { label: 'Holiday Management', href: '/holidays', icon: <Calendar size={18} /> },
-        ]
-    }
-];
+export interface MenuData {
+    id: number;
+    parentId: number | null;
+    name: string;
+    url: string | null;
+    icon: string;
+    sortOrder: number;
+    isActive: boolean;
+    role: string;
+    children?: MenuData[];
+}
+
+const getIcon = (iconName: string, size = 18) => {
+    const IconComponent = (LucideIcons as any)[iconName] || LucideIcons.HelpCircle;
+    return <IconComponent size={size} />;
+};
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
     const { user, loading: authLoading, logout: storeLogout } = useAuthStore();
@@ -95,41 +83,51 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         return unreadCount > 0;
     }, [unreadCount]);
 
+    const { data: menuTree = [], isLoading: menuLoading } = useQuery<MenuData[]>({
+        queryKey: ['menu-tree'],
+        queryFn: async () => {
+            const res = await fetch('/api/menus/tree');
+            if (!res.ok) throw new Error('Failed to fetch menus');
+            return res.json();
+        }
+    });
+
     const filteredCategories = useMemo(() => {
-        if (!user) return [];
+        if (!user || !menuTree) return [];
 
-        // Filter categories based on user role
-        const allowedCategoryIds = user.role === 'SUPER_ADMIN'
-            ? ['finance', 'asset', 'settings']
-            : user.role === 'MIDDLE_ADMIN'
-                ? ['finance', 'settings']
-                : user.role === 'GENERAL_ADMIN'
-                    ? ['asset']
-                    : [];
+        return menuTree.filter(menu => {
+            if (!menu.role) return true;
+            const allowedRoles = menu.role.split(',');
+            return allowedRoles.includes(user.role);
+        }).map(menu => ({
+            id: menu.id.toString(),
+            label: menu.name,
+            icon: getIcon(menu.icon, 20),
+            items: (menu.children || [])
+                .filter(child => {
+                    if (!child.role) return true;
+                    const allowedRoles = child.role.split(',');
+                    return allowedRoles.includes(user.role);
+                })
+                .map(child => ({
+                    label: child.name,
+                    href: child.url || '#',
+                    icon: getIcon(child.icon, 18)
+                }))
+        }));
+    }, [user, menuTree]);
 
-        return categories
-            .filter(cat => allowedCategoryIds.includes(cat.id))
-            .map(cat => {
-                // For settings category, filter specific items based on role
-                if (cat.id === 'settings') {
-                    return {
-                        ...cat,
-                        items: cat.items.filter(item => {
-                            if (item.href === '/admin' || item.href === '/holidays') return user.role === 'SUPER_ADMIN';
-                            if (item.href === '/settings/calendar') return user.role === 'SUPER_ADMIN' || user.role === 'MIDDLE_ADMIN';
-                            return true;
-                        })
-                    };
-                }
-                return cat;
-            });
-    }, [user]);
+    const [activeCategory, setActiveCategory] = useState<string | null>(null);
 
-    const [activeCategory, setActiveCategory] = useState('finance');
+    useEffect(() => {
+        if (filteredCategories.length > 0 && !activeCategory) {
+            setActiveCategory(filteredCategories[0].id);
+        }
+    }, [filteredCategories, activeCategory]);
 
     useEffect(() => {
         // Redirect if trying to access unauthorized category
-        const currentCat = categories.find((c: Category) => c.items.some((item: NavItem) => pathname.startsWith(item.href)));
+        const currentCat = filteredCategories.find((c: any) => c.items.some((item: any) => pathname.startsWith(item.href)));
         if (currentCat && !filteredCategories.find((c: Category) => c.id === currentCat.id)) {
             router.push('/');
         }
@@ -157,7 +155,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         }
     };
 
-    const currentCategory = categories.find(c => c.id === activeCategory);
+    const currentCategory = filteredCategories.find(c => c.id === activeCategory);
 
     if (authLoading) return null;
 

@@ -144,4 +144,39 @@ CREATE TABLE `trade_btc_history` (
         -- select coin,count(market) as cnt from (
         -- select coin, market from trade_history where market !='-' group by coin ,market
         -- ) a  group by a.coin
+
+CREATE TABLE IF NOT EXISTS menus (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    parent_id INT DEFAULT NULL,
+    name VARCHAR(100) NOT NULL,
+    url VARCHAR(255),
+    icon VARCHAR(100),
+    sort_order INT DEFAULT 0,
+    is_active BOOLEAN DEFAULT TRUE,
+    role VARCHAR(255) DEFAULT 'SUPER_ADMIN,MIDDLE_ADMIN,GENERAL_ADMIN',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (parent_id) REFERENCES menus(id) ON DELETE CASCADE
+);
+
+-- Insert initial menu data
+-- Financial
+INSERT INTO menus (id, name, url, icon, sort_order) VALUES (1, 'Financial', null, 'Wallet', 1);
+INSERT INTO menus (parent_id, name, url, icon, sort_order) VALUES (1, 'Transactions', '/transactions', 'CreditCard', 1);
+INSERT INTO menus (parent_id, name, url, icon, sort_order) VALUES (1, 'Notice', '/notice', 'Hash', 2);
+INSERT INTO menus (parent_id, name, url, icon, sort_order) VALUES (1, 'Trade History', '/trade-history', 'Wallet', 3);
+INSERT INTO menus (parent_id, name, url, icon, sort_order) VALUES (1, 'Coin Status', '/coin-status', 'LayoutDashboard', 4);
+
+-- Asset
+INSERT INTO menus (id, name, url, icon, sort_order) VALUES (6, 'Asset', null, 'Image', 2);
+INSERT INTO menus (parent_id, name, url, icon, sort_order) VALUES (6, 'Gallery', '/gallery', 'Image', 1);
+INSERT INTO menus (parent_id, name, url, icon, sort_order) VALUES (6, 'Map', '/map', 'Map', 2);
+
+-- Settings
+INSERT INTO menus (id, name, url, icon, sort_order) VALUES (9, 'Settings', null, 'Settings', 3);
+INSERT INTO menus (parent_id, name, url, icon, sort_order) VALUES (9, 'Profile', '/profile', 'User', 1);
+INSERT INTO menus (parent_id, name, url, icon, sort_order) VALUES (9, 'Calendar', '/settings/calendar', 'Calendar', 2);
+INSERT INTO menus (parent_id, name, url, icon, sort_order) VALUES (9, 'Image Explorer', '/settings/image-explorer', 'Image', 3);
+INSERT INTO menus (parent_id, name, url, icon, sort_order) VALUES (9, 'Admin Management', '/admin', 'Shield', 4);
+INSERT INTO menus (parent_id, name, url, icon, sort_order) VALUES (9, 'Holiday Management', '/holidays', 'Calendar', 5);
         
