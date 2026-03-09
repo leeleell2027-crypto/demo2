@@ -7,7 +7,7 @@
     </select>
 
     <select id="findAllActive" resultType="com.example.demo2.model.Menu">
-        SELECT * FROM menus WHERE is_active = TRUE ORDER BY parent_id ASC, sort_order ASC
+        SELECT * FROM menus WHERE is_active = TRUE AND is_deleted = FALSE ORDER BY parent_id ASC, sort_order ASC
     </select>
 
     <select id="findById" resultType="com.example.demo2.model.Menu">
@@ -15,8 +15,8 @@
     </select>
 
     <insert id="insert" parameterType="com.example.demo2.model.Menu" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO menus (parent_id, name, url, icon, sort_order, is_active, role)
-        VALUES (#{parentId}, #{name}, #{url}, #{icon}, #{sortOrder}, #{isActive}, #{role})
+        INSERT INTO menus (parent_id, name, url, icon, sort_order, is_active, is_deleted, role)
+        VALUES (#{parentId}, #{name}, #{url}, #{icon}, #{sortOrder}, #{isActive}, FALSE, #{role})
     </insert>
 
     <update id="update" parameterType="com.example.demo2.model.Menu">
@@ -27,13 +27,14 @@
             icon = #{icon},
             sort_order = #{sortOrder},
             is_active = #{isActive},
+            is_deleted = #{isDeleted},
             role = #{role},
             updated_at = CURRENT_TIMESTAMP
         WHERE id = #{id}
     </update>
 
     <delete id="delete">
-        DELETE FROM menus WHERE id = #{id}
+        UPDATE menus SET is_deleted = TRUE, is_active = FALSE WHERE id = #{id}
     </delete>
 
 </mapper>

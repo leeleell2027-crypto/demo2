@@ -11,6 +11,7 @@ public class Menu {
     private String icon;
     private Integer sortOrder;
     private Boolean isActive;
+    private Boolean isDeleted;
     private String role;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
@@ -73,6 +74,14 @@ public class Menu {
 
     public void setIsActive(Boolean isActive) {
         this.isActive = isActive;
+    }
+
+    public Boolean getIsDeleted() {
+        return isDeleted;
+    }
+
+    public void setIsDeleted(Boolean isDeleted) {
+        this.isDeleted = isDeleted;
     }
 
     public String getRole() {

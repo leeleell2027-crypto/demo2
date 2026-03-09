@@ -28,6 +28,7 @@ interface MenuData {
     icon: string;
     sortOrder: number;
     isActive: boolean;
+    isDeleted: boolean;
     role: string;
     children?: MenuData[];
 }
@@ -104,6 +105,21 @@ export default function MenuManagement() {
         }
     });
 
+    const restoreMutation = useMutation({
+        mutationFn: async (id: number) => {
+            const res = await fetch(`/api/menus/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ isDeleted: false, isActive: true })
+            });
+            if (!res.ok) throw new Error('Failed to restore');
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['menus-all'] });
+            queryClient.invalidateQueries({ queryKey: ['menu-tree'] });
+        }
+    });
+
     const resetForm = () => {
         setFormData({
             name: '',
@@ -170,17 +186,26 @@ export default function MenuManagement() {
                                     borderBottom: '1px solid rgba(255,255,255,0.05)'
                                 }}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                        <div style={{ background: 'var(--primary)', padding: '8px', borderRadius: '8px' }}>
+                                        <div style={{ background: menu.isDeleted ? 'rgba(255,255,255,0.05)' : 'var(--primary)', padding: '8px', borderRadius: '8px', opacity: menu.isDeleted ? 0.5 : 1 }}>
                                             {getIcon(menu.icon)}
                                         </div>
-                                        <div>
+                                        <div style={{ textDecoration: menu.isDeleted ? 'line-through' : 'none', opacity: menu.isDeleted ? 0.6 : 1 }}>
                                             <div style={{ fontWeight: 700 }}>{menu.name}</div>
                                             <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{menu.role}</div>
                                         </div>
                                     </div>
                                     <div style={{ display: 'flex', gap: '8px' }}>
-                                        <button onClick={() => handleEdit(menu)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}><Edit2 size={16} /></button>
-                                        <button onClick={() => deleteMutation.mutate(menu.id)} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer' }}><Trash2 size={16} /></button>
+                                        {menu.isDeleted ? (
+                                            <button onClick={() => {
+                                                const updated = { ...menu, isDeleted: false, isActive: true };
+                                                updateMutation.mutate(updated);
+                                            }} style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600 }}>Restore</button>
+                                        ) : (
+                                            <>
+                                                <button onClick={() => handleEdit(menu)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}><Edit2 size={16} /></button>
+                                                <button onClick={() => { if (confirm('Soft delete this menu?')) deleteMutation.mutate(menu.id) }} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer' }}><Trash2 size={16} /></button>
+                                            </>
+                                        )}
                                     </div>
                                 </div>
                                 <div style={{ padding: '8px 16px 16px 48px' }}>
@@ -192,7 +217,7 @@ export default function MenuManagement() {
                                             padding: '12px 0',
                                             borderBottom: '1px solid rgba(255,255,255,0.03)'
                                         }}>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', textDecoration: child.isDeleted ? 'line-through' : 'none', opacity: child.isDeleted ? 0.6 : 1 }}>
                                                 {getIcon(child.icon, 16)}
                                                 <div>
                                                     <div style={{ fontSize: '0.9rem', fontWeight: 500 }}>{child.name}</div>
@@ -200,8 +225,17 @@ export default function MenuManagement() {
                                                 </div>
                                             </div>
                                             <div style={{ display: 'flex', gap: '8px' }}>
-                                                <button onClick={() => handleEdit(child)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}><Edit2 size={14} /></button>
-                                                <button onClick={() => deleteMutation.mutate(child.id)} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer' }}><Trash2 size={14} /></button>
+                                                {child.isDeleted ? (
+                                                    <button onClick={() => {
+                                                        const updated = { ...child, isDeleted: false, isActive: true };
+                                                        updateMutation.mutate(updated);
+                                                    }} style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600 }}>Restore</button>
+                                                ) : (
+                                                    <>
+                                                        <button onClick={() => handleEdit(child)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}><Edit2 size={14} /></button>
+                                                        <button onClick={() => { if (confirm('Soft delete this submenu?')) deleteMutation.mutate(child.id) }} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer' }}><Trash2 size={14} /></button>
+                                                    </>
+                                                )}
                                             </div>
                                         </div>
                                     ))}
