@@ -223,11 +223,11 @@ export default function TradeHistoryPage() {
     };
 
     return (
-        <div className="page-container-full" style={{ color: 'white', minHeight: '100vh', position: 'relative' }}>
+        <div className="page-container-full">
             {/* Uploading Overlay */}
             {uploading && (
-                <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.7)', zIndex: 9999, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', backdropFilter: 'blur(4px)' }}>
-                    <div style={{ width: '50px', height: '50px', border: '4px solid rgba(255,255,255,0.1)', borderTopColor: 'var(--primary)', borderRadius: '50%', animation: 'spin 1s linear infinite', marginBottom: '20px' }}></div>
+                <div className="loading-overlay" style={{ animation: 'backdrop-fade 0.3s ease' }}>
+                    <div className="loading-spinner"></div>
                     <div style={{ color: 'white', fontSize: '1.2rem', fontWeight: 600 }}>파일 업로드 중...</div>
                     <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginTop: '8px' }}>데이터가 많을 경우 시간이 소요될 수 있습니다.</div>
                 </div>
@@ -239,10 +239,6 @@ export default function TradeHistoryPage() {
                 <div style={{ marginBottom: '40px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-                            <Link href="/" style={{ color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none', transition: 'color 0.2s' }}>
-                                <ArrowLeft size={20} />
-                                <span>Back</span>
-                            </Link>
                             <div>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--primary)', marginBottom: '4px' }}>
                                     <Table size={20} />
@@ -253,40 +249,22 @@ export default function TradeHistoryPage() {
                         </div>
 
                         <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                            <div className="glass-panel view-mode-tabs" style={{ display: 'flex', padding: '4px', borderRadius: '12px' }}>
+                            <div className="glass-panel" style={{ display: 'flex', padding: '4px', borderRadius: '12px' }}>
                                 <button
                                     onClick={() => setViewMode('table')}
-                                    className={`btn ${viewMode === 'table' ? 'btn-primary' : ''}`}
-                                    style={{
-                                        padding: '8px 16px',
-                                        borderRadius: '8px',
-                                        background: viewMode === 'table' ? 'var(--primary)' : 'transparent',
-                                        color: viewMode === 'table' ? 'black' : 'white',
-                                    }}
+                                    className={`tab-btn ${viewMode === 'table' ? 'active' : ''}`}
                                 >
                                     <Table size={16} /> Table
                                 </button>
                                 <button
                                     onClick={() => setViewMode('chart')}
-                                    className={`btn ${viewMode === 'chart' ? 'btn-primary' : ''}`}
-                                    style={{
-                                        padding: '8px 16px',
-                                        borderRadius: '8px',
-                                        background: viewMode === 'chart' ? 'var(--primary)' : 'transparent',
-                                        color: viewMode === 'chart' ? 'black' : 'white',
-                                    }}
+                                    className={`tab-btn ${viewMode === 'chart' ? 'active' : ''}`}
                                 >
                                     <BarChart2 size={16} /> Stats
                                 </button>
                                 <button
                                     onClick={() => setViewMode('btc')}
-                                    className={`btn ${viewMode === 'btc' ? 'btn-primary' : ''}`}
-                                    style={{
-                                        padding: '8px 16px',
-                                        borderRadius: '8px',
-                                        background: viewMode === 'btc' ? 'var(--primary)' : 'transparent',
-                                        color: viewMode === 'btc' ? 'black' : 'white',
-                                    }}
+                                    className={`tab-btn ${viewMode === 'btc' ? 'active' : ''}`}
                                 >
                                     <RefreshCw size={16} /> BTC
                                 </button>
@@ -317,8 +295,8 @@ export default function TradeHistoryPage() {
                                 </button>
                                 <button
                                     onClick={handleDeleteAll}
-                                    className="btn"
-                                    style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.2)' }}
+                                    className="sidebar-logout-btn"
+                                    style={{ padding: '8px 12px', width: 'auto' }}
                                 >
                                     <Trash2 size={18} />
                                 </button>
@@ -328,7 +306,7 @@ export default function TradeHistoryPage() {
 
                     {/* Filter Section (Row 2) */}
                     {viewMode !== 'btc' && (
-                        <div className="glass-panel" style={{ padding: '24px', display: 'flex', flexWrap: 'wrap', gap: '24px', alignItems: 'flex-end', background: 'rgba(255,255,255,0.02)' }}>
+                        <div className="glass-panel" style={{ padding: '24px', display: 'flex', flexWrap: 'wrap', gap: '24px', alignItems: 'flex-end' }}>
                             <div style={{ flex: '1', minWidth: '300px', display: 'flex', gap: '16px' }}>
                                 {viewMode === 'table' ? (
                                     <div style={{ flex: 1 }}>

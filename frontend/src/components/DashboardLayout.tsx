@@ -161,14 +161,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
     if (!user) {
         return (
-            <main style={{ minHeight: '100vh', width: '100vw', background: '#0f172a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <main className="auth-layout-container">
                 {children}
             </main>
         );
     }
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', width: '100vw', background: '#0f172a', color: 'white', overflow: 'hidden', position: 'relative' }}>
+        <div className="main-wrapper">
 
             {/* Floating Toggle for Header when closed */}
             <AnimatePresence>
@@ -178,21 +178,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -20 }}
                         onClick={() => setIsHeaderOpen(true)}
+                        className="floating-toggle"
                         style={{
-                            position: 'fixed',
                             top: '10px',
                             right: '24px',
-                            zIndex: 1001,
-                            background: 'rgba(255, 255, 255, 0.1)',
-                            backdropFilter: 'blur(8px)',
-                            border: '1px solid rgba(255, 255, 255, 0.2)',
-                            color: 'white',
-                            padding: '8px',
-                            borderRadius: '50%',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center'
                         }}
                         title="Show Header"
                     >
@@ -209,22 +198,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: -20 }}
                         onClick={() => setIsSidebarOpen(true)}
+                        className="sidebar-toggle-floating"
                         style={{
-                            position: 'fixed',
-                            left: '10px',
                             top: isHeaderOpen ? '85px' : '24px',
-                            zIndex: 1001,
-                            background: 'rgba(99, 102, 241, 0.2)',
-                            backdropFilter: 'blur(8px)',
-                            border: '1px solid rgba(99, 102, 241, 0.3)',
-                            color: 'white',
-                            padding: '8px',
-                            borderRadius: '0 12px 12px 0',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            boxShadow: '4px 0 15px rgba(0,0,0,0.3)'
                         }}
                         title="Show Sidebar"
                     >
@@ -240,23 +216,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                         initial={{ height: 0, opacity: 0 }}
                         animate={{ height: '70px', opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
-                        className="glass-panel"
-                        style={{
-                            borderRadius: 0,
-                            borderTop: 'none',
-                            borderLeft: 'none',
-                            borderRight: 'none',
-                            padding: '0 24px',
-                            zIndex: 100,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            overflow: 'hidden'
-                        }}
+                        className="glass-panel app-header"
                     >
                         <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
                             <button
                                 onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                                className={`nav-toggle-btn ${isSidebarOpen ? 'active' : ''}`}
                                 style={{
                                     background: isSidebarOpen ? 'rgba(255,255,255,0.05)' : 'none',
                                     border: 'none',
@@ -268,7 +233,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                                     borderRadius: '8px',
                                     transition: 'background 0.2s'
                                 }}
-                                className="nav-toggle-btn"
                             >
                                 <Menu size={24} />
                             </button>
@@ -292,17 +256,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                                                 router.push(cat.items[0].href);
                                             }
                                         }}
-                                        className={`btn ${activeCategory === cat.id ? 'btn-primary' : ''}`}
-                                        style={{
-                                            padding: '8px 14px',
-                                            borderRadius: '10px',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: '8px',
-                                            fontSize: '0.9rem',
-                                            background: activeCategory === cat.id ? 'rgba(255,255,255,0.08)' : 'transparent',
-                                            color: activeCategory === cat.id ? 'white' : 'var(--text-muted)',
-                                        }}
+                                        className={`tab-btn ${activeCategory === cat.id ? 'active' : ''}`}
                                     >
                                         {cat.icon}
                                         {cat.label}
@@ -327,36 +281,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                             </div>
                             <button
                                 onClick={() => router.push('/notice')}
-                                style={{
-                                    color: 'var(--text-muted)',
-                                    background: 'none',
-                                    border: 'none',
-                                    cursor: 'pointer',
-                                    position: 'relative',
-                                    padding: '4px',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    transition: 'color 0.2s'
-                                }}
-                                onMouseEnter={(e) => e.currentTarget.style.color = 'white'}
-                                onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-muted)'}
+                                className="notification-btn"
                             >
                                 <Bell size={18} />
                                 {hasNewNotices && (
-                                    <span style={{
-                                        position: 'absolute',
-                                        top: '4px',
-                                        right: '4px',
-                                        width: '8px',
-                                        height: '8px',
-                                        backgroundColor: '#ef4444',
-                                        borderRadius: '50%',
-                                        border: '2px solid #0f172a'
-                                    }} />
+                                    <span className="notification-dot" />
                                 )}
                             </button>
-                            <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'linear-gradient(45deg, var(--primary), #ec4899)', border: '1px solid rgba(255,255,255,0.2)' }} title={user.username} />
+                            <div className="user-avatar" title={user.username} />
 
                             {/* Header Close Button */}
                             <button
@@ -384,32 +316,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 <motion.aside
                     initial={false}
                     animate={{ width: isSidebarOpen ? '260px' : '0px', opacity: isSidebarOpen ? 1 : 0 }}
+                    className="sidebar-aside"
                     style={{
-                        background: 'rgba(15, 23, 42, 0.5)',
                         borderRight: isSidebarOpen ? '1px solid rgba(255,255,255,0.1)' : 'none',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        overflow: 'hidden',
-                        whiteSpace: 'nowrap',
-                        position: 'relative'
                     }}
                 >
                     {/* Sidebar Close Button */}
                     {isSidebarOpen && (
                         <button
                             onClick={() => setIsSidebarOpen(false)}
-                            style={{
-                                position: 'absolute',
-                                top: '12px',
-                                right: '12px',
-                                background: 'rgba(255,255,255,0.05)',
-                                border: 'none',
-                                color: 'var(--text-muted)',
-                                padding: '4px',
-                                borderRadius: '6px',
-                                cursor: 'pointer',
-                                zIndex: 10
-                            }}
+                            className="sidebar-close-btn"
                             title="Close Sidebar"
                         >
                             <ChevronRight size={18} style={{ transform: 'rotate(180deg)' }} />
@@ -427,17 +343,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                                     <Link key={item.href} href={item.href} style={{ textDecoration: 'none' }}>
                                         <motion.div
                                             whileHover={{ x: 4 }}
+                                            className="sidebar-nav-item"
                                             style={{
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'space-between',
-                                                padding: '12px 16px',
-                                                borderRadius: '12px',
                                                 background: isActive ? 'var(--primary)' : 'transparent',
                                                 color: isActive ? 'white' : 'var(--text-muted)',
-                                                fontWeight: 600,
-                                                cursor: 'pointer',
-                                                transition: 'all 0.2s',
                                                 boxShadow: isActive ? '0 10px 15px -3px rgba(99, 102, 241, 0.3)' : 'none'
                                             }}
                                         >
@@ -456,41 +365,22 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     <div style={{ padding: '24px 16px', display: 'flex', flexDirection: 'column', gap: '8px', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
                         <button
                             onClick={handleLogout}
-                            style={{
-                                width: '100%',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '12px',
-                                padding: '12px 16px',
-                                borderRadius: '12px',
-                                background: 'rgba(239, 68, 68, 0.1)',
-                                color: '#ef4444',
-                                fontWeight: 600,
-                                cursor: 'pointer',
-                                transition: 'all 0.2s',
-                                border: '1px solid rgba(239, 68, 68, 0.2)'
-                            }}
+                            className="sidebar-logout-btn"
                         >
                             <LogOut size={18} />
                             Logout
                         </button>
 
-                        <div style={{ background: 'rgba(255,255,255,0.03)', padding: '16px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                        <div className="sidebar-promo">
                             <div style={{ fontSize: '0.85rem', fontWeight: 600, marginBottom: '4px' }}>Premium Pro</div>
                             <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '12px' }}>Explore all features</div>
-                            <button style={{ width: '100%', background: 'white', color: 'black', padding: '8px', borderRadius: '8px', fontSize: '0.8rem', fontWeight: 700 }}>Upgrade</button>
+                            <button className="btn" style={{ width: '100%', background: 'white', color: 'black', padding: '8px', borderRadius: '8px', fontSize: '0.8rem', fontWeight: 700 }}>Upgrade</button>
                         </div>
                     </div>
                 </motion.aside>
 
                 {/* Main Content */}
-                <main style={{
-                    flex: 1,
-                    overflowY: 'auto',
-                    background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
-                    position: 'relative',
-                    width: '100%'
-                }}>
+                <main className="content-main">
                     <AnimatePresence mode="wait">
                         <motion.div
                             key={pathname}
