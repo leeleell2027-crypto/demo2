@@ -1,19 +1,18 @@
 "use client";
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
-import { User, LogOut, ShieldCheck, Mail, Calendar, Hash, BadgeCheck, Image as ImageIcon, CreditCard } from 'lucide-react';
+import { Mail } from 'lucide-react';
 import Link from 'next/link';
 import { useAuthStore } from '@/store/authStore';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 
 interface ProfilePageProps {
     onLogout: () => void;
 }
 
 const ProfilePage: React.FC<ProfilePageProps> = ({ onLogout }) => {
-    const { user, logout: storeLogout } = useAuthStore();
-    const queryClient = useQueryClient();
+    const { logout: storeLogout } = useAuthStore();
 
     // Recent Notices Query
     const { data: recentNoticesData, isLoading: loadingNotices } = useQuery({
@@ -36,14 +35,6 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ onLogout }) => {
             onLogout();
         }
     };
-
-    // Mocking more detailed member information for display
-    const memberInfo = [
-        { icon: <Mail size={18} />, label: "Email Address", value: `${user?.name.toLowerCase() || 'user'}@example.com` },
-        { icon: <Hash size={18} />, label: "Member ID", value: `MEM-8842` },
-        { icon: <BadgeCheck size={18} />, label: "Role", value: user?.role || "Premium Member" },
-        { icon: <Calendar size={18} />, label: "Joined Date", value: "February 2026" },
-    ];
 
     const formatDate = (dateString: string) => {
         return new Date(dateString).toLocaleDateString('ko-KR', {

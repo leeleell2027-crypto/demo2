@@ -3,11 +3,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-    CreditCard,
-    Calendar,
-    Image as ImageIcon,
-    Settings,
-    Wallet,
     LayoutDashboard,
     ChevronRight,
     Search,
@@ -15,16 +10,7 @@ import {
     User,
     Menu,
     X,
-    LogOut,
-    Shield,
-    Map as MapIcon,
-    Hash,
-    Plus,
-    Edit2,
-    Trash2,
-    Check,
-    ChevronDown,
-    Lock
+    LogOut
 } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 import Link from 'next/link';
