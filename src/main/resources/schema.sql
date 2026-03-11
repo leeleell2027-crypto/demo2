@@ -45,6 +45,7 @@ CREATE TABLE IF NOT EXISTS member (
     username VARCHAR(255) DEFAULT NULL,
     password VARCHAR(255) DEFAULT NULL,
     role VARCHAR(50) DEFAULT NULL,
+    profile_image VARCHAR(500) DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
@@ -180,4 +181,24 @@ INSERT INTO menus (parent_id, name, url, icon, sort_order) VALUES (9, 'Calendar'
 INSERT INTO menus (parent_id, name, url, icon, sort_order) VALUES (9, 'Image Explorer', '/settings/image-explorer', 'Image', 3);
 INSERT INTO menus (parent_id, name, url, icon, sort_order) VALUES (9, 'Admin Management', '/admin', 'Shield', 4);
 INSERT INTO menus (parent_id, name, url, icon, sort_order) VALUES (9, 'Holiday Management', '/holidays', 'Calendar', 5);
+INSERT INTO menus (parent_id, name, url, icon, sort_order) VALUES (9, 'Item Management', '/settings/items', 'ListChecks', 6);
+
+-- Category Items Table
+CREATE TABLE IF NOT EXISTS category_items (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    parent_id INT DEFAULT NULL,
+    name VARCHAR(255) NOT NULL,
+    is_checked BOOLEAN DEFAULT FALSE,
+    sort_order INT DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (parent_id) REFERENCES category_items(id) ON DELETE CASCADE
+);
+
+-- Sample Data for Category Items
+INSERT INTO category_items (id, name, sort_order) VALUES (1, 'Main Category 1', 1);
+INSERT INTO category_items (id, name, sort_order) VALUES (2, 'Main Category 2', 2);
+INSERT INTO category_items (parent_id, name, sort_order) VALUES (1, 'Sub Item 1-1', 1);
+INSERT INTO category_items (parent_id, name, sort_order) VALUES (1, 'Sub Item 1-2', 2);
+INSERT INTO category_items (parent_id, name, sort_order) VALUES (2, 'Sub Item 2-1', 1);
         

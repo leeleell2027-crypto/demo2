@@ -12,9 +12,16 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/auth")
@@ -50,6 +57,8 @@ public class AuthController {
             body.put("name", member.getName());
             body.put("role", member.getRole());
             body.put("username", member.getUsername());
+            body.put("profileImage", member.getProfileImage());
+            body.put("email", member.getEmail());
             return ResponseEntity.ok(body);
         }
 
@@ -87,10 +96,61 @@ public class AuthController {
                 body.put("name", member.getName());
                 body.put("role", member.getRole());
                 body.put("username", member.getUsername());
+                body.put("profileImage", member.getProfileImage());
+                body.put("email", member.getEmail());
                 return ResponseEntity.ok(body);
             }
         }
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+    }
+
+    @PostMapping("/update-profile")
+    public ResponseEntity<?> updateProfile(
+            @RequestParam("name") String name,
+            @RequestParam("email") String email,
+            @RequestParam(value = "profileImage", required = false) MultipartFile file) {
+        
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getName())) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        Member member = memberService.getMemberByUsername(auth.getName());
+        if (member == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+
+        member.setName(name);
+        member.setEmail(email);
+
+        if (file != null && !file.isEmpty()) {
+            try {
+                String uploadDir = "uploads/profile/";
+                File dir = new File(uploadDir);
+                if (!dir.exists()) {
+                    dir.mkdirs();
+                }
+
+                String fileName = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
+                Path path = Paths.get(uploadDir + fileName);
+                Files.write(path, file.getBytes());
+
+                member.setProfileImage("/api/images/profile/" + fileName);
+            } catch (IOException e) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to upload image");
+            }
+        }
+
+        memberService.updateMember(member);
+
+        Map<String, String> body = new HashMap<>();
+        body.put("name", member.getName());
+        body.put("email", member.getEmail());
+        body.put("profileImage", member.getProfileImage());
+        body.put("username", member.getUsername());
+        body.put("role", member.getRole());
+
+        return ResponseEntity.ok(body);
     }
 
     public static class LoginRequest {

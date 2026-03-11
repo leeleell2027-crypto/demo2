@@ -31,6 +31,10 @@ public class MemberService {
         }
     }
 
+    public void updateMember(Member member) {
+        memberMapper.update(member);
+    }
+
     public void removeMember(String id) {
         memberMapper.delete(id);
     }

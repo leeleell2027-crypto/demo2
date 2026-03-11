@@ -7,6 +7,7 @@ public class Member {
     private String username;
     private String password;
     private String role;
+    private String profileImage;
     private java.time.LocalDateTime createdAt;
     private java.time.LocalDateTime updatedAt;
 
@@ -57,6 +58,14 @@ public class Member {
 
     public void setRole(String role) {
         this.role = role;
+    }
+
+    public String getProfileImage() {
+        return profileImage;
+    }
+
+    public void setProfileImage(String profileImage) {
+        this.profileImage = profileImage;
     }
 
     public java.time.LocalDateTime getCreatedAt() {

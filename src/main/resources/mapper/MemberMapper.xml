@@ -4,15 +4,15 @@
 <mapper namespace="com.example.demo2.mapper.MemberMapper">
 
     <select id="findAll" resultType="com.example.demo2.model.Member">
-        SELECT id, name, email, username, password, role, created_at, updated_at FROM member
+        SELECT id, name, email, username, password, role, profile_image, created_at, updated_at FROM member
     </select>
 
     <select id="findById" resultType="com.example.demo2.model.Member">
-        SELECT id, name, email, username, password, role, created_at, updated_at FROM member WHERE id = #{id}
+        SELECT id, name, email, username, password, role, profile_image, created_at, updated_at FROM member WHERE id = #{id}
     </select>
 
     <select id="findByUsername" resultType="com.example.demo2.model.Member">
-        SELECT id, name, email, username, password, role, created_at, updated_at FROM member WHERE username = #{username}
+        SELECT id, name, email, username, password, role, profile_image, created_at, updated_at FROM member WHERE username = #{username}
     </select>
 
     <select id="count" resultType="int">
@@ -20,20 +20,20 @@
     </select>
 
     <select id="findWithPagination" resultType="com.example.demo2.model.Member">
-        SELECT id, name, email, username, password, role, created_at, updated_at 
+        SELECT id, name, email, username, password, role, profile_image, created_at, updated_at 
         FROM member 
         ORDER BY created_at DESC 
         LIMIT #{offset}, #{limit}
     </select>
 
     <insert id="insert">
-        INSERT INTO member(id, name, email, username, password, role) 
-        VALUES(#{id}, #{name}, #{email}, #{username}, #{password}, #{role})
+        INSERT INTO member(id, name, email, username, password, role, profile_image) 
+        VALUES(#{id}, #{name}, #{email}, #{username}, #{password}, #{role}, #{profileImage})
     </insert>
 
     <update id="update">
         UPDATE member 
-        SET name = #{name}, email = #{email}, username = #{username}, password = #{password}, role = #{role} 
+        SET name = #{name}, email = #{email}, username = #{username}, password = #{password}, role = #{role}, profile_image = #{profileImage} 
         WHERE id = #{id}
     </update>
 

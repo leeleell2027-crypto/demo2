@@ -155,7 +155,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         }
     };
 
-    const currentCategory = filteredCategories.find(c => c.id === activeCategory);
+    useEffect(() => {
+        if (!authLoading && !user && pathname !== '/') {
+            router.push('/');
+        }
+    }, [user, authLoading, pathname, router]);
 
     if (authLoading) return null;
 
@@ -166,6 +170,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </main>
         );
     }
+
+    const currentCategory = filteredCategories.find(c => c.id === activeCategory);
 
     return (
         <div className="main-wrapper">
@@ -288,7 +294,21 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                                     <span className="notification-dot" />
                                 )}
                             </button>
-                            <div className="user-avatar" title={user.username} />
+                            <div 
+                                className="user-avatar" 
+                                title={user.username}
+                                style={{
+                                    backgroundImage: user.profileImage ? `url(${user.profileImage})` : 'none',
+                                    backgroundSize: 'cover',
+                                    backgroundPosition: 'center',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    overflow: 'hidden'
+                                }}
+                            >
+                                {!user.profileImage && <User size={20} color="var(--text-muted)" />}
+                            </div>
 
                             {/* Header Close Button */}
                             <button
@@ -359,6 +379,40 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                                     </Link>
                                 );
                             })}
+                        </div>
+                    </div>
+
+                    {/* User Profile Info in Sidebar */}
+                    <div style={{ padding: '0 16px 16px 16px' }}>
+                        <div className="glass-panel" style={{ 
+                            padding: '16px', 
+                            borderRadius: '16px', 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            gap: '12px',
+                            background: 'rgba(255,255,255,0.03)',
+                            border: '1px solid rgba(255,255,255,0.05)'
+                        }}>
+                            <div style={{
+                                width: '40px',
+                                height: '40px',
+                                borderRadius: '10px',
+                                backgroundImage: user.profileImage ? `url(${user.profileImage})` : 'none',
+                                backgroundSize: 'cover',
+                                backgroundPosition: 'center',
+                                backgroundColor: 'rgba(255,255,255,0.1)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                flexShrink: 0,
+                                overflow: 'hidden'
+                            }}>
+                                {!user.profileImage && <User size={18} color="rgba(255,255,255,0.5)" />}
+                            </div>
+                            <div style={{ overflow: 'hidden' }}>
+                                <div style={{ fontSize: '0.85rem', fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user.name}</div>
+                                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user.role}</div>
+                            </div>
                         </div>
                     </div>
 
