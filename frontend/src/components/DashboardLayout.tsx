@@ -294,8 +294,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                                     <span className="notification-dot" />
                                 )}
                             </button>
-                            <div 
-                                className="user-avatar" 
+                            <div
+                                className="user-avatar"
                                 title={user.username}
                                 style={{
                                     backgroundImage: user.profileImage ? `url(${user.profileImage})` : 'none',
@@ -384,11 +384,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
                     {/* User Profile Info in Sidebar */}
                     <div style={{ padding: '0 16px 16px 16px' }}>
-                        <div className="glass-panel" style={{ 
-                            padding: '16px', 
-                            borderRadius: '16px', 
-                            display: 'flex', 
-                            alignItems: 'center', 
+                        <div className="glass-panel" style={{
+                            padding: '16px',
+                            borderRadius: '16px',
+                            display: 'flex',
+                            alignItems: 'center',
                             gap: '12px',
                             background: 'rgba(255,255,255,0.03)',
                             border: '1px solid rgba(255,255,255,0.05)'
