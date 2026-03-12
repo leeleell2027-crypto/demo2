@@ -18,6 +18,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useMemo } from 'react';
 import { useAuthStore } from '@/store/authStore';
 import { useQuery } from '@tanstack/react-query';
+import { useTabStore, Tab } from '@/store/tabStore';
 
 interface NavItem {
     label: string;
@@ -53,6 +54,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     const { user, loading: authLoading, logout: storeLogout } = useAuthStore();
     const pathname = usePathname();
     const router = useRouter();
+    const { tabs, activeTabId, addTab, removeTab, setActiveTab } = useTabStore();
+    const [isHydrated, setIsHydrated] = useState(false);
+
+    useEffect(() => {
+        setIsHydrated(true);
+    }, []);
 
     const { data: unreadCount = 0 } = useQuery({
         queryKey: ['notices-unread-count', user?.username],
@@ -147,6 +154,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         }
     }, [user, authLoading, pathname, router]);
 
+    // Sync active tab with pathname
+    useEffect(() => {
+        const currentTab = tabs.find(t => t.href === pathname);
+        if (currentTab) {
+            setActiveTab(currentTab.id);
+        }
+    }, [pathname, tabs, setActiveTab]);
+
     if (authLoading) return null;
 
     if (!user) {
@@ -158,6 +173,41 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     }
 
     const currentCategory = filteredCategories.find(c => c.id === activeCategory);
+
+    const handleTabClick = (tabId: string, href: string) => {
+        setActiveTab(tabId);
+        router.push(href);
+    };
+
+    const handleCloseTab = (e: React.MouseEvent, tabId: string) => {
+        e.stopPropagation();
+        removeTab(tabId);
+        
+        // If we closed the active tab, the store will update activeTabId.
+        // We need to navigate to the new activeTab's href.
+        // But since setActiveTab isn't called automatically in removeTab (except for state), 
+        // we might need to handle navigation here if the active one was closed.
+        if (activeTabId === tabId) {
+            const remainingTabs = tabs.filter(t => t.id !== tabId);
+            if (remainingTabs.length > 0) {
+                const lastTab = remainingTabs[remainingTabs.length - 1];
+                router.push(lastTab.href);
+            } else {
+                router.push('/');
+            }
+        }
+    };
+
+    const handleMenuClick = (item: NavItem) => {
+        const tabId = item.href.replace(/\//g, '-') || 'home';
+        addTab({
+            id: tabId,
+            label: item.label,
+            href: item.href,
+            icon: 'FileText' // Default icon for tabs for now
+        });
+        router.push(item.href);
+    };
 
     return (
         <div className="main-wrapper">
@@ -209,6 +259,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                         animate={{ height: '70px', opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
                         className="glass-panel app-header"
+                        style={{ background: 'var(--primary)' }}
                     >
                         <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
 
@@ -300,6 +351,30 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 )}
             </AnimatePresence>
 
+            {/* Tab Bar */}
+            {isHydrated && tabs.length > 0 && (
+                <div className="tab-bar">
+                    {tabs.map((tab) => (
+                        <div
+                            key={tab.id}
+                            className={`tab-item ${activeTabId === tab.id ? 'active' : ''}`}
+                            onClick={() => handleTabClick(tab.id, tab.href)}
+                        >
+                            <div className="tab-item-icon">
+                                {getIcon(tab.icon, 14)}
+                            </div>
+                            <span className="tab-item-label">{tab.label}</span>
+                            <div 
+                                className="tab-close"
+                                onClick={(e) => handleCloseTab(e, tab.id)}
+                            >
+                                <X size={12} />
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            )}
+
             <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
                 {/* Side Navigation */}
                 <motion.aside
@@ -329,7 +404,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                             {currentCategory?.items.map((item: NavItem) => {
                                 const isActive = pathname === item.href;
                                 return (
-                                    <Link key={item.href} href={item.href} style={{ textDecoration: 'none' }}>
+                                    <div 
+                                        key={item.href} 
+                                        onClick={() => handleMenuClick(item)}
+                                        style={{ textDecoration: 'none', cursor: 'pointer' }}
+                                    >
                                         <motion.div
                                             whileHover={{ x: 4 }}
                                             className={`sidebar-nav-item ${isActive ? 'active' : ''}`}
@@ -345,7 +424,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                                             </div>
                                             {isActive && <motion.div layoutId="activeInd" ><ChevronRight size={16} /></motion.div>}
                                         </motion.div>
-                                    </Link>
+                                    </div>
                                 );
                             })}
                         </div>
