@@ -257,9 +257,14 @@ const ItemManagementPage = () => {
     return (
         <div className="page-container-full">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
-                <div>
-                    <h1 className="header-title">Item Management</h1>
-                    <p className="header-subtitle">시스템 전체 항목을 계층형으로 관리하고 구성하세요.</p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+                    <div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--primary)', marginBottom: '4px' }}>
+                            <ListChecks size={20} />
+                            <span style={{ fontWeight: 600, fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Classification Settings</span>
+                        </div>
+                        <h1 className="header-title" style={{ fontSize: '2.5rem', margin: 0 }}>Item Management</h1>
+                    </div>
                 </div>
                 <button 
                     onClick={() => setIsAddingRoot(true)} 

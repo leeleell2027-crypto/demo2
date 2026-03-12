@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Shield, Users, Lock, Plus, Edit2, Trash2, X, ChevronLeft, ChevronRight, Save } from 'lucide-react';
+import { Shield, Users, Lock, Plus, Edit2, Trash2, X, ChevronLeft, ChevronRight, Save, User } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import Pagination from '@/components/Pagination';
 
@@ -131,7 +131,7 @@ export default function AdminManagementPage() {
 
     if (user?.role !== 'SUPER_ADMIN') {
         return (
-            <div style={{ padding: '40px', textAlign: 'center', color: 'white' }}>
+            <div style={{ padding: '40px', textAlign: 'center' }}>
                 <Shield size={64} color="var(--primary)" style={{ marginBottom: '20px' }} />
                 <h2>Access Denied</h2>
                 <p>Only Super Administrators can access this page.</p>
@@ -140,21 +140,22 @@ export default function AdminManagementPage() {
     }
 
     return (
-        <div className="page-container-full" style={{ color: 'white' }}>
+        <div className="page-container-full">
             {/* Header */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '40px' }}>
-                <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--primary)', marginBottom: '8px' }}>
-                        <Shield size={20} />
-                        <span style={{ fontWeight: 600, fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.1em' }}>System Administration</span>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+                    <div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--primary)', marginBottom: '4px' }}>
+                            <User size={20} />
+                            <span style={{ fontWeight: 600, fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '0.1em' }}>System Administration</span>
+                        </div>
+                        <h1 className="header-title" style={{ fontSize: '2.5rem', margin: 0 }}>Admin Management</h1>
                     </div>
-                    <h1 className="header-title" style={{ fontSize: '2.5rem' }}>Admin Management</h1>
                 </div>
 
                 <button
                     onClick={() => handleOpenModal()}
                     className="btn btn-primary"
-                    style={{ color: 'white' }}
                 >
                     <Plus size={18} />
                     Add Administrator
@@ -201,7 +202,8 @@ export default function AdminManagementPage() {
                                     <div style={{ display: 'flex', gap: '8px' }}>
                                         <button
                                             onClick={() => handleOpenModal(m)}
-                                            style={{ background: 'rgba(255,255,255,0.05)', border: 'none', padding: '8px', borderRadius: '8px', cursor: 'pointer', color: 'white' }}
+                                            className="btn btn-secondary"
+                                            style={{ padding: '8px', borderRadius: '8px' }}
                                         >
                                             <Edit2 size={16} />
                                         </button>
@@ -224,14 +226,14 @@ export default function AdminManagementPage() {
                     totalPages={Math.max(1, Math.ceil(total / pageSize))}
                     totalCount={total}
                     onPageChange={setPage}
-                    style={{ padding: '24px 0 24px', borderTop: '1px solid rgba(255,255,255,0.05)', background: 'rgba(255,255,255,0.01)' }}
+                    style={{ padding: '24px 0 24px', borderTop: '1px solid var(--glass-border)', background: 'rgba(0,0,0,0.01)' }}
                 />
             </div>
             {/* Modal */}
             {isModalOpen && (
                 <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(12px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '20px' }}>
                     <div className="glass-panel animate-fade-in" style={{ width: '100%', maxWidth: '500px', padding: '32px', position: 'relative' }}>
-                        <button onClick={() => setIsModalOpen(false)} style={{ position: 'absolute', top: '24px', right: '24px', background: 'transparent', border: 'none', color: 'white', cursor: 'pointer' }}>
+                        <button onClick={() => setIsModalOpen(false)} style={{ position: 'absolute', top: '24px', right: '24px', background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>
                             <X size={24} />
                         </button>
 
@@ -301,14 +303,14 @@ export default function AdminManagementPage() {
                                     className="input-control"
                                     style={{ cursor: 'pointer' }}
                                 >
-                                    {ROLES.map(r => <option key={r.value} value={r.value} style={{ background: '#111' }}>{r.label}</option>)}
+                                    {ROLES.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
                                 </select>
                             </div>
 
                             <button
                                 type="submit"
                                 className="btn btn-primary"
-                                style={{ marginTop: '12px', padding: '14px', width: '100%', color: 'white' }}
+                                style={{ marginTop: '12px', padding: '14px', width: '100%' }}
                             >
                                 <Save size={18} />
                                 {editingMember ? 'Update Administrator' : 'Save Administrator'}

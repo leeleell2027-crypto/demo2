@@ -272,35 +272,28 @@ const GalleryPage = () => {
             <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '24px' }}>
                 {/* Header */}
                 {/* Header Section */}
-                <div style={{ marginBottom: '40px' }}>
+                <div style={{ marginBottom: '1px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-                        <div>
-                            <h1 className="header-title" style={{ fontSize: '2rem' }}>Asset Gallery</h1>
-                            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Showcasing {totalCount} premium moments</p>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+                            <div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--primary)', marginBottom: '4px' }}>
+                                    <ImageIcon size={20} />
+                                    <span style={{ fontWeight: 600, fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Board</span>
+                                </div>
+                                <h1 className="header-title" style={{ fontSize: '2.5rem', margin: 0 }}> Gallery</h1>
+                            </div>
                         </div>
                         <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                            <div className="glass-panel" style={{ display: 'flex', borderRadius: '12px', padding: '4px' }}>
+                            <div className="glass-panel" style={{ display: 'flex', borderRadius: '0', padding: '4px' }}>
                                 <button
                                     onClick={() => setActiveView('gallery')}
-                                    className={`btn ${activeView === 'gallery' ? 'btn-primary' : ''}`}
-                                    style={{
-                                        padding: '8px 16px',
-                                        borderRadius: '8px',
-                                        background: activeView === 'gallery' ? 'var(--primary)' : 'transparent',
-                                        color: activeView === 'gallery' ? 'black' : 'white',
-                                    }}
+                                    className={`tab-btn ${activeView === 'gallery' ? 'active' : ''}`}
                                 >
                                     <ImageIcon size={16} /> Gallery
                                 </button>
                                 <button
                                     onClick={() => setActiveView('table')}
-                                    className={`btn ${activeView === 'table' ? 'btn-primary' : ''}`}
-                                    style={{
-                                        padding: '8px 16px',
-                                        borderRadius: '8px',
-                                        background: activeView === 'table' ? 'var(--primary)' : 'transparent',
-                                        color: activeView === 'table' ? 'black' : 'white',
-                                    }}
+                                    className={`tab-btn ${activeView === 'table' ? 'active' : ''}`}
                                 >
                                     <ReceiptText size={16} /> Table
                                 </button>
@@ -336,19 +329,12 @@ const GalleryPage = () => {
                         {/* Date Filters */}
                         <div>
                             <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '8px', textTransform: 'uppercase' }}>Date Range</label>
-                            <div className="glass-panel" style={{ display: 'flex', gap: '4px', padding: '4px', borderRadius: '12px', marginBottom: '8px' }}>
+                            <div className="glass-panel" style={{ display: 'flex', gap: '4px', padding: '4px', borderRadius: '0', marginBottom: '8px' }}>
                                 {['all', 'today', 'week', 'month'].map((type) => (
                                     <button
                                         key={type}
                                         onClick={() => handleDateRangeChange(type)}
-                                        className={`btn ${dateRangeType === type ? 'btn-primary' : ''}`}
-                                        style={{
-                                            padding: '8px 12px',
-                                            borderRadius: '8px',
-                                            fontSize: '0.85rem',
-                                            background: dateRangeType === type ? 'var(--primary)' : 'transparent',
-                                            color: dateRangeType === type ? 'black' : 'white',
-                                        }}
+                                        className={`tab-btn ${dateRangeType === type ? 'active' : ''}`}
                                     >
                                         {type === 'all' ? '전체' : type === 'today' ? '당일' : type === 'week' ? '주간' : '월간'}
                                     </button>
@@ -360,7 +346,6 @@ const GalleryPage = () => {
                                     value={startDate}
                                     onChange={(e) => { setStartDate(e.target.value); setDateRangeType('custom'); }}
                                     className="input-control"
-                                    style={{ padding: '8px 12px' }}
                                 />
                                 <span style={{ color: 'var(--text-muted)' }}>~</span>
                                 <input
@@ -368,7 +353,6 @@ const GalleryPage = () => {
                                     value={endDate}
                                     onChange={(e) => { setEndDate(e.target.value); setDateRangeType('custom'); }}
                                     className="input-control"
-                                    style={{ padding: '8px 12px' }}
                                 />
                             </div>
                         </div>
@@ -383,7 +367,7 @@ const GalleryPage = () => {
                                     value={searchCategory1}
                                     onChange={(e) => setSearchCategory1(e.target.value)}
                                     className="input-control"
-                                    style={{ width: '100px', padding: '10px' }}
+                                    style={{ width: '100px' }}
                                 />
                             </div>
                             <div>
@@ -394,7 +378,7 @@ const GalleryPage = () => {
                                     value={searchCategory2}
                                     onChange={(e) => setSearchCategory2(e.target.value)}
                                     className="input-control"
-                                    style={{ width: '100px', padding: '10px' }}
+                                    style={{ width: '100px' }}
                                 />
                             </div>
                             <div>
@@ -405,29 +389,21 @@ const GalleryPage = () => {
                                     value={searchCategory3}
                                     onChange={(e) => setSearchCategory3(e.target.value)}
                                     className="input-control"
-                                    style={{ width: '100px', padding: '10px' }}
+                                    style={{ width: '100px' }}
                                 />
                             </div>
                         </div>
                     </div>
                 </div>
-
                 {/* Conditional Rendering of Views */}
                 <AnimatePresence mode="wait">
                     {activeView === 'gallery' ? (
                         <motion.div
                             key="gallery"
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -20 }}
-                            transition={{ duration: 0.3 }}
                         >
                             {/* 4x4 Grid View */}
-                            <div id="gallery-section" style={{ marginBottom: '60px' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
-                                    <ImageIcon size={20} style={{ color: 'var(--primary)' }} />
-                                    <h2 style={{ fontSize: '1.5rem', fontWeight: 700 }}>Featured Gallery</h2>
-                                </div>
+                            <div id="gallery-section">
+
                                 <div style={{
                                     display: 'grid',
                                     gridTemplateColumns: 'repeat(4, 1fr)',
@@ -448,7 +424,7 @@ const GalleryPage = () => {
                                             onClick={() => item.id !== -1 && setSelectedBoard(item)}
                                             style={{
                                                 aspectRatio: '1/1',
-                                                borderRadius: '20px',
+                                                borderRadius: '0',
                                                 overflow: 'hidden',
                                                 background: 'rgba(255,255,255,0.03)',
                                                 border: '1px solid var(--glass-border)',
@@ -499,16 +475,8 @@ const GalleryPage = () => {
                     ) : (
                         <motion.div
                             key="table"
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -20 }}
-                            transition={{ duration: 0.3 }}
                         >
                             {/* Table Layout */}
-                            <div id="table-section" style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
-                                <ReceiptText size={20} style={{ color: 'var(--primary)' }} />
-                                <h2 style={{ fontSize: '1.5rem', fontWeight: 700 }}>Management List</h2>
-                            </div>
 
                             <div className="data-table-container">
                                 <table className="data-table">
@@ -536,7 +504,7 @@ const GalleryPage = () => {
                                             >
                                                 <td style={{ padding: '16px 24px', fontSize: '0.9rem', color: 'var(--text-muted)' }}>#{item.id}</td>
                                                 <td style={{ padding: '16px 24px' }}>
-                                                    <div style={{ width: '50px', height: '50px', borderRadius: '10px', overflow: 'hidden', border: '1px solid var(--glass-border)' }}>
+                                                    <div style={{ width: '50px', height: '50px', borderRadius: '0', overflow: 'hidden', border: '1px solid var(--glass-border)' }}>
                                                         <img src={item.imageUrl} alt={item.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                                     </div>
                                                 </td>
@@ -562,7 +530,7 @@ const GalleryPage = () => {
                                                             whileHover={{ scale: 1.1 }}
                                                             whileTap={{ scale: 0.9 }}
                                                             onClick={(e) => { e.stopPropagation(); handleEdit(item); }}
-                                                            style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid var(--glass-border)', color: 'white', padding: '6px', borderRadius: '8px', cursor: 'pointer', display: 'flex' }}
+                                                            style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid var(--glass-border)', color: 'white', padding: '6px', borderRadius: '0', cursor: 'pointer', display: 'flex' }}
                                                         >
                                                             <Pencil size={14} />
                                                         </motion.button>
@@ -570,7 +538,7 @@ const GalleryPage = () => {
                                                             whileHover={{ scale: 1.1, background: 'rgba(239, 68, 68, 0.2)' }}
                                                             whileTap={{ scale: 0.9 }}
                                                             onClick={(e) => { e.stopPropagation(); handleDelete(item.id); }}
-                                                            style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(239, 68, 68, 0.2)', color: '#ef4444', padding: '6px', borderRadius: '8px', cursor: 'pointer', display: 'flex' }}
+                                                            style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(239, 68, 68, 0.2)', color: '#ef4444', padding: '6px', borderRadius: '0', cursor: 'pointer', display: 'flex' }}
                                                         >
                                                             <Trash2 size={14} />
                                                         </motion.button>
@@ -631,7 +599,7 @@ const GalleryPage = () => {
                                                 aspectRatio: '1/1',
                                                 background: 'rgba(255,255,255,0.03)',
                                                 border: '2px dashed var(--glass-border)',
-                                                borderRadius: '20px',
+                                                borderRadius: '0',
                                                 display: 'flex',
                                                 flexDirection: 'column',
                                                 alignItems: 'center',
@@ -692,7 +660,7 @@ const GalleryPage = () => {
                                         <button
                                             type="submit"
                                             disabled={loading}
-                                            style={{ marginTop: 'auto', background: 'var(--primary)', color: 'white', border: 'none', padding: '16px', borderRadius: '16px', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}
+                                            style={{ marginTop: 'auto', background: 'var(--primary)', color: 'white', border: 'none', padding: '16px', borderRadius: '0', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}
                                         >
                                             {loading ? (isEditMode ? 'Updating...' : 'Publishing...') : <>{isEditMode ? <Pencil size={20} /> : <Upload size={20} />} {isEditMode ? 'Update Post' : 'Create Post'}</>}
                                         </button>
@@ -716,7 +684,7 @@ const GalleryPage = () => {
                                 exit={{ scale: 0.8, opacity: 0 }}
                                 className="glass-card"
                                 onClick={(e) => e.stopPropagation()}
-                                style={{ maxWidth: '1000px', width: '100%', overflow: 'hidden', padding: 0, borderRadius: '24px', display: 'grid', gridTemplateColumns: '1.2fr 1fr' }}
+                                style={{ maxWidth: '1000px', width: '100%', overflow: 'hidden', padding: 0, borderRadius: '0', display: 'grid', gridTemplateColumns: '1.2fr 1fr' }}
                             >
                                 <div style={{ position: 'relative', height: '600px', background: '#000' }}>
                                     <img src={selectedBoard.imageUrl} alt={selectedBoard.title} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
@@ -752,7 +720,7 @@ const GalleryPage = () => {
                                                 whileHover={{ scale: 1.05 }}
                                                 whileTap={{ scale: 0.95 }}
                                                 onClick={() => handleEdit(selectedBoard)}
-                                                style={{ background: 'rgba(99, 102, 241, 0.1)', color: 'var(--primary)', border: '1px solid rgba(99, 102, 241, 0.2)', padding: '10px 20px', borderRadius: '12px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
+                                                style={{ background: 'rgba(99, 102, 241, 0.1)', color: 'var(--primary)', border: '1px solid rgba(99, 102, 241, 0.2)', padding: '10px 20px', borderRadius: '0', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
                                             >
                                                 <Pencil size={16} /> Edit
                                             </motion.button>
@@ -760,7 +728,7 @@ const GalleryPage = () => {
                                                 whileHover={{ scale: 1.05, background: 'rgba(239, 68, 68, 0.2)' }}
                                                 whileTap={{ scale: 0.95 }}
                                                 onClick={() => handleDelete(selectedBoard.id)}
-                                                style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.2)', padding: '10px 20px', borderRadius: '12px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
+                                                style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.2)', padding: '10px 20px', borderRadius: '0', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
                                             >
                                                 <Trash2 size={16} /> Delete
                                             </motion.button>
@@ -769,7 +737,7 @@ const GalleryPage = () => {
                                             whileHover={{ scale: 1.05 }}
                                             whileTap={{ scale: 0.95 }}
                                             onClick={() => setSelectedBoard(null)}
-                                            style={{ background: 'rgba(255,255,255,0.05)', color: 'white', border: '1px solid var(--glass-border)', padding: '10px 20px', borderRadius: '12px', fontWeight: 600, cursor: 'pointer' }}
+                                            style={{ background: 'rgba(255,255,255,0.05)', color: 'white', border: '1px solid var(--glass-border)', padding: '10px 20px', borderRadius: '0', fontWeight: 600, cursor: 'pointer' }}
                                         >
                                             Close
                                         </motion.button>
@@ -793,7 +761,7 @@ const GalleryPage = () => {
                     background: rgba(99, 102, 241, 0.1);
                     color: var(--primary);
                     padding: 4px 10px;
-                    border-radius: 8px;
+                    border-radius: 0;
                     font-size: 0.75rem;
                     font-weight: 600;
                     border: 1px solid rgba(99, 102, 241, 0.2);
@@ -802,7 +770,7 @@ const GalleryPage = () => {
                     background: rgba(99, 102, 241, 0.1);
                     color: var(--primary);
                     padding: 2px 8px;
-                    border-radius: 6px;
+                    border-radius: 0;
                     font-size: 0.7rem;
                     font-weight: 600;
                     border: 1px solid rgba(99, 102, 241, 0.2);

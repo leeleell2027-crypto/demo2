@@ -12,7 +12,7 @@ export default function ProfilePage() {
     const [profileImage, setProfileImage] = useState(user?.profileImage || '');
     const [imageFile, setImageFile] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(user?.profileImage || null);
-    
+
     const [status, setStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle');
     const [errorMsg, setErrorMsg] = useState('');
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -79,31 +79,27 @@ export default function ProfilePage() {
 
     return (
         <div className="page-container-full">
-            <motion.div 
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="profile-content-wrapper"
-            >
-                <div className="profile-header-section">
-                    <h1 className="header-title" style={{ fontSize: '2.5rem', marginBottom: '8px' }}>
-                        <User size={32} color="var(--primary)" />
-                        계정 설정
-                    </h1>
-                    <p style={{ color: 'var(--text-muted)', fontSize: '1rem' }}>
-                        관리자 프로필 정보를 관리하고 업데이트하세요.
-                    </p>
+            <motion.div>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                    <div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--primary)', marginBottom: '4px' }}>
+                            <User size={20} />
+                            <span style={{ fontWeight: 600, fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Setting</span>
+                        </div>
+                        <h1 className="header-title" style={{ fontSize: '2.5rem', margin: 0 }}>Profile</h1>
+                    </div>
                 </div>
 
-                <div className="profile-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '30px', marginTop: '40px' }}>
-                    
+                <div className="profile-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '30px', marginTop: '22px' }}>
+
                     {/* Profile Card */}
-                    <motion.div 
+                    <motion.div
                         whileHover={{ y: -5 }}
-                        className="glass-panel profile-sidebar-card" 
+                        className="glass-panel profile-sidebar-card"
                         style={{ padding: '40px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}
                     >
                         <div className="profile-avatar-wrapper" style={{ position: 'relative', marginBottom: '24px' }}>
-                            <div 
+                            <div
                                 className="profile-main-avatar"
                                 style={{
                                     width: '180px',
@@ -124,7 +120,7 @@ export default function ProfilePage() {
                             >
                                 {!previewUrl && <User size={80} color="var(--text-muted)" opacity={0.3} />}
                             </div>
-                            <button 
+                            <button
                                 onClick={handleImageClick}
                                 className="avatar-edit-btn"
                                 style={{
@@ -146,20 +142,20 @@ export default function ProfilePage() {
                             >
                                 <Camera size={18} />
                             </button>
-                            <input 
-                                type="file" 
-                                ref={fileInputRef} 
-                                onChange={handleImageChange} 
-                                style={{ display: 'none' }} 
+                            <input
+                                type="file"
+                                ref={fileInputRef}
+                                onChange={handleImageChange}
+                                style={{ display: 'none' }}
                                 accept="image/*"
                             />
                         </div>
 
                         <h2 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '4px' }}>{user.name}</h2>
                         <span className="badge badge-primary" style={{ marginBottom: '16px' }}>{user.role}</span>
-                        
+
                         <div style={{ width: '100%', height: '1px', background: 'rgba(255,255,255,0.1)', margin: '20px 0' }} />
-                        
+
                         <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '12px', textAlign: 'left' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
                                 <Mail size={16} />
@@ -180,9 +176,9 @@ export default function ProfilePage() {
                                     <label className="input-label" style={{ display: 'block', marginBottom: '8px', fontSize: '0.9rem', color: 'var(--text-muted)' }}>
                                         이름
                                     </label>
-                                    <input 
-                                        type="text" 
-                                        className="input-control" 
+                                    <input
+                                        type="text"
+                                        className="input-control"
                                         value={name}
                                         onChange={(e) => setName(e.target.value)}
                                         placeholder="이름 입력"
@@ -194,9 +190,9 @@ export default function ProfilePage() {
                                     <label className="input-label" style={{ display: 'block', marginBottom: '8px', fontSize: '0.9rem', color: 'var(--text-muted)' }}>
                                         아이디 (수정 불가)
                                     </label>
-                                    <input 
-                                        type="text" 
-                                        className="input-control" 
+                                    <input
+                                        type="text"
+                                        className="input-control"
                                         value={user.username}
                                         disabled
                                         style={{ width: '100%', padding: '12px 16px', opacity: 0.6, cursor: 'not-allowed' }}
@@ -208,9 +204,9 @@ export default function ProfilePage() {
                                 <label className="input-label" style={{ display: 'block', marginBottom: '8px', fontSize: '0.9rem', color: 'var(--text-muted)' }}>
                                     이메일 주소
                                 </label>
-                                <input 
-                                    type="email" 
-                                    className="input-control" 
+                                <input
+                                    type="email"
+                                    className="input-control"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     placeholder="example@email.com"
@@ -223,9 +219,9 @@ export default function ProfilePage() {
                                 <label className="input-label" style={{ display: 'block', marginBottom: '8px', fontSize: '0.9rem', color: 'var(--text-muted)' }}>
                                     권한
                                 </label>
-                                <input 
-                                    type="text" 
-                                    className="input-control" 
+                                <input
+                                    type="text"
+                                    className="input-control"
                                     value={user.role}
                                     disabled
                                     style={{ width: '100%', padding: '12px 16px', opacity: 0.6, cursor: 'not-allowed' }}
@@ -235,7 +231,7 @@ export default function ProfilePage() {
                             <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '16px' }}>
                                 <AnimatePresence>
                                     {status === 'success' && (
-                                        <motion.div 
+                                        <motion.div
                                             initial={{ opacity: 0, x: 20 }}
                                             animate={{ opacity: 1, x: 0 }}
                                             exit={{ opacity: 0 }}
@@ -246,7 +242,7 @@ export default function ProfilePage() {
                                         </motion.div>
                                     )}
                                     {status === 'error' && (
-                                        <motion.div 
+                                        <motion.div
                                             initial={{ opacity: 0, x: 20 }}
                                             animate={{ opacity: 1, x: 0 }}
                                             exit={{ opacity: 0 }}
@@ -257,13 +253,13 @@ export default function ProfilePage() {
                                         </motion.div>
                                     )}
                                 </AnimatePresence>
-                                
-                                <button 
-                                    type="submit" 
-                                    className="btn btn-primary" 
+
+                                <button
+                                    type="submit"
+                                    className="btn btn-primary"
                                     disabled={status === 'saving'}
-                                    style={{ 
-                                        padding: '12px 24px', 
+                                    style={{
+                                        padding: '12px 24px',
                                         borderRadius: '12px',
                                         display: 'flex',
                                         alignItems: 'center',

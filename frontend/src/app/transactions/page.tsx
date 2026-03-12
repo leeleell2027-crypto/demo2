@@ -369,56 +369,39 @@ const TransactionsContent = () => {
     };
 
     return (
-        <div className="page-container-full" style={{ color: 'white' }}>
+        <div className="page-container-full" style={{ color: 'var(--text-main)' }}>
             <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '24px' }}>
                 {/* Header Section */}
                 <div style={{ marginBottom: '40px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+
                         <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
                             <div>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--primary)', marginBottom: '4px' }}>
                                     <CreditCard size={20} />
-                                    <span style={{ fontWeight: 600, fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Card Assets</span>
+                                    <span style={{ fontWeight: 600, fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Financial</span>
                                 </div>
-                                <h1 className="header-title" style={{ fontSize: '2.5rem', margin: 0 }}>Transaction History</h1>
+                                <h1 className="header-title" style={{ fontSize: '2.5rem', margin: 0 }}>Card History</h1>
                             </div>
                         </div>
 
                         <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                            <div className="glass-panel view-mode-tabs" style={{ display: 'flex', padding: '4px', borderRadius: '12px' }}>
+                            <div className="glass-panel" style={{ display: 'flex', padding: '4px', borderRadius: '12px' }}>
                                 <button
                                     onClick={() => setViewMode('table')}
-                                    className={`btn ${viewMode === 'table' ? 'btn-primary' : ''}`}
-                                    style={{
-                                        padding: '8px 16px',
-                                        borderRadius: '8px',
-                                        background: viewMode === 'table' ? 'var(--primary)' : 'transparent',
-                                        color: viewMode === 'table' ? 'black' : 'white',
-                                    }}
+                                    className={`tab-btn ${viewMode === 'table' ? 'active' : ''}`}
                                 >
                                     <Table size={16} /> Table
                                 </button>
                                 <button
                                     onClick={() => setViewMode('calendar')}
-                                    className={`btn ${viewMode === 'calendar' ? 'btn-primary' : ''}`}
-                                    style={{
-                                        padding: '8px 16px',
-                                        borderRadius: '8px',
-                                        background: viewMode === 'calendar' ? 'var(--primary)' : 'transparent',
-                                        color: viewMode === 'calendar' ? 'black' : 'white',
-                                    }}
+                                    className={`tab-btn ${viewMode === 'calendar' ? 'active' : ''}`}
                                 >
                                     <LayoutGrid size={16} /> Calendar
                                 </button>
                                 <button
                                     onClick={() => setViewMode('chart')}
-                                    className={`btn ${viewMode === 'chart' ? 'btn-primary' : ''}`}
-                                    style={{
-                                        padding: '8px 16px',
-                                        borderRadius: '8px',
-                                        background: viewMode === 'chart' ? 'var(--primary)' : 'transparent',
-                                        color: viewMode === 'chart' ? 'black' : 'white',
-                                    }}
+                                    className={`tab-btn ${viewMode === 'chart' ? 'active' : ''}`}
                                 >
                                     <BarChart2 size={16} /> Stats
                                 </button>
@@ -443,7 +426,7 @@ const TransactionsContent = () => {
                                     onClick={handleUpload}
                                     disabled={!file || uploading}
                                     className="btn btn-primary"
-                                    style={{ color: 'black' }}
+                                    style={{ color: '#ffffff' }}
                                 >
                                     <Upload size={18} />
                                 </button>
@@ -458,7 +441,7 @@ const TransactionsContent = () => {
                     </div>
 
                     {/* Filter Section (Row 2) */}
-                    <div className="glass-panel" style={{ padding: '24px', display: 'flex', flexWrap: 'wrap', gap: '24px', alignItems: 'flex-end', background: 'rgba(255,255,255,0.02)' }}>
+                    <div className="glass-panel" style={{ padding: '24px', display: 'flex', flexWrap: 'wrap', gap: '24px', alignItems: 'flex-end' }}>
                         <div style={{ flex: '1', minWidth: '300px', display: 'flex', gap: '16px' }}>
                             {viewMode === 'table' && (
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
@@ -468,14 +451,7 @@ const TransactionsContent = () => {
                                             <button
                                                 key={type}
                                                 onClick={() => handleDateRangeChange(type)}
-                                                className={`btn ${dateRangeType === type ? 'btn-primary' : ''}`}
-                                                style={{
-                                                    padding: '6px 12px',
-                                                    borderRadius: '8px',
-                                                    fontSize: '0.75rem',
-                                                    background: dateRangeType === type ? 'var(--primary)' : 'transparent',
-                                                    color: dateRangeType === type ? 'black' : 'white',
-                                                }}
+                                                className={`tab-btn ${dateRangeType === type ? 'active' : ''}`}
                                             >
                                                 {type === 'today' ? 'DAILY' : type === 'week' ? 'WEEKLY' : 'MONTHLY'}
                                             </button>
@@ -487,7 +463,6 @@ const TransactionsContent = () => {
                                             value={startDate}
                                             onChange={(e) => { setStartDate(e.target.value); setDateRangeType('custom'); }}
                                             className="input-control"
-                                            style={{ padding: '8px 12px' }}
                                         />
                                         <span style={{ color: 'var(--text-muted)' }}>~</span>
                                         <input
@@ -495,7 +470,6 @@ const TransactionsContent = () => {
                                             value={endDate}
                                             onChange={(e) => { setEndDate(e.target.value); setDateRangeType('custom'); }}
                                             className="input-control"
-                                            style={{ padding: '8px 12px' }}
                                         />
                                     </div>
                                 </div>
@@ -544,7 +518,7 @@ const TransactionsContent = () => {
 
                         <button
                             className="btn btn-primary"
-                            style={{ color: 'black', padding: '10px 32px', fontWeight: 'bold' }}
+                            style={{ color: '#ffffff', padding: '10px 32px', fontWeight: 'bold' }}
                             onClick={() => { /* Filters are reactive, but button provides feedback */ }}
                         >
                             Search
@@ -633,8 +607,8 @@ const TransactionsContent = () => {
                                                 <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{t.card}</div>
                                             </td>
                                             <td style={{ padding: '18px 24px' }}>
-                                                <div style={{ fontWeight: 700, color: '#f8fafc' }}>{t.merchant}</div>
-                                                <div style={{ fontSize: '0.75rem', color: t.merchantInfo ? '#a78bfa' : 'var(--text-muted)' }}>{t.merchantInfo}</div>
+                                                <div style={{ fontWeight: 700, color: 'var(--text-main)' }}>{t.merchant}</div>
+                                                <div style={{ fontSize: '0.75rem', color: t.merchantInfo ? 'var(--primary)' : 'var(--text-muted)' }}>{t.merchantInfo}</div>
                                             </td>
                                             <td style={{ padding: '18px 24px', textAlign: 'right', fontWeight: 800, fontSize: '1rem' }}>
                                                 {t.amountKrw} 원
@@ -675,7 +649,7 @@ const TransactionsContent = () => {
                             totalPages={totalPages}
                             totalCount={total}
                             onPageChange={setPage}
-                            style={{ borderTop: '1px solid rgba(255,255,255,0.05)', background: 'rgba(255,255,255,0.01)', padding: '24px 0 24px' }}
+                            style={{ borderTop: '1px solid var(--glass-border)', background: '#ffffff', padding: '24px 0 24px' }}
                         />
                     </div>
                 ) : viewMode === 'calendar' ? (

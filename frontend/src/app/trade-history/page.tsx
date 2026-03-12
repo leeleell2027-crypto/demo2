@@ -228,7 +228,7 @@ export default function TradeHistoryPage() {
             {uploading && (
                 <div className="loading-overlay" style={{ animation: 'backdrop-fade 0.3s ease' }}>
                     <div className="loading-spinner"></div>
-                    <div style={{ color: 'white', fontSize: '1.2rem', fontWeight: 600 }}>파일 업로드 중...</div>
+                    <div style={{ color: 'var(--text-main)', fontSize: '1.2rem', fontWeight: 600 }}>파일 업로드 중...</div>
                     <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginTop: '8px' }}>데이터가 많을 경우 시간이 소요될 수 있습니다.</div>
                 </div>
             )}
@@ -238,11 +238,12 @@ export default function TradeHistoryPage() {
                 {/* Header Section */}
                 <div style={{ marginBottom: '40px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+
                         <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
                             <div>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--primary)', marginBottom: '4px' }}>
                                     <Table size={20} />
-                                    <span style={{ fontWeight: 600, fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Crypto Assets</span>
+                                    <span style={{ fontWeight: 600, fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Financial</span>
                                 </div>
                                 <h1 className="header-title" style={{ fontSize: '2.5rem', margin: 0 }}>Trade History</h1>
                             </div>
@@ -289,7 +290,7 @@ export default function TradeHistoryPage() {
                                     onClick={handleUpload}
                                     disabled={!file || uploading}
                                     className="btn btn-primary"
-                                    style={{ color: 'black' }}
+                                    style={{ color: '#ffffff' }}
                                 >
                                     <Upload size={18} />
                                 </button>
@@ -317,7 +318,6 @@ export default function TradeHistoryPage() {
                                                 value={startDate}
                                                 onChange={(e) => setStartDate(e.target.value)}
                                                 className="input-control"
-                                                style={{ padding: '8px 12px' }}
                                             />
                                             <span style={{ color: 'var(--text-muted)' }}>~</span>
                                             <input
@@ -325,7 +325,6 @@ export default function TradeHistoryPage() {
                                                 value={endDate}
                                                 onChange={(e) => setEndDate(e.target.value)}
                                                 className="input-control"
-                                                style={{ padding: '8px 12px' }}
                                             />
                                         </div>
                                     </div>
@@ -337,7 +336,6 @@ export default function TradeHistoryPage() {
                                             value={chartDate}
                                             onChange={(e) => setChartDate(e.target.value)}
                                             className="input-control"
-                                            style={{ padding: '8px 12px' }}
                                         />
                                     </div>
                                 )}
@@ -350,7 +348,6 @@ export default function TradeHistoryPage() {
                                         value={coin}
                                         onChange={(e) => { setCoin(e.target.value); setPage(1); }}
                                         className="input-control"
-                                        style={{ padding: '8px 12px', minWidth: '120px' }}
                                     >
                                         <option value="" style={{ color: 'black' }}>All Coins</option>
                                         {availableCoins.map((c) => (
@@ -365,7 +362,6 @@ export default function TradeHistoryPage() {
                                         value={side}
                                         onChange={(e) => setSide(e.target.value)}
                                         className="input-control"
-                                        style={{ padding: '8px 12px', minWidth: '100px' }}
                                     >
                                         <option value="전체" style={{ color: 'black' }}>All</option>
                                         <option value="매수" style={{ color: 'black' }}>Buy</option>
@@ -380,7 +376,6 @@ export default function TradeHistoryPage() {
                                             value={size}
                                             onChange={(e) => { setSize(Number(e.target.value)); setPage(1); }}
                                             className="input-control"
-                                            style={{ padding: '8px 12px', minWidth: '100px' }}
                                         >
                                             <option value={20} style={{ color: 'black' }}>20 rows</option>
                                             <option value={50} style={{ color: 'black' }}>50 rows</option>
@@ -400,7 +395,7 @@ export default function TradeHistoryPage() {
                                     }
                                 }}
                                 className="btn btn-primary"
-                                style={{ color: 'black', padding: '10px 32px', fontWeight: 'bold' }}
+                                style={{ color: '#ffffff', padding: '10px 32px', fontWeight: 'bold' }}
                             >
                                 Search
                             </button>
@@ -414,7 +409,7 @@ export default function TradeHistoryPage() {
                         <div style={{ overflowX: 'auto' }}>
                             <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
                                 <thead>
-                                    <tr style={{ background: 'rgba(255,255,255,0.05)', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+                                    <tr style={{ background: '#fafafa', borderBottom: '1px solid var(--glass-border)' }}>
                                         <th style={{ padding: '16px', color: 'var(--text-muted)', fontWeight: 600 }}>체결시간</th>
                                         <th style={{ padding: '16px', color: 'var(--text-muted)', fontWeight: 600 }}>마켓/코인</th>
                                         <th style={{ padding: '16px', color: 'var(--text-muted)', fontWeight: 600 }}>종류</th>
@@ -443,16 +438,16 @@ export default function TradeHistoryPage() {
                                                 initial={{ opacity: 0, y: 10 }}
                                                 animate={{ opacity: 1, y: 0 }}
                                                 transition={{ delay: i * 0.01 }}
-                                                style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}
-                                                whileHover={{ backgroundColor: 'rgba(255,255,255,0.02)' }}
+                                                style={{ borderBottom: '1px solid var(--glass-border)' }}
+                                                whileHover={{ backgroundColor: '#f9fafb' }}
                                             >
                                                 <td style={{ padding: '16px' }}>
                                                     <div style={{ fontWeight: '500' }}>{t.executedAt}</div>
                                                     <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>주문: {t.orderedAt}</div>
                                                 </td>
                                                 <td style={{ padding: '16px' }}>
-                                                    <div style={{ fontWeight: 'bold', color: '#f8fafc' }}>{t.coin}</div>
-                                                    <div style={{ fontSize: '0.85rem', color: '#a78bfa' }}>{t.market}</div>
+                                                    <div style={{ fontWeight: 'bold', color: 'var(--text-main)' }}>{t.coin}</div>
+                                                    <div style={{ fontSize: '0.85rem', color: 'var(--primary)', opacity: 0.8 }}>{t.market}</div>
                                                 </td>
                                                 <td style={{ padding: '16px' }}>
                                                     <span style={{
@@ -474,7 +469,7 @@ export default function TradeHistoryPage() {
                                                     <div style={{ fontWeight: '500' }}>{formatNumericString(t.settlementAmount)}</div>
                                                     <div style={{ fontSize: '0.85rem', color: '#f59e0b' }}>수수료: {formatNumericString(t.fee)}</div>
                                                 </td>
-                                                <td style={{ padding: '16px', textAlign: 'right', fontWeight: 'bold', color: '#312e81', fontSize: '1.0rem', opacity: 0.5 }}>
+                                                <td style={{ padding: '16px', textAlign: 'right', fontWeight: 'bold', color: 'var(--text-muted)', fontSize: '1.0rem', opacity: 0.5 }}>
                                                     {formatNumericString(t.totalAmount)}
                                                 </td>
                                             </motion.tr>
@@ -482,7 +477,7 @@ export default function TradeHistoryPage() {
                                     )}
                                 </tbody>
                                 {!loading && tradeHistories.length > 0 && (
-                                    <tfoot style={{ background: 'rgba(255,255,255,0.03)', borderTop: '2px solid rgba(255,255,255,0.1)' }}>
+                                    <tfoot style={{ background: 'var(--table-footer-bg)', borderTop: '2px solid var(--glass-border)' }}>
                                         <tr style={{ borderBottom: 'none' }}>
                                             <td colSpan={4} style={{ padding: '20px 16px', fontWeight: 'bold', textAlign: 'right', color: 'var(--text-muted)', fontSize: '0.9rem' }}>페이지 합계 (Page Totals)</td>
                                             <td style={{ padding: '20px 16px', textAlign: 'right' }}>
@@ -504,7 +499,7 @@ export default function TradeHistoryPage() {
                             totalPages={totalPages}
                             totalCount={totalElements}
                             onPageChange={setPage}
-                            style={{ borderTop: '1px solid rgba(255,255,255,0.05)', background: 'rgba(255,255,255,0.01)', padding: '24px 0 24px' }}
+                            style={{ borderTop: '1px solid var(--glass-border)', background: '#ffffff', padding: '24px 0 24px' }}
                         />
                     </div>
                 ) : viewMode === 'chart' ? (
@@ -631,33 +626,13 @@ const ChartView = ({ data, chartDate, chartMetric, setChartMetric, formatCurrenc
                         <div className="glass-panel" style={{ display: 'flex', background: 'rgba(255,255,255,0.05)', borderRadius: '12px', padding: '4px' }}>
                             <button
                                 onClick={(e) => { e.stopPropagation(); setChartMetric('amount'); }}
-                                style={{
-                                    padding: '6px 14px',
-                                    borderRadius: '10px',
-                                    border: 'none',
-                                    backgroundColor: chartMetric === 'amount' ? 'var(--primary)' : 'transparent',
-                                    color: chartMetric === 'amount' ? 'black' : 'white',
-                                    fontWeight: 'bold',
-                                    cursor: 'pointer',
-                                    transition: 'all 0.3s',
-                                    fontSize: '0.85rem'
-                                }}
+                                className={`tab-btn ${chartMetric === 'amount' ? 'active' : ''}`}
                             >
                                 금액
                             </button>
                             <button
                                 onClick={(e) => { e.stopPropagation(); setChartMetric('quantity'); }}
-                                style={{
-                                    padding: '6px 14px',
-                                    borderRadius: '10px',
-                                    border: 'none',
-                                    backgroundColor: chartMetric === 'quantity' ? 'var(--primary)' : 'transparent',
-                                    color: chartMetric === 'quantity' ? 'black' : 'white',
-                                    fontWeight: 'bold',
-                                    cursor: 'pointer',
-                                    transition: 'all 0.3s',
-                                    fontSize: '0.85rem'
-                                }}
+                                className={`tab-btn ${chartMetric === 'quantity' ? 'active' : ''}`}
                             >
                                 수량
                             </button>
@@ -667,31 +642,13 @@ const ChartView = ({ data, chartDate, chartMetric, setChartMetric, formatCurrenc
                     <div style={{ display: 'flex', gap: '8px' }}>
                         <button
                             onClick={() => setStatMode('history')}
-                            className={`btn ${statMode === 'history' ? 'btn-primary' : ''}`}
-                            style={{
-                                flex: 1,
-                                padding: '8px',
-                                borderRadius: '10px',
-                                background: statMode === 'history' ? 'var(--primary)' : 'rgba(255,255,255,0.05)',
-                                color: statMode === 'history' ? 'black' : 'white',
-                                fontSize: '0.85rem',
-                                fontWeight: 600
-                            }}
+                            className={`tab-btn ${statMode === 'history' ? 'active' : ''}`}
                         >
                             누적합산 (History)
                         </button>
                         <button
                             onClick={() => setStatMode('realtime')}
-                            className={`btn ${statMode === 'realtime' ? 'btn-primary' : ''}`}
-                            style={{
-                                flex: 1,
-                                padding: '8px',
-                                borderRadius: '10px',
-                                background: statMode === 'realtime' ? 'var(--primary)' : 'rgba(255,255,255,0.05)',
-                                color: statMode === 'realtime' ? 'black' : 'white',
-                                fontSize: '0.85rem',
-                                fontWeight: 600
-                            }}
+                            className={`tab-btn ${statMode === 'realtime' ? 'active' : ''}`}
                         >
                             실시간평가 (Current)
                         </button>

@@ -15,7 +15,8 @@ import {
     Type,
     Shield,
     Hash,
-    LucideIcon
+    LucideIcon,
+    User
 } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -153,214 +154,222 @@ export default function MenuManagement() {
     const getChildren = (parentId: number) => menus.filter(m => m.parentId === parentId);
 
     return (
-        <div style={{ padding: '32px', maxWidth: '1200px', margin: '0 auto', color: 'white' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
+        <div className="page-container-full">
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
                 <div>
-                    <h1 style={{ fontSize: '2rem', fontWeight: 800, letterSpacing: '-0.02em', marginBottom: '8px' }}>Menu Management</h1>
-                    <p style={{ color: 'var(--text-muted)' }}>Configure system navigation and access roles.</p>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--primary)', marginBottom: '4px' }}>
+                        <User size={20} />
+                        <span style={{ fontWeight: 600, fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Setting</span>
+                    </div>
+                    <h1 className="header-title" style={{ fontSize: '2.5rem', margin: 0 }}>Menu Management</h1>
                 </div>
-                {!isCreating && !editingId && (
-                    <button
-                        onClick={() => setIsCreating(true)}
-                        className="btn btn-primary"
-                        style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 24px', borderRadius: '12px' }}
-                    >
-                        <Plus size={20} />
-                        Add New Menu
-                    </button>
-                )}
+                <div style={{ display: 'flex', gap: '8px' }}>
+                    {!isCreating && !editingId && (
+                        <button
+                            onClick={() => setIsCreating(true)}
+                            className="btn btn-primary"
+                        >
+                            <Plus size={20} />
+                            Add New Menu
+                        </button>
+                    )}
+                </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 400px', gap: '32px', alignItems: 'start' }}>
-                {/* Menu List */}
-                <div className="glass-panel" style={{ padding: '24px' }}>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                        {rootMenus.map(menu => (
-                            <div key={menu.id} style={{ border: '1px solid rgba(255,255,255,0.05)', borderRadius: '16px', overflow: 'hidden' }}>
-                                <div style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'space-between',
-                                    padding: '16px',
-                                    background: 'rgba(255,255,255,0.03)',
-                                    borderBottom: '1px solid rgba(255,255,255,0.05)'
-                                }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                        <div style={{ background: menu.isDeleted ? 'rgba(255,255,255,0.05)' : 'var(--primary)', padding: '8px', borderRadius: '8px', opacity: menu.isDeleted ? 0.5 : 1 }}>
-                                            {getIcon(menu.icon)}
+            <div className="glass-panel" style={{ padding: '16px', display: 'flex', gap: '16px', alignItems: 'center' }}>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 400px', gap: '32px', alignItems: 'start' }}>
+                    {/* Menu List */}
+                    <div className="glass-panel" style={{ padding: '24px' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                            {rootMenus.map(menu => (
+                                <div key={menu.id} style={{ border: '1px solid rgba(255,255,255,0.05)', borderRadius: '16px', overflow: 'hidden' }}>
+                                    <div style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'space-between',
+                                        padding: '16px',
+                                        background: 'rgba(255,255,255,0.03)',
+                                        borderBottom: '1px solid rgba(255,255,255,0.05)'
+                                    }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                            <div style={{ background: menu.isDeleted ? 'rgba(255,255,255,0.05)' : 'var(--primary)', padding: '8px', borderRadius: '8px', opacity: menu.isDeleted ? 0.5 : 1 }}>
+                                                {getIcon(menu.icon)}
+                                            </div>
+                                            <div style={{ textDecoration: menu.isDeleted ? 'line-through' : 'none', opacity: menu.isDeleted ? 0.6 : 1 }}>
+                                                <div style={{ fontWeight: 700 }}>{menu.name}</div>
+                                                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{menu.role}</div>
+                                            </div>
                                         </div>
-                                        <div style={{ textDecoration: menu.isDeleted ? 'line-through' : 'none', opacity: menu.isDeleted ? 0.6 : 1 }}>
-                                            <div style={{ fontWeight: 700 }}>{menu.name}</div>
-                                            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{menu.role}</div>
+                                        <div style={{ display: 'flex', gap: '8px' }}>
+                                            {menu.isDeleted ? (
+                                                <button onClick={() => {
+                                                    const updated = { ...menu, isDeleted: false, isActive: true };
+                                                    updateMutation.mutate(updated);
+                                                }} style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600 }}>Restore</button>
+                                            ) : (
+                                                <>
+                                                    <button onClick={() => handleEdit(menu)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}><Edit2 size={16} /></button>
+                                                    <button onClick={() => { if (confirm('Soft delete this menu?')) deleteMutation.mutate(menu.id) }} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer' }}><Trash2 size={16} /></button>
+                                                </>
+                                            )}
                                         </div>
                                     </div>
-                                    <div style={{ display: 'flex', gap: '8px' }}>
-                                        {menu.isDeleted ? (
-                                            <button onClick={() => {
-                                                const updated = { ...menu, isDeleted: false, isActive: true };
-                                                updateMutation.mutate(updated);
-                                            }} style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600 }}>Restore</button>
-                                        ) : (
-                                            <>
-                                                <button onClick={() => handleEdit(menu)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}><Edit2 size={16} /></button>
-                                                <button onClick={() => { if (confirm('Soft delete this menu?')) deleteMutation.mutate(menu.id) }} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer' }}><Trash2 size={16} /></button>
-                                            </>
-                                        )}
-                                    </div>
-                                </div>
-                                <div style={{ padding: '8px 16px 16px 48px' }}>
-                                    {getChildren(menu.id).map(child => (
-                                        <div key={child.id} style={{
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'space-between',
-                                            padding: '12px 0',
-                                            borderBottom: '1px solid rgba(255,255,255,0.03)'
-                                        }}>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', textDecoration: child.isDeleted ? 'line-through' : 'none', opacity: child.isDeleted ? 0.6 : 1 }}>
-                                                {getIcon(child.icon, 16)}
-                                                <div>
-                                                    <div style={{ fontSize: '0.9rem', fontWeight: 500 }}>{child.name}</div>
-                                                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{child.url}</div>
+                                    <div style={{ padding: '8px 16px 16px 48px' }}>
+                                        {getChildren(menu.id).map(child => (
+                                            <div key={child.id} style={{
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'space-between',
+                                                padding: '12px 0',
+                                                borderBottom: '1px solid rgba(255,255,255,0.03)'
+                                            }}>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', textDecoration: child.isDeleted ? 'line-through' : 'none', opacity: child.isDeleted ? 0.6 : 1 }}>
+                                                    {getIcon(child.icon, 16)}
+                                                    <div>
+                                                        <div style={{ fontSize: '0.9rem', fontWeight: 500 }}>{child.name}</div>
+                                                        <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{child.url}</div>
+                                                    </div>
+                                                </div>
+                                                <div style={{ display: 'flex', gap: '8px' }}>
+                                                    {child.isDeleted ? (
+                                                        <button onClick={() => {
+                                                            const updated = { ...child, isDeleted: false, isActive: true };
+                                                            updateMutation.mutate(updated);
+                                                        }} style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600 }}>Restore</button>
+                                                    ) : (
+                                                        <>
+                                                            <button onClick={() => handleEdit(child)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}><Edit2 size={14} /></button>
+                                                            <button onClick={() => { if (confirm('Soft delete this submenu?')) deleteMutation.mutate(child.id) }} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer' }}><Trash2 size={14} /></button>
+                                                        </>
+                                                    )}
                                                 </div>
                                             </div>
-                                            <div style={{ display: 'flex', gap: '8px' }}>
-                                                {child.isDeleted ? (
-                                                    <button onClick={() => {
-                                                        const updated = { ...child, isDeleted: false, isActive: true };
-                                                        updateMutation.mutate(updated);
-                                                    }} style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600 }}>Restore</button>
-                                                ) : (
-                                                    <>
-                                                        <button onClick={() => handleEdit(child)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}><Edit2 size={14} /></button>
-                                                        <button onClick={() => { if (confirm('Soft delete this submenu?')) deleteMutation.mutate(child.id) }} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer' }}><Trash2 size={14} /></button>
-                                                    </>
-                                                )}
-                                            </div>
-                                        </div>
-                                    ))}
-                                    <button
-                                        onClick={() => {
-                                            setIsCreating(true);
-                                            setFormData({ ...formData, parentId: menu.id });
-                                        }}
-                                        style={{ background: 'none', border: 'none', color: 'var(--primary)', fontSize: '0.8rem', fontWeight: 600, marginTop: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
-                                    >
-                                        <Plus size={14} /> Add Submenu
-                                    </button>
+                                        ))}
+                                        <button
+                                            onClick={() => {
+                                                setIsCreating(true);
+                                                setFormData({ ...formData, parentId: menu.id });
+                                            }}
+                                            style={{ background: 'none', border: 'none', color: 'var(--primary)', fontSize: '0.8rem', fontWeight: 600, marginTop: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
+                                        >
+                                            <Plus size={14} /> Add Submenu
+                                        </button>
+                                    </div>
                                 </div>
-                            </div>
-                        ))}
+                            ))}
+                        </div>
                     </div>
-                </div>
 
-                {/* Form */}
-                <AnimatePresence>
-                    {(isCreating || editingId) && (
-                        <motion.div
-                            initial={{ opacity: 0, x: 20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: 20 }}
-                            className="glass-panel"
-                            style={{ padding: '24px', position: 'sticky', top: '32px' }}
-                        >
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-                                <h2 style={{ fontSize: '1.25rem', fontWeight: 700 }}>{editingId ? 'Edit Menu' : 'New Menu'}</h2>
-                                <button onClick={() => { setEditingId(null); setIsCreating(false); resetForm(); }} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}><X size={20} /></button>
-                            </div>
+                    {/* Form */}
+                    <AnimatePresence>
+                        {(isCreating || editingId) && (
+                            <motion.div
+                                initial={{ opacity: 0, x: 20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: 20 }}
+                                className="glass-panel"
+                                style={{ padding: '24px', position: 'sticky', top: '32px' }}
+                            >
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+                                    <h2 style={{ fontSize: '1.25rem', fontWeight: 700 }}>{editingId ? 'Edit Menu' : 'New Menu'}</h2>
+                                    <button onClick={() => { setEditingId(null); setIsCreating(false); resetForm(); }} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}><X size={20} /></button>
+                                </div>
 
-                            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                                <div>
-                                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '8px' }}>Menu Name</label>
-                                    <input
-                                        type="text"
-                                        value={formData.name}
-                                        onChange={e => setFormData({ ...formData, name: e.target.value })}
-                                        className="input-control"
-                                        required
-                                    />
-                                </div>
-                                <div>
-                                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '8px' }}>URL</label>
-                                    <input
-                                        type="text"
-                                        value={formData.url || ''}
-                                        onChange={e => setFormData({ ...formData, url: e.target.value })}
-                                        className="input-control"
-                                    />
-                                </div>
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                                <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                                     <div>
-                                        <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '8px' }}>Icon Name</label>
+                                        <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '8px' }}>Menu Name</label>
                                         <input
                                             type="text"
-                                            value={formData.icon}
-                                            onChange={e => setFormData({ ...formData, icon: e.target.value })}
+                                            value={formData.name}
+                                            onChange={e => setFormData({ ...formData, name: e.target.value })}
                                             className="input-control"
+                                            required
                                         />
                                     </div>
                                     <div>
-                                        <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '8px' }}>Sort Order</label>
+                                        <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '8px' }}>URL</label>
                                         <input
-                                            type="number"
-                                            value={formData.sortOrder}
-                                            onChange={e => setFormData({ ...formData, sortOrder: parseInt(e.target.value) })}
+                                            type="text"
+                                            value={formData.url || ''}
+                                            onChange={e => setFormData({ ...formData, url: e.target.value })}
                                             className="input-control"
                                         />
                                     </div>
-                                </div>
-                                <div>
-                                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '8px' }}>Parent Menu</label>
-                                    <select
-                                        value={formData.parentId || ''}
-                                        onChange={e => setFormData({ ...formData, parentId: e.target.value ? parseInt(e.target.value) : null })}
-                                        className="input-control"
-                                    >
-                                        <option value="">None (Root)</option>
-                                        {rootMenus.map(m => (
-                                            <option key={m.id} value={m.id}>{m.name}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div>
-                                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '8px' }}>Allowed Roles (CSV)</label>
-                                    <input
-                                        type="text"
-                                        value={formData.role}
-                                        onChange={e => setFormData({ ...formData, role: e.target.value })}
-                                        className="input-control"
-                                    />
-                                </div>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }} onClick={() => setFormData({ ...formData, isActive: !formData.isActive })}>
-                                    <div style={{
-                                        width: '40px',
-                                        height: '20px',
-                                        background: formData.isActive ? 'var(--primary)' : 'rgba(255,255,255,0.1)',
-                                        borderRadius: '20px',
-                                        position: 'relative',
-                                        transition: 'background 0.2s'
-                                    }}>
-                                        <motion.div
-                                            animate={{ x: formData.isActive ? 22 : 2 }}
-                                            style={{ width: '16px', height: '16px', background: 'white', borderRadius: '50%', position: 'absolute', top: '2px' }}
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                                        <div>
+                                            <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '8px' }}>Icon Name</label>
+                                            <input
+                                                type="text"
+                                                value={formData.icon}
+                                                onChange={e => setFormData({ ...formData, icon: e.target.value })}
+                                                className="input-control"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '8px' }}>Sort Order</label>
+                                            <input
+                                                type="number"
+                                                value={formData.sortOrder}
+                                                onChange={e => setFormData({ ...formData, sortOrder: parseInt(e.target.value) })}
+                                                className="input-control"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '8px' }}>Parent Menu</label>
+                                        <select
+                                            value={formData.parentId || ''}
+                                            onChange={e => setFormData({ ...formData, parentId: e.target.value ? parseInt(e.target.value) : null })}
+                                            className="input-control"
+                                        >
+                                            <option value="">None (Root)</option>
+                                            {rootMenus.map(m => (
+                                                <option key={m.id} value={m.id}>{m.name}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '8px' }}>Allowed Roles (CSV)</label>
+                                        <input
+                                            type="text"
+                                            value={formData.role}
+                                            onChange={e => setFormData({ ...formData, role: e.target.value })}
+                                            className="input-control"
                                         />
                                     </div>
-                                    <span style={{ fontSize: '0.9rem' }}>Menu Active</span>
-                                </div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }} onClick={() => setFormData({ ...formData, isActive: !formData.isActive })}>
+                                        <div style={{
+                                            width: '40px',
+                                            height: '20px',
+                                            background: formData.isActive ? 'var(--primary)' : 'rgba(255,255,255,0.1)',
+                                            borderRadius: '20px',
+                                            position: 'relative',
+                                            transition: 'background 0.2s'
+                                        }}>
+                                            <motion.div
+                                                animate={{ x: formData.isActive ? 22 : 2 }}
+                                                style={{ width: '16px', height: '16px', background: 'white', borderRadius: '50%', position: 'absolute', top: '2px' }}
+                                            />
+                                        </div>
+                                        <span style={{ fontSize: '0.9rem' }}>Menu Active</span>
+                                    </div>
 
-                                <button
-                                    type="submit"
-                                    className="btn btn-primary"
-                                    style={{ width: '100%', padding: '12px', borderRadius: '12px', marginTop: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
-                                    disabled={createMutation.isPending || updateMutation.isPending}
-                                >
-                                    <Save size={20} />
-                                    {editingId ? 'Update Menu' : 'Create Menu'}
-                                </button>
-                            </form>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
+                                    <button
+                                        type="submit"
+                                        className="btn btn-primary"
+                                        style={{ width: '100%', padding: '12px', borderRadius: '12px', marginTop: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+                                        disabled={createMutation.isPending || updateMutation.isPending}
+                                    >
+                                        <Save size={20} />
+                                        {editingId ? 'Update Menu' : 'Create Menu'}
+                                    </button>
+                                </form>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                </div>
             </div>
         </div>
     );

@@ -121,12 +121,14 @@ export default function HolidayManagementPage() {
     return (
         <div className="page-container-full" style={{ color: 'white' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '40px' }}>
-                <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--primary)', marginBottom: '8px' }}>
-                        <Calendar size={20} />
-                        <span style={{ fontWeight: 600, fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.1em' }}>System administration</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+                    <div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--primary)', marginBottom: '4px' }}>
+                            <Calendar size={20} />
+                            <span style={{ fontWeight: 600, fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Calendar configuration</span>
+                        </div>
+                        <h1 className="header-title" style={{ fontSize: '2.5rem', margin: 0 }}>Market Holidays</h1>
                     </div>
-                    <h1 className="header-title" style={{ fontSize: '2.5rem' }}>Holiday Management</h1>
                 </div>
 
                 <button

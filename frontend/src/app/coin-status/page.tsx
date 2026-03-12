@@ -81,40 +81,37 @@ export default function CoinStatusPage() {
     const maxVolume = data ? Math.max(...data.map(d => d.acc_trade_price_24h)) : 1;
 
     return (
-        <div style={{ padding: '24px', maxWidth: '1200px', margin: '0 auto' }}>
-            <header style={{ marginBottom: '32px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
-                <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#6366f1', marginBottom: '8px' }}>
-                        <Coins size={20} />
-                        <span style={{ fontWeight: 600, fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Market Overview</span>
-                    </div>
-                    <h1 style={{ fontSize: '2.25rem', fontWeight: 800, letterSpacing: '-0.025em' }}>
-                        거래량 TOP 5 <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>(KRW)</span>
-                    </h1>
-                </div>
+        <div style={{ padding: '24px', maxWidth: '1400px', margin: '0 auto' }}>
 
-                <button
-                    onClick={() => refetch()}
-                    disabled={isFetching}
-                    style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px',
-                        padding: '10px 18px',
-                        background: 'rgba(255,255,255,0.05)',
-                        border: '1px solid rgba(255,255,255,0.1)',
-                        borderRadius: '12px',
-                        color: 'white',
-                        cursor: 'pointer',
-                        transition: 'all 0.2s',
-                        fontSize: '0.9rem',
-                        fontWeight: 600
-                    }}
-                >
-                    <RefreshCw size={16} className={isFetching ? 'animate-spin' : ''} />
-                    {isFetching ? '갱신 중...' : '데이터 갱신'}
-                </button>
-            </header>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+                    <div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--primary)', marginBottom: '4px' }}>
+                            <Coins size={20} />
+                            <span style={{ fontWeight: 600, fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Financial</span>
+                        </div>
+                        <h1 className="header-title" style={{ fontSize: '2.5rem', margin: 0 }}>거래량 TOP 5 <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>(KRW)</span></h1>
+                    </div>
+
+                </div>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                    <button
+                        onClick={() => refetch()}
+                        disabled={isFetching}
+                        className="btn btn-secondary"
+                        style={{
+                            padding: '10px 18px',
+                            border: '1px solid var(--glass-border)',
+                            borderRadius: '0',
+                            fontSize: '0.9rem',
+                            fontWeight: 600
+                        }}
+                    >
+                        <RefreshCw size={16} className={isFetching ? 'animate-spin' : ''} />
+                        {isFetching ? '갱신 중...' : '데이터 갱신'}
+                    </button>
+                </div>
+            </div>
 
             <div style={{ display: 'grid', gap: '16px' }}>
                 {data?.map((coin, index) => (
@@ -124,27 +121,25 @@ export default function CoinStatusPage() {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: index * 0.1 }}
                         style={{
-                            background: 'rgba(30, 41, 59, 0.4)',
-                            backdropFilter: 'blur(12px)',
-                            border: '1px solid rgba(255, 255, 255, 0.05)',
-                            borderRadius: '20px',
+                            background: '#ffffff',
+                            border: '1px solid var(--glass-border)',
+                            borderRadius: '0',
                             padding: '24px',
                             display: 'grid',
                             gridTemplateColumns: 'minmax(200px, 1.5fr) 1.2fr 1.2fr 2fr',
                             alignItems: 'center',
                             gap: '24px',
-                            transition: 'transform 0.2s, border-color 0.2s',
+                            transition: 'background 0.2s',
                             cursor: 'default',
                             position: 'relative',
-                            overflow: 'hidden'
+                            overflow: 'hidden',
+                            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.02)'
                         }}
                         onMouseEnter={(e) => {
-                            e.currentTarget.style.transform = 'translateY(-2px)';
-                            e.currentTarget.style.borderColor = 'rgba(99, 102, 241, 0.3)';
+                            e.currentTarget.style.background = '#f9fafb';
                         }}
                         onMouseLeave={(e) => {
-                            e.currentTarget.style.transform = 'translateY(0)';
-                            e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.05)';
+                            e.currentTarget.style.background = '#ffffff';
                         }}
                     >
                         {/* Rank Badge */}
@@ -162,26 +157,26 @@ export default function CoinStatusPage() {
                             <div style={{
                                 width: '48px',
                                 height: '48px',
-                                background: 'rgba(99, 102, 241, 0.1)',
-                                borderRadius: '14px',
+                                background: 'rgba(255, 77, 71, 0.1)',
+                                borderRadius: '0',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                color: '#6366f1',
+                                color: 'var(--primary)',
                                 fontSize: '1.25rem',
                                 fontWeight: 800
                             }}>
                                 {index + 1}
                             </div>
                             <div>
-                                <h3 style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0 }}>{coin.koreanName}</h3>
-                                <p style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.4)', margin: '4px 0 0 0', fontWeight: 600 }}>{coin.market.split('-')[1]}</p>
+                                <h3 style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0, color: 'var(--text-main)' }}>{coin.koreanName}</h3>
+                                <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: '4px 0 0 0', fontWeight: 600 }}>{coin.market.split('-')[1]}</p>
                             </div>
                         </div>
 
                         {/* Price Section */}
                         <div>
-                            <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Current Price</p>
+                            <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Current Price</p>
                             <div style={{ fontSize: '1.25rem', fontWeight: 700 }}>
                                 ₩ {formatPrice(coin.trade_price)}
                             </div>
@@ -189,7 +184,7 @@ export default function CoinStatusPage() {
 
                         {/* Change Rate */}
                         <div>
-                            <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>24h Change</p>
+                            <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>24h Change</p>
                             <div style={{
                                 display: 'flex',
                                 alignItems: 'center',
@@ -209,18 +204,18 @@ export default function CoinStatusPage() {
                         {/* Volume Bar */}
                         <div>
                             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.8rem' }}>
-                                <span style={{ color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase' }}>24h Volume</span>
-                                <span style={{ fontWeight: 700 }}>₩ {formatVolume(coin.acc_trade_price_24h)}</span>
+                                <span style={{ color: 'var(--text-muted)', textTransform: 'uppercase' }}>24h Volume</span>
+                                <span style={{ fontWeight: 700, color: 'var(--text-main)' }}>₩ {formatVolume(coin.acc_trade_price_24h)}</span>
                             </div>
-                            <div style={{ height: '8px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px', overflow: 'hidden' }}>
+                            <div style={{ height: '8px', background: 'rgba(0,0,0,0.05)', borderRadius: '0', overflow: 'hidden' }}>
                                 <motion.div
                                     initial={{ width: 0 }}
                                     animate={{ width: `${(coin.acc_trade_price_24h / maxVolume) * 100}%` }}
                                     transition={{ duration: 1, ease: 'easeOut' }}
                                     style={{
                                         height: '100%',
-                                        background: 'linear-gradient(90deg, #6366f1, #a855f7)',
-                                        boxShadow: '0 0 10px rgba(99, 102, 241, 0.4)'
+                                        background: 'linear-gradient(90deg, var(--primary), #ec4899)',
+                                        boxShadow: '0 0 10px rgba(239, 68, 68, 0.2)'
                                     }}
                                 />
                             </div>
@@ -229,7 +224,7 @@ export default function CoinStatusPage() {
                 ))}
             </div>
 
-            <footer style={{ marginTop: '32px', padding: '16px', borderRadius: '16px', background: 'rgba(255,255,255,0.02)', display: 'flex', alignItems: 'center', gap: '12px', color: 'rgba(255,255,255,0.4)', fontSize: '0.85rem' }}>
+            <footer style={{ marginTop: '32px', padding: '16px', borderRadius: '0', background: '#ffffff', border: '1px solid var(--glass-border)', display: 'flex', alignItems: 'center', gap: '12px', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
                 <BarChart3 size={16} />
                 <span>데이터는 30초마다 자동으로 갱신됩니다. 업비트 오픈 API 정보를 바탕으로 제공됩니다.</span>
             </footer>

@@ -211,27 +211,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                         className="glass-panel app-header"
                     >
                         <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-                            <button
-                                onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                                className={`nav-toggle-btn ${isSidebarOpen ? 'active' : ''}`}
-                                style={{
-                                    background: isSidebarOpen ? 'rgba(255,255,255,0.05)' : 'none',
-                                    border: 'none',
-                                    color: 'white',
-                                    cursor: 'pointer',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    padding: '8px',
-                                    borderRadius: '8px',
-                                    transition: 'background 0.2s'
-                                }}
-                            >
-                                <Menu size={24} />
-                            </button>
 
                             <Link href="/" style={{ textDecoration: 'none', color: 'inherit' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                    <div style={{ background: 'var(--primary)', padding: '8px', borderRadius: '12px' }}>
+                                    <div style={{ background: 'var(--primary)', padding: '8px', borderRadius: '0' }}>
                                         <LayoutDashboard size={24} color="white" />
                                     </div>
                                     <span style={{ fontSize: '1.25rem', fontWeight: 800, letterSpacing: '-0.02em', whiteSpace: 'nowrap' }}>DEMO APP</span>
@@ -302,7 +285,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                                 style={{
                                     background: 'rgba(255,255,255,0.05)',
                                     border: '1px solid rgba(255,255,255,0.1)',
-                                    color: 'white',
+                                    color: '#494646c7',
                                     padding: '6px',
                                     borderRadius: '8px',
                                     cursor: 'pointer',
@@ -324,7 +307,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     animate={{ width: isSidebarOpen ? '260px' : '0px', opacity: isSidebarOpen ? 1 : 0 }}
                     className="sidebar-aside"
                     style={{
-                        borderRight: isSidebarOpen ? '1px solid rgba(255,255,255,0.1)' : 'none',
+                        borderRight: isSidebarOpen ? '1px solid rgba(255,255,255,0.5)' : 'none',
                     }}
                 >
                     {/* Sidebar Close Button */}
@@ -349,11 +332,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                                     <Link key={item.href} href={item.href} style={{ textDecoration: 'none' }}>
                                         <motion.div
                                             whileHover={{ x: 4 }}
-                                            className="sidebar-nav-item"
+                                            className={`sidebar-nav-item ${isActive ? 'active' : ''}`}
                                             style={{
-                                                background: isActive ? 'var(--primary)' : 'transparent',
-                                                color: isActive ? 'white' : 'var(--text-muted)',
-                                                boxShadow: isActive ? '0 10px 15px -3px rgba(99, 102, 241, 0.3)' : 'none'
+                                                background: isActive ? 'rgba(255, 77, 71, 0.1)' : 'transparent',
+                                                color: isActive ? 'var(--primary)' : 'var(--text-muted)',
+                                                border: '1px solid rgba(13, 4, 24, 0.1)'
                                             }}
                                         >
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -369,20 +352,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     </div>
 
                     {/* User Profile Info in Sidebar */}
-                    <div style={{ padding: '0 16px 16px 16px' }}>
+                    <div style={{ padding: '0 16px 0px 16px' }}>
                         <div className="glass-panel" style={{
-                            padding: '16px',
-                            borderRadius: '16px',
+                            padding: '8px',
+                            borderRadius: '0',
                             display: 'flex',
                             alignItems: 'center',
                             gap: '12px',
-                            background: 'rgba(255,255,255,0.03)',
-                            border: '1px solid rgba(255,255,255,0.05)'
                         }}>
                             <div style={{
                                 width: '40px',
                                 height: '40px',
-                                borderRadius: '10px',
+                                borderRadius: '0',
                                 backgroundImage: user.profileImage ? `url(${user.profileImage})` : 'none',
                                 backgroundSize: 'cover',
                                 backgroundPosition: 'center',
@@ -402,7 +383,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                         </div>
                     </div>
 
-                    <div style={{ padding: '24px 16px', display: 'flex', flexDirection: 'column', gap: '8px', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+                    <div style={{ padding: '8px 16px', display: 'flex', flexDirection: 'column', gap: '8px', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
                         <button
                             onClick={handleLogout}
                             className="sidebar-logout-btn"
@@ -410,12 +391,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                             <LogOut size={18} />
                             Logout
                         </button>
-
-                        <div className="sidebar-promo">
-                            <div style={{ fontSize: '0.85rem', fontWeight: 600, marginBottom: '4px' }}>Premium Pro</div>
-                            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '12px' }}>Explore all features</div>
-                            <button className="btn" style={{ width: '100%', background: 'white', color: 'black', padding: '8px', borderRadius: '8px', fontSize: '0.8rem', fontWeight: 700 }}>Upgrade</button>
-                        </div>
                     </div>
                 </motion.aside>
 
@@ -433,7 +408,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                         </motion.div>
                     </AnimatePresence>
                 </main>
-            </div>
-        </div>
+            </div >
+        </div >
     );
 }

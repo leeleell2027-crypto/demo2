@@ -298,11 +298,15 @@ const NoticePage = () => {
 
     return (
         <div className="page-container-full">
-            {/* Header */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div>
-                    <h1 className="header-title">Notice Board</h1>
-                    <p className="header-subtitle">시스템 공지사항 및 안내를 확인하세요.</p>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+                    <div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--primary)', marginBottom: '4px' }}>
+                            <FileText size={20} />
+                            <span style={{ fontWeight: 600, fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Board</span>
+                        </div>
+                        <h1 className="header-title" style={{ fontSize: '2.5rem', margin: 0 }}>Notice Board</h1>
+                    </div>
                 </div>
                 {view === 'list' && (
                     <div style={{ display: 'flex', gap: '8px' }}>
@@ -429,13 +433,13 @@ const NoticePage = () => {
                                                 ))}
                                             </div>
                                         </td>
-                                        <td style={{ padding: '16px 24px' }}>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: (notice.commentCount || 0) > 0 ? '#fff' : 'var(--text-muted)', fontWeight: (notice.commentCount || 0) > 0 ? 600 : 400 }}>
+                                        <td>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: (notice.commentCount || 0) > 0 ? '#ef4444' : 'var(--text-muted)', fontWeight: (notice.commentCount || 0) > 0 ? 600 : 400 }}>
                                                 <MessageSquare size={14} style={{ opacity: (notice.commentCount || 0) > 0 ? 1 : 0.5 }} />
                                                 <span style={{ fontSize: '0.9rem' }}>{notice.commentCount || 0}</span>
                                             </div>
                                         </td>
-                                        <td style={{ padding: '16px 24px', color: 'var(--text-muted)' }}>{notice.viewCount || 0}</td>
+                                        <td>{notice.viewCount || 0}</td>
                                     </tr>
                                 ))}
                             </tbody>
