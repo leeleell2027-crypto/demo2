@@ -539,21 +539,48 @@
 }
 
 /* Tab Bar System */
+.tab-bar-wrapper {
+    display: flex;
+    align-items: center;
+    background: #ffffff;
+    border-bottom: 1px solid var(--glass-border);
+    height: 44px;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.tab-scroll-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 32px;
+    height: 100%;
+    background: #ffffff;
+    border: none;
+    border-bottom: 1px solid var(--glass-border);
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.2s;
+    z-index: 2;
+    box-shadow: 0 0 8px 4px rgba(255,255,255,0.9);
+}
+
+.tab-scroll-btn:hover {
+    background: #f4f4f5;
+    color: var(--primary);
+}
+
 .tab-bar {
     display: flex;
     align-items: flex-end;
     gap: 4px;
-    padding: 0 16px;
-    background: #ffffff;
-    border-bottom: 1px solid var(--glass-border);
-    height: 44px;
+    padding: 0 8px;
+    flex: 1;
     overflow-x: auto;
     overflow-y: hidden;
-    scrollbar-width: none; /* Hide scrollbar for Firefox */
-}
-
-.tab-bar::-webkit-scrollbar {
-    display: none; /* Hide scrollbar for Chrome/Safari */
+    height: 100%;
+    scrollbar-width: none;
 }
 
 .tab-item {

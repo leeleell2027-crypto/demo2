@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     LayoutDashboard,
@@ -56,10 +56,31 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     const router = useRouter();
     const { tabs, activeTabId, addTab, removeTab, setActiveTab } = useTabStore();
     const [isHydrated, setIsHydrated] = useState(false);
+    const tabBarRef = useRef<HTMLDivElement>(null);
+    const [canScrollLeft, setCanScrollLeft] = useState(false);
+    const [canScrollRight, setCanScrollRight] = useState(false);
+
+    const updateScrollState = useCallback(() => {
+        const el = tabBarRef.current;
+        if (!el) return;
+        setCanScrollLeft(el.scrollLeft > 0);
+        setCanScrollRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 1);
+    }, []);
+
+    const scrollTabs = (direction: 'left' | 'right') => {
+        const el = tabBarRef.current;
+        if (!el) return;
+        el.scrollBy({ left: direction === 'left' ? -200 : 200, behavior: 'smooth' });
+        setTimeout(updateScrollState, 300);
+    };
 
     useEffect(() => {
         setIsHydrated(true);
     }, []);
+
+    useEffect(() => {
+        updateScrollState();
+    }, [tabs, updateScrollState]);
 
     const { data: unreadCount = 0 } = useQuery({
         queryKey: ['notices-unread-count', user?.username],
@@ -353,25 +374,41 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
             {/* Tab Bar */}
             {isHydrated && tabs.length > 0 && (
-                <div className="tab-bar">
-                    {tabs.map((tab) => (
-                        <div
-                            key={tab.id}
-                            className={`tab-item ${activeTabId === tab.id ? 'active' : ''}`}
-                            onClick={() => handleTabClick(tab.id, tab.href)}
-                        >
-                            <div className="tab-item-icon">
-                                {getIcon(tab.icon, 14)}
-                            </div>
-                            <span className="tab-item-label">{tab.label}</span>
-                            <div 
-                                className="tab-close"
-                                onClick={(e) => handleCloseTab(e, tab.id)}
+                <div className="tab-bar-wrapper">
+                    {canScrollLeft && (
+                        <button className="tab-scroll-btn" onClick={() => scrollTabs('left')} title="이전 탭">
+                            <ChevronRight size={16} style={{ transform: 'rotate(180deg)' }} />
+                        </button>
+                    )}
+                    <div
+                        className="tab-bar"
+                        ref={tabBarRef}
+                        onScroll={updateScrollState}
+                    >
+                        {tabs.map((tab) => (
+                            <div
+                                key={tab.id}
+                                className={`tab-item ${activeTabId === tab.id ? 'active' : ''}`}
+                                onClick={() => handleTabClick(tab.id, tab.href)}
                             >
-                                <X size={12} />
+                                <div className="tab-item-icon">
+                                    {getIcon(tab.icon, 14)}
+                                </div>
+                                <span className="tab-item-label">{tab.label}</span>
+                                <div
+                                    className="tab-close"
+                                    onClick={(e) => handleCloseTab(e, tab.id)}
+                                >
+                                    <X size={12} />
+                                </div>
                             </div>
-                        </div>
-                    ))}
+                        ))}
+                    </div>
+                    {canScrollRight && (
+                        <button className="tab-scroll-btn" onClick={() => scrollTabs('right')} title="다음 탭">
+                            <ChevronRight size={16} />
+                        </button>
+                    )}
                 </div>
             )}
 
