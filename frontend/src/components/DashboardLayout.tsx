@@ -70,7 +70,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     const scrollTabs = (direction: 'left' | 'right') => {
         const el = tabBarRef.current;
         if (!el) return;
-        el.scrollBy({ left: direction === 'left' ? -200 : 200, behavior: 'smooth' });
+        el.scrollBy({ left: direction === 'left' ? -160 : 160, behavior: 'smooth' });
+        // Also navigate to adjacent tab
+        const currentIndex = tabs.findIndex(t => t.id === activeTabId);
+        if (currentIndex === -1) return;
+        const nextIndex = direction === 'left' ? currentIndex - 1 : currentIndex + 1;
+        if (nextIndex >= 0 && nextIndex < tabs.length) {
+            const nextTab = tabs[nextIndex];
+            setActiveTab(nextTab.id);
+            router.push(nextTab.href);
+        }
         setTimeout(updateScrollState, 300);
     };
 
@@ -375,11 +384,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             {/* Tab Bar */}
             {isHydrated && tabs.length > 0 && (
                 <div className="tab-bar-wrapper">
-                    {canScrollLeft && (
-                        <button className="tab-scroll-btn" onClick={() => scrollTabs('left')} title="이전 탭">
-                            <ChevronRight size={16} style={{ transform: 'rotate(180deg)' }} />
-                        </button>
-                    )}
                     <div
                         className="tab-bar"
                         ref={tabBarRef}
@@ -404,11 +408,22 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                             </div>
                         ))}
                     </div>
-                    {canScrollRight && (
-                        <button className="tab-scroll-btn" onClick={() => scrollTabs('right')} title="다음 탭">
-                            <ChevronRight size={16} />
+                    <div className="tab-scroll-group">
+                        <button
+                            className="tab-scroll-btn"
+                            onClick={() => scrollTabs('left')}
+                            title="이전 탭"
+                        >
+                            <ChevronRight size={14} style={{ transform: 'rotate(180deg)' }} />
                         </button>
-                    )}
+                        <button
+                            className="tab-scroll-btn"
+                            onClick={() => scrollTabs('right')}
+                            title="다음 탭"
+                        >
+                            <ChevronRight size={14} />
+                        </button>
+                    </div>
                 </div>
             )}
 
