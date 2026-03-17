@@ -50,7 +50,7 @@ public class UpbitService {
             return tickers.stream()
                     .peek(t -> t.setKoreanName(krwMarketNames.get(t.getMarket())))
                     .sorted(Comparator.comparing(UpbitTickerDto::getAccTradePrice24h).reversed())
-                    .limit(5)
+                    .limit(50)
                     .collect(Collectors.toList());
 
         } catch (Exception e) {
