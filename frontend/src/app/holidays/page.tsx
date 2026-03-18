@@ -119,8 +119,8 @@ export default function HolidayManagementPage() {
     }
 
     return (
-        <div className="page-container-full" style={{ color: 'white' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '40px' }}>
+        <div className="page-container-full">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
                     <div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--primary)', marginBottom: '4px' }}>
@@ -134,7 +134,6 @@ export default function HolidayManagementPage() {
                 <button
                     onClick={() => handleOpenModal()}
                     className="btn btn-primary"
-                    style={{ color: 'white' }}
                 >
                     <Plus size={18} />
                     Add Holiday
@@ -170,10 +169,10 @@ export default function HolidayManagementPage() {
                                     <td>{h.name}</td>
                                     <td>
                                         <div style={{ display: 'flex', gap: '8px' }}>
-                                            <button onClick={() => handleOpenModal(h)} style={{ background: 'rgba(255,255,255,0.05)', border: 'none', padding: '8px', borderRadius: '8px', cursor: 'pointer', color: 'white' }}>
+                                            <button onClick={() => handleOpenModal(h)} className="btn btn-secondary" style={{ padding: '8px' }}>
                                                 <Edit2 size={16} />
                                             </button>
-                                            <button onClick={() => handleDelete(h.id)} style={{ background: 'rgba(239, 68, 68, 0.1)', border: 'none', padding: '8px', borderRadius: '8px', cursor: 'pointer', color: '#ef4444' }}>
+                                            <button onClick={() => handleDelete(h.id)} className="btn btn-secondary" style={{ padding: '8px', color: '#ef4444' }}>
                                                 <Trash2 size={16} />
                                             </button>
                                         </div>
@@ -190,7 +189,7 @@ export default function HolidayManagementPage() {
                     totalPages={totalPages}
                     totalCount={totalElements}
                     onPageChange={handlePageChange}
-                    style={{ padding: '24px 0 40px', marginTop: '12px' }}
+                    style={{ padding: '24px 0', borderTop: '1px solid var(--glass-border)' }}
                 />
             </div>
 

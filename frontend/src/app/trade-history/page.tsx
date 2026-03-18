@@ -236,7 +236,7 @@ export default function TradeHistoryPage() {
             <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '24px' }}>
 
                 {/* Header Section */}
-                <div style={{ marginBottom: '40px' }}>
+                <div style={{ marginBottom: '24px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
 
                         <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
@@ -405,17 +405,17 @@ export default function TradeHistoryPage() {
 
                 {/* Content Section */}
                 {viewMode === 'table' ? (
-                    <div className="glass-panel" style={{ overflow: 'hidden', borderRadius: '16px' }}>
+                    <div className="data-table-container">
                         <div style={{ overflowX: 'auto' }}>
-                            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+                            <table className="data-table">
                                 <thead>
-                                    <tr style={{ background: '#fafafa', borderBottom: '1px solid var(--glass-border)' }}>
-                                        <th style={{ padding: '16px', color: 'var(--text-muted)', fontWeight: 600 }}>체결시간</th>
-                                        <th style={{ padding: '16px', color: 'var(--text-muted)', fontWeight: 600 }}>마켓/코인</th>
-                                        <th style={{ padding: '16px', color: 'var(--text-muted)', fontWeight: 600 }}>종류</th>
-                                        <th style={{ padding: '16px', color: 'var(--text-muted)', fontWeight: 600, textAlign: 'right' }}>수량/단가</th>
-                                        <th style={{ padding: '16px', color: 'var(--text-muted)', fontWeight: 600, textAlign: 'right' }}>정산금액/수수료</th>
-                                        <th style={{ padding: '16px', color: 'var(--text-muted)', fontWeight: 600, textAlign: 'right' }}>거래금액</th>
+                                    <tr>
+                                        <th>체결시간</th>
+                                        <th>마켓/코인</th>
+                                        <th>종류</th>
+                                        <th style={{ textAlign: 'right' }}>수량/단가</th>
+                                        <th style={{ textAlign: 'right' }}>정산금액/수수료</th>
+                                        <th style={{ textAlign: 'right' }}>거래금액</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -439,7 +439,7 @@ export default function TradeHistoryPage() {
                                                 animate={{ opacity: 1, y: 0 }}
                                                 transition={{ delay: i * 0.01 }}
                                                 style={{ borderBottom: '1px solid var(--glass-border)' }}
-                                                whileHover={{ backgroundColor: '#f9fafb' }}
+                                                whileHover={{ backgroundColor: 'rgba(255,255,255,0.02)' }}
                                             >
                                                 <td style={{ padding: '16px' }}>
                                                     <div style={{ fontWeight: '500' }}>{t.executedAt}</div>

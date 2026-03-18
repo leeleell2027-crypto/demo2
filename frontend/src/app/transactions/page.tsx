@@ -372,7 +372,7 @@ const TransactionsContent = () => {
         <div className="page-container-full" style={{ color: 'var(--text-main)' }}>
             <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '24px' }}>
                 {/* Header Section */}
-                <div style={{ marginBottom: '40px' }}>
+                <div style={{ marginBottom: '24px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
 
                         <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
@@ -707,7 +707,7 @@ const ChartView = ({ data, holidays, currentMonth, setCurrentMonth, formatCurren
                         whileHover={{ scale: 1.1 }}
                         whileTap={{ scale: 0.9 }}
                         onClick={prevMonth}
-                        style={{ padding: '10px', borderRadius: '12px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--glass-border)', color: 'white', cursor: 'pointer' }}
+                        style={{ padding: '10px', borderRadius: '12px', background: 'rgba(0,0,0,0.03)', border: '1px solid var(--glass-border)', color: 'var(--text-main)', cursor: 'pointer' }}
                     >
                         <ChevronLeft size={20} />
                     </motion.button>
@@ -718,7 +718,7 @@ const ChartView = ({ data, holidays, currentMonth, setCurrentMonth, formatCurren
                         whileHover={{ scale: 1.1 }}
                         whileTap={{ scale: 0.9 }}
                         onClick={nextMonth}
-                        style={{ padding: '10px', borderRadius: '12px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--glass-border)', color: 'white', cursor: 'pointer' }}
+                        style={{ padding: '10px', borderRadius: '12px', background: 'rgba(0,0,0,0.03)', border: '1px solid var(--glass-border)', color: 'var(--text-main)', cursor: 'pointer' }}
                     >
                         <ChevronRight size={20} />
                     </motion.button>
@@ -739,8 +739,8 @@ const ChartView = ({ data, holidays, currentMonth, setCurrentMonth, formatCurren
         <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="glass-card"
-            style={{ padding: '40px', borderRadius: '32px', overflow: 'hidden' }}
+            className="data-table-container"
+            style={{ padding: '40px', overflow: 'hidden' }}
         >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
                 <div>
@@ -756,7 +756,7 @@ const ChartView = ({ data, holidays, currentMonth, setCurrentMonth, formatCurren
                             whileHover={{ scale: 1.1 }}
                             whileTap={{ scale: 0.9 }}
                             onClick={prevMonth}
-                            style={{ padding: '8px', borderRadius: '10px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--glass-border)', color: 'white', cursor: 'pointer' }}
+                            style={{ padding: '8px', borderRadius: '10px', background: 'rgba(0,0,0,0.03)', border: '1px solid var(--glass-border)', color: 'var(--text-main)', cursor: 'pointer' }}
                         >
                             <ChevronLeft size={18} />
                         </motion.button>
@@ -764,7 +764,7 @@ const ChartView = ({ data, holidays, currentMonth, setCurrentMonth, formatCurren
                             whileHover={{ scale: 1.1 }}
                             whileTap={{ scale: 0.9 }}
                             onClick={nextMonth}
-                            style={{ padding: '8px', borderRadius: '10px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--glass-border)', color: 'white', cursor: 'pointer' }}
+                            style={{ padding: '8px', borderRadius: '10px', background: 'rgba(0,0,0,0.03)', border: '1px solid var(--glass-border)', color: 'var(--text-main)', cursor: 'pointer' }}
                         >
                             <ChevronRight size={18} />
                         </motion.button>
@@ -803,7 +803,7 @@ const ChartView = ({ data, holidays, currentMonth, setCurrentMonth, formatCurren
                             left: paddingLeft,
                             right: paddingRight,
                             bottom: paddingBottom + (ratio * (height * 0.7)),
-                            borderTop: '1px solid rgba(255,255,255,0.03)',
+                            borderTop: '1px solid var(--glass-border)',
                             zIndex: 0
                         }} />
                         <div style={{
@@ -857,7 +857,7 @@ const ChartView = ({ data, holidays, currentMonth, setCurrentMonth, formatCurren
                                     style={{
                                         position: 'absolute',
                                         bottom: 'calc(100% + 15px)',
-                                        background: isMax ? '#ef4444' : 'rgba(255,255,255,0.95)',
+                                        background: isMax ? '#ef4444' : '#ffffff',
                                         color: isMax ? 'white' : 'black',
                                         padding: '8px 14px',
                                         borderRadius: '12px',
@@ -892,7 +892,7 @@ const ChartView = ({ data, holidays, currentMonth, setCurrentMonth, formatCurren
                                         height: '0',
                                         borderLeft: '6px solid transparent',
                                         borderRight: '6px solid transparent',
-                                        borderTop: `6px solid ${isMax ? '#ef4444' : 'rgba(255,255,255,0.95)'}`
+                                        borderTop: `6px solid ${isMax ? '#ef4444' : '#ffffff'}`
                                     }} />
                                 </motion.div>
 
@@ -908,7 +908,7 @@ const ChartView = ({ data, holidays, currentMonth, setCurrentMonth, formatCurren
                                             ? 'linear-gradient(180deg, #ef4444 0%, #991b1b 100%)'
                                             : item.total > 0
                                                 ? 'linear-gradient(180deg, var(--primary) 0%, rgba(99, 102, 241, 0.4) 100%)'
-                                                : 'rgba(255,255,255,0.05)',
+                                                : 'rgba(0,0,0,0.05)',
                                         borderRadius: '4px 4px 2px 2px',
                                         cursor: item.total > 0 ? 'pointer' : 'default',
                                         boxShadow: isMax ? '0 0 15px rgba(239, 68, 68, 0.3)' : 'none',
@@ -946,7 +946,7 @@ const ChartView = ({ data, holidays, currentMonth, setCurrentMonth, formatCurren
                     Highest Spending / Holiday
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                    <div style={{ width: '12px', height: '12px', borderRadius: '3px', background: 'rgba(255,255,255,0.05)' }} />
+                    <div style={{ width: '12px', height: '12px', borderRadius: '3px', background: 'rgba(0,0,0,0.08)' }} />
                     No Transactions
                 </div>
             </div>
@@ -984,7 +984,7 @@ const CalendarView = ({ transactions, holidays, currentMonth, setCurrentMonth, f
     const weekDays = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
 
     return (
-        <div className="glass-card" style={{ padding: '30px', borderRadius: '24px', border: '1px solid var(--glass-border)' }}>
+        <div className="data-table-container" style={{ padding: '30px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
                 <h2 style={{ fontSize: '1.5rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '15px' }}>
                     <Calendar size={24} color="var(--primary)" />
@@ -995,7 +995,7 @@ const CalendarView = ({ transactions, holidays, currentMonth, setCurrentMonth, f
                         whileHover={{ scale: 1.1 }}
                         whileTap={{ scale: 0.9 }}
                         onClick={prevMonth}
-                        style={{ padding: '10px', borderRadius: '12px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--glass-border)', color: 'white', cursor: 'pointer' }}
+                        style={{ padding: '10px', borderRadius: '12px', background: 'rgba(0,0,0,0.03)', border: '1px solid var(--glass-border)', color: 'var(--text-main)', cursor: 'pointer' }}
                     >
                         <ChevronLeft size={20} />
                     </motion.button>
@@ -1003,16 +1003,16 @@ const CalendarView = ({ transactions, holidays, currentMonth, setCurrentMonth, f
                         whileHover={{ scale: 1.1 }}
                         whileTap={{ scale: 0.9 }}
                         onClick={nextMonth}
-                        style={{ padding: '10px', borderRadius: '12px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--glass-border)', color: 'white', cursor: 'pointer' }}
+                        style={{ padding: '10px', borderRadius: '12px', background: 'rgba(0,0,0,0.03)', border: '1px solid var(--glass-border)', color: 'var(--text-main)', cursor: 'pointer' }}
                     >
                         <ChevronRight size={20} />
                     </motion.button>
                 </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '1px', background: 'rgba(255,255,255,0.05)', borderRadius: '16px', overflow: 'hidden', border: '1px solid var(--glass-border)' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '1px', background: 'var(--glass-border)', borderRadius: '16px', overflow: 'hidden', border: '1px solid var(--glass-border)' }}>
                 {weekDays.map(day => (
-                    <div key={day} style={{ padding: '15px', textAlign: 'center', background: 'rgba(255,255,255,0.02)', fontSize: '0.8rem', fontWeight: 800, color: 'var(--text-muted)' }}>
+                    <div key={day} style={{ padding: '15px', textAlign: 'center', background: 'rgba(0,0,0,0.02)', fontSize: '0.8rem', fontWeight: 800, color: day === 'SUN' ? '#ef4444' : day === 'SAT' ? '#3b82f6' : 'var(--text-muted)' }}>
                         {day}
                     </div>
                 ))}
@@ -1030,8 +1030,8 @@ const CalendarView = ({ transactions, holidays, currentMonth, setCurrentMonth, f
                                 height: '120px',
                                 padding: '12px',
                                 cursor: isValid ? 'pointer' : 'default',
-                                background: isValid ? 'rgba(255,255,255,0.01)' : 'transparent',
-                                border: '1px solid rgba(255,255,255,0.02)',
+                                background: isValid ? '#ffffff' : '#fafafa',
+                                border: 'none',
                                 display: 'flex',
                                 flexDirection: 'column',
                                 justifyContent: 'space-between',
@@ -1039,7 +1039,7 @@ const CalendarView = ({ transactions, holidays, currentMonth, setCurrentMonth, f
                                 zIndex: 1
                             }}
                             onClick={() => isValid && onDayClick(dateStr)}
-                            whileHover={isValid ? { background: 'rgba(255,255,255,0.05)', scale: 1.02, zIndex: 10 } : {}}
+                            whileHover={isValid ? { background: 'rgba(99, 102, 241, 0.04)', scale: 1.02, zIndex: 10 } : {}}
                         >
                             {isValid && (
                                 <>
@@ -1061,7 +1061,7 @@ const CalendarView = ({ transactions, holidays, currentMonth, setCurrentMonth, f
                                                     }
                                                     return h.holidayDate === dateStr;
                                                 })
-                                            ) ? '#ef4444' : i % 7 === 6 ? '#3b82f6' : 'white'
+                                                ) ? '#ef4444' : i % 7 === 6 ? '#3b82f6' : 'var(--text-main)'
                                         }}>
                                             {dayNum}
                                         </div>

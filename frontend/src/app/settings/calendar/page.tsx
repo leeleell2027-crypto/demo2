@@ -82,42 +82,45 @@ export default function CalendarPage() {
     }
 
     return (
-        <div className="page-container-full" style={{ color: 'white' }}>
+        <div className="page-container-full">
             <div style={{ width: '100%' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
-                    <h1 className="header-title" style={{ fontSize: '2.5rem' }}>
-                        <Calendar size={32} color="var(--primary)" />
-                        Spend Calendar
-                    </h1>
-                    <div style={{ display: 'flex', gap: '10px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+                    <div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--primary)', marginBottom: '4px' }}>
+                            <Calendar size={20} />
+                            <span style={{ fontWeight: 600, fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Settings</span>
+                        </div>
+                        <h1 className="header-title" style={{ fontSize: '2.5rem', margin: 0 }}>Spend Calendar</h1>
+                    </div>
+                    <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                         <motion.button
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
                             onClick={prevMonth}
-                            className="btn"
-                            style={{ padding: '12px', background: 'rgba(255,255,255,0.05)', color: 'white' }}
+                            className="btn btn-secondary"
+                            style={{ padding: '10px' }}
                         >
-                            <ChevronLeft size={24} />
+                            <ChevronLeft size={20} />
                         </motion.button>
-                        <h2 style={{ fontSize: '1.25rem', fontWeight: 700, minWidth: '180px', textAlign: 'center' }}>
+                        <h2 style={{ fontSize: '1.1rem', fontWeight: 700, minWidth: '180px', textAlign: 'center', color: 'var(--primary)' }}>
                             {currentMonth.toLocaleString('default', { month: 'long', year: 'numeric' })}
                         </h2>
                         <motion.button
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
                             onClick={nextMonth}
-                            className="btn"
-                            style={{ padding: '12px', background: 'rgba(255,255,255,0.05)', color: 'white' }}
+                            className="btn btn-secondary"
+                            style={{ padding: '10px' }}
                         >
-                            <ChevronRight size={24} />
+                            <ChevronRight size={20} />
                         </motion.button>
                     </div>
                 </div>
 
-                <div className="glass-panel" style={{ padding: '24px' }}>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '1px', background: 'rgba(255,255,255,0.05)', borderRadius: '16px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.05)' }}>
+                <div className="data-table-container" style={{ padding: '24px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '1px', background: 'var(--glass-border)', borderRadius: '16px', overflow: 'hidden', border: '1px solid var(--glass-border)' }}>
                         {weekDays.map(day => (
-                            <div key={day} style={{ padding: '16px', textAlign: 'center', background: 'rgba(15, 23, 42, 0.6)', fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.05em' }}>
+                            <div key={day} style={{ padding: '16px', textAlign: 'center', background: 'rgba(0,0,0,0.02)', fontSize: '0.75rem', fontWeight: 800, color: day === 'SUN' ? '#ef4444' : day === 'SAT' ? '#3b82f6' : 'var(--text-muted)', letterSpacing: '0.05em' }}>
                                 {day}
                             </div>
                         ))}
@@ -131,7 +134,7 @@ export default function CalendarPage() {
                             return (
                                 <motion.div
                                     key={i}
-                                    whileHover={isValid ? { background: 'rgba(255,255,255,0.05)', scale: 1.02 } : {}}
+                                    whileHover={isValid ? { background: 'rgba(99, 102, 241, 0.04)', scale: 1.02 } : {}}
                                     onClick={() => {
                                         if (isValid) {
                                             router.push(`/transactions?date=${dateStr}`);
@@ -140,8 +143,8 @@ export default function CalendarPage() {
                                     style={{
                                         height: '140px',
                                         padding: '16px',
-                                        background: isValid ? 'rgba(30, 41, 59, 0.3)' : 'transparent',
-                                        border: '1px solid rgba(255,255,255,0.03)',
+                                        background: isValid ? '#ffffff' : '#fafafa',
+                                        border: 'none',
                                         display: 'flex',
                                         flexDirection: 'column',
                                         justifyContent: 'space-between',
@@ -170,7 +173,7 @@ export default function CalendarPage() {
                                                             }
                                                             return h.holidayDate === dateStr;
                                                         })
-                                                    ) ? '#ef4444' : i % 7 === 6 ? '#3b82f6' : 'white'
+                                                    ) ? '#ef4444' : i % 7 === 6 ? '#3b82f6' : 'var(--text-main)'
                                                 }}>
                                                     {dayNum}
                                                 </div>
