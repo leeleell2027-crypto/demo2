@@ -5,14 +5,16 @@ import lombok.Data;
 @Data
 public class TradeHistory {
     private Long id;
-    private String executedAt; // 체결시간
-    private String coin; // 코인
-    private String market; // 마켓
-    private String side; // 종류
-    private String quantity; // 거래수량
-    private String price; // 거래단가
-    private String totalAmount; // 거래금액
-    private String fee; // 수수료
-    private String settlementAmount; // 정산금액
-    private String orderedAt; // 주문시간
+    private String executedAt; // 泥닿껐?쒓컙
+    private String coin; // 肄붿씤
+    private String market; // 留덉폆
+    private String side; // 醫낅쪟
+    private String quantity; // 嫄곕옒?섎웾
+    private String price; // 嫄곕옒?④?
+    private String totalAmount; // 嫄곕옒湲덉븸
+    private String fee; // ?섏닔猷?
+    private String settlementAmount; // ?뺤궛湲덉븸
+    private String orderedAt; // 二쇰Ц?쒓컙
 }
+
+

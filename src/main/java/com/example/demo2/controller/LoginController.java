@@ -42,3 +42,5 @@ public class LoginController {
         return "10 members created with password '1234'";
     }
 }
+
+

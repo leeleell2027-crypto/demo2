@@ -1,0 +1,331 @@
+
+> Task :compileJava FAILED
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\AuthController.java:48: error: unmappable character (0xA4) for encoding UTF-8
+            // Cookie ?�정
+                       ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\AuthController.java:51: error: unmappable character (0x98) for encoding UTF-8
+            cookie.setSecure(false); // 로컬 ?�경?��?�?false, ?�영?�서??true 권장
+                                            ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\AuthController.java:51: error: unmappable character (0xB4) for encoding UTF-8
+            cookie.setSecure(false); // 로컬 ?�경?��?�?false, ?�영?�서??true 권장
+                                               ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\AuthController.java:51: error: unmappable character (0xEB) for encoding UTF-8
+            cookie.setSecure(false); // 로컬 ?�경?��?�?false, ?�영?�서??true 권장
+                                                ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\AuthController.java:51: error: unmappable character (0xEBA1) for encoding UTF-8
+            cookie.setSecure(false); // 로컬 ?�경?��?�?false, ?�영?�서??true 권장
+                                                  ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\AuthController.java:51: error: unmappable character (0xB4) for encoding UTF-8
+            cookie.setSecure(false); // 로컬 ?�경?��?�?false, ?�영?�서??true 권장
+                                                            ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\AuthController.java:51: error: unmappable character (0x90) for encoding UTF-8
+            cookie.setSecure(false); // 로컬 ?�경?��?�?false, ?�영?�서??true 권장
+                                                               ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\AuthController.java:53: error: unmappable character (0x9C) for encoding UTF-8
+            cookie.setMaxAge(3600); // 1?�간
+                                         ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\AuthController.java:70: error: unmappable character (0xEAB8) for encoding UTF-8
+        // SecurityContext 비우�?
+                             ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\AuthController.java:79: error: unmappable character (0xA0) for encoding UTF-8
+        // 쿠키 ??��
+                ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\AuthController.java:79: error: unmappable character (0x9C) for encoding UTF-8
+        // 쿠키 ??��
+                 ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\MemberController.java:58: error: unmappable character (0xEB) for encoding UTF-8
+        // 비�?번호 처리 로직
+            ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\MemberController.java:61: error: unmappable character (0x85) for encoding UTF-8
+            // ?�력???�으�?기존 비�?번호 ?��?
+                ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\MemberController.java:61: error: unmappable character (0x86) for encoding UTF-8
+            // ?�력???�으�?기존 비�?번호 ?��?
+                     ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\MemberController.java:61: error: unmappable character (0xEBA9) for encoding UTF-8
+            // ?�력???�으�?기존 비�?번호 ?��?
+                       ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\MemberController.java:61: error: unmappable character (0xEB) for encoding UTF-8
+            // ?�력???�으�?기존 비�?번호 ?��?
+                             ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\MemberController.java:61: error: unmappable character (0xA0) for encoding UTF-8
+            // ?�력???�으�?기존 비�?번호 ?��?
+                                   ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\MemberController.java:61: error: unmappable character (0xEC) for encoding UTF-8
+            // ?�력???�으�?기존 비�?번호 ?��?
+                                    ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\MemberController.java:64: error: unmappable character (0xEB) for encoding UTF-8
+            // ??비�?번호가 ?�력?�었�? ?��? ?�시???�태가 ?�니?�면 ?�호??
+                  ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\MemberController.java:64: error: unmappable character (0x85) for encoding UTF-8
+            // ??비�?번호가 ?�력?�었�? ?��? ?�시???�태가 ?�니?�면 ?�호??
+                         ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\MemberController.java:64: error: unmappable character (0x98) for encoding UTF-8
+            // ??비�?번호가 ?�력?�었�? ?��? ?�시???�태가 ?�니?�면 ?�호??
+                            ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\MemberController.java:64: error: unmappable character (0xEAB3) for encoding UTF-8
+            // ??비�?번호가 ?�력?�었�? ?��? ?�시???�태가 ?�니?�면 ?�호??
+                              ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\MemberController.java:64: error: unmappable character (0xB4) for encoding UTF-8
+            // ??비�?번호가 ?�력?�었�? ?��? ?�시???�태가 ?�니?�면 ?�호??
+                                  ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\MemberController.java:64: error: unmappable character (0xEB) for encoding UTF-8
+            // ??비�?번호가 ?�력?�었�? ?��? ?�시???�태가 ?�니?�면 ?�호??
+                                   ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\MemberController.java:64: error: unmappable character (0xB4) for encoding UTF-8
+            // ??비�?번호가 ?�력?�었�? ?��? ?�시???�태가 ?�니?�면 ?�호??
+                                       ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\MemberController.java:64: error: unmappable character (0x95) for encoding UTF-8
+            // ??비�?번호가 ?�력?�었�? ?��? ?�시???�태가 ?�니?�면 ?�호??
+                                            ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\MemberController.java:64: error: unmappable character (0x84) for encoding UTF-8
+            // ??비�?번호가 ?�력?�었�? ?��? ?�시???�태가 ?�니?�면 ?�호??
+                                                 ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\MemberController.java:64: error: unmappable character (0xBC) for encoding UTF-8
+            // ??비�?번호가 ?�력?�었�? ?��? ?�시???�태가 ?�니?�면 ?�호??
+                                                    ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\MemberController.java:64: error: unmappable character (0x94) for encoding UTF-8
+            // ??비�?번호가 ?�력?�었�? ?��? ?�시???�태가 ?�니?�면 ?�호??
+                                                        ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\NoticeFileController.java:33: error: unmappable character (0x90) for encoding UTF-8
+                // ?�본 ?�일�?추출 (UUID_ ?�거)
+                    ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\NoticeFileController.java:33: error: unmappable character (0x8C) for encoding UTF-8
+                // ?�본 ?�일�?추출 (UUID_ ?�거)
+                        ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\NoticeFileController.java:33: error: unmappable character (0xEBAA) for encoding UTF-8
+                // ?�본 ?�일�?추출 (UUID_ ?�거)
+                          ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\NoticeFileController.java:33: error: unmappable character (0x9C) for encoding UTF-8
+                // ?�본 ?�일�?추출 (UUID_ ?�거)
+                                       ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\TradeHistoryController.java:67: error: unmappable character (0x8C) for encoding UTF-8
+            return ResponseEntity.ok(Map.of("message", "?�일???�공?�으�??�로?�되?�습?�다.", "success", true));
+                                                         ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\TradeHistoryController.java:67: error: unmappable character (0xB1) for encoding UTF-8
+            return ResponseEntity.ok(Map.of("message", "?�일???�공?�으�??�로?�되?�습?�다.", "success", true));
+                                                              ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\TradeHistoryController.java:67: error: unmappable character (0x81) for encoding UTF-8
+            return ResponseEntity.ok(Map.of("message", "?�일???�공?�으�??�로?�되?�습?�다.", "success", true));
+                                                                 ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\TradeHistoryController.java:67: error: unmappable character (0xEBA1) for encoding UTF-8
+            return ResponseEntity.ok(Map.of("message", "?�일???�공?�으�??�로?�되?�습?�다.", "success", true));
+                                                                   ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\TradeHistoryController.java:67: error: unmappable character (0x85) for encoding UTF-8
+            return ResponseEntity.ok(Map.of("message", "?�일???�공?�으�??�로?�되?�습?�다.", "success", true));
+                                                                      ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\TradeHistoryController.java:67: error: unmappable character (0x9C) for encoding UTF-8
+            return ResponseEntity.ok(Map.of("message", "?�일???�공?�으�??�로?�되?�습?�다.", "success", true));
+                                                                         ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\TradeHistoryController.java:67: error: unmappable character (0x88) for encoding UTF-8
+            return ResponseEntity.ok(Map.of("message", "?�일???�공?�으�??�로?�되?�습?�다.", "success", true));
+                                                                            ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\TradeHistoryController.java:67: error: unmappable character (0x88) for encoding UTF-8
+            return ResponseEntity.ok(Map.of("message", "?�일???�공?�으�??�로?�되?�습?�다.", "success", true));
+                                                                               ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\TradeHistoryController.java:71: error: unmappable character (0x8C) for encoding UTF-8
+                    .body(Map.of("message", "?�일 ?�로??�??�류가 발생?�습?�다: " + e.getMessage(), "success", false));
+                                              ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\TradeHistoryController.java:71: error: unmappable character (0x85) for encoding UTF-8
+                    .body(Map.of("message", "?�일 ?�로??�??�류가 발생?�습?�다: " + e.getMessage(), "success", false));
+                                                  ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\TradeHistoryController.java:71: error: unmappable character (0xECA4) for encoding UTF-8
+                    .body(Map.of("message", "?�일 ?�로??�??�류가 발생?�습?�다: " + e.getMessage(), "success", false));
+                                                      ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\TradeHistoryController.java:71: error: unmappable character (0xA4) for encoding UTF-8
+                    .body(Map.of("message", "?�일 ?�로??�??�류가 발생?�습?�다: " + e.getMessage(), "success", false));
+                                                         ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\TradeHistoryController.java:71: error: unmappable character (0x88) for encoding UTF-8
+                    .body(Map.of("message", "?�일 ?�로??�??�류가 발생?�습?�다: " + e.getMessage(), "success", false));
+                                                                ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\TradeHistoryController.java:71: error: unmappable character (0x88) for encoding UTF-8
+                    .body(Map.of("message", "?�일 ?�로??�??�류가 발생?�습?�다: " + e.getMessage(), "success", false));
+                                                                   ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\TradeHistoryController.java:79: error: unmappable character (0xB4) for encoding UTF-8
+            return ResponseEntity.ok(Map.of("message", "모든 거래 ?�역????��?�었?�니??", "success", true));
+                                                               ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\TradeHistoryController.java:79: error: unmappable character (0xA0) for encoding UTF-8
+            return ResponseEntity.ok(Map.of("message", "모든 거래 ?�역????��?�었?�니??", "success", true));
+                                                                     ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\TradeHistoryController.java:79: error: unmappable character (0x9C) for encoding UTF-8
+            return ResponseEntity.ok(Map.of("message", "모든 거래 ?�역????��?�었?�니??", "success", true));
+                                                                      ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\TradeHistoryController.java:79: error: unmappable character (0x98) for encoding UTF-8
+            return ResponseEntity.ok(Map.of("message", "모든 거래 ?�역????��?�었?�니??", "success", true));
+                                                                        ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\TradeHistoryController.java:79: error: unmappable character (0xB5) for encoding UTF-8
+            return ResponseEntity.ok(Map.of("message", "모든 거래 ?�역????��?�었?�니??", "success", true));
+                                                                           ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\TradeHistoryController.java:82: error: unmappable character (0xA0) for encoding UTF-8
+                    .body(Map.of("message", "??�� �??�류가 발생?�습?�다.", "success", false));
+                                               ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\TradeHistoryController.java:82: error: unmappable character (0x9C) for encoding UTF-8
+                    .body(Map.of("message", "??�� �??�류가 발생?�습?�다.", "success", false));
+                                                ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\TradeHistoryController.java:82: error: unmappable character (0xECA4) for encoding UTF-8
+                    .body(Map.of("message", "??�� �??�류가 발생?�습?�다.", "success", false));
+                                                  ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\TradeHistoryController.java:82: error: unmappable character (0xA4) for encoding UTF-8
+                    .body(Map.of("message", "??�� �??�류가 발생?�습?�다.", "success", false));
+                                                     ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\TradeHistoryController.java:82: error: unmappable character (0x88) for encoding UTF-8
+                    .body(Map.of("message", "??�� �??�류가 발생?�습?�다.", "success", false));
+                                                            ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\TradeHistoryController.java:82: error: unmappable character (0x88) for encoding UTF-8
+                    .body(Map.of("message", "??�� �??�류가 발생?�습?�다.", "success", false));
+                                                               ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\model\TradeHistory.java:8: error: unmappable character (0x9C) for encoding UTF-8
+    private String executedAt; // 체결?�간
+                                     ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\model\TradeHistory.java:12: error: unmappable character (0x98) for encoding UTF-8
+    private String quantity; // 거래?�량
+                                   ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\model\TradeHistory.java:13: error: unmappable character (0xA8) for encoding UTF-8
+    private String price; // 거래?��?
+                                ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\model\TradeHistory.java:13: error: unmappable character (0xEA) for encoding UTF-8
+    private String price; // 거래?��?
+                                 ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\model\TradeHistory.java:15: error: unmappable character (0x98) for encoding UTF-8
+    private String fee; // ?�수�?
+                            ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\model\TradeHistory.java:15: error: unmappable character (0xEBA3) for encoding UTF-8
+    private String fee; // ?�수�?
+                              ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\model\TradeHistory.java:16: error: unmappable character (0x95) for encoding UTF-8
+    private String settlementAmount; // ?�산금액
+                                         ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\model\TradeHistory.java:17: error: unmappable character (0x9C) for encoding UTF-8
+    private String orderedAt; // 주문?�간
+                                    ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\service\BoardService.java:20: error: unmappable character (0xB4) for encoding UTF-8
+    // ?��?지 ?�??경로 (?�로?�트 루트??uploads ?�더)
+        ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\service\BoardService.java:20: error: unmappable character (0xEB) for encoding UTF-8
+    // ?��?지 ?�??경로 (?�로?�트 루트??uploads ?�더)
+         ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\service\BoardService.java:20: error: unmappable character (0x80) for encoding UTF-8
+    // ?��?지 ?�??경로 (?�로?�트 루트??uploads ?�더)
+              ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\service\BoardService.java:20: error: unmappable character (0x84) for encoding UTF-8
+    // ?��?지 ?�??경로 (?�로?�트 루트??uploads ?�더)
+                      ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\service\BoardService.java:20: error: unmappable character (0x9D) for encoding UTF-8
+    // ?��?지 ?�??경로 (?�로?�트 루트??uploads ?�더)
+                         ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\service\BoardService.java:20: error: unmappable character (0xB4) for encoding UTF-8
+    // ?��?지 ?�??경로 (?�로?�트 루트??uploads ?�더)
+                                         ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\service\BoardService.java:63: error: unmappable character (0xB4) for encoding UTF-8
+            // ?�더 ?�성
+                ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\service\BoardService.java:63: error: unmappable character (0x9D) for encoding UTF-8
+            // ?�더 ?�성
+                    ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\service\BoardService.java:69: error: unmappable character (0x8C) for encoding UTF-8
+            // ?�일�?중복 방�? (UUID)
+                ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\service\BoardService.java:69: error: unmappable character (0xEBAA) for encoding UTF-8
+            // ?�일�?중복 방�? (UUID)
+                  ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\service\BoardService.java:69: error: unmappable character (0xEC) for encoding UTF-8
+            // ?�일�?중복 방�? (UUID)
+                        ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\service\BoardService.java:79: error: unmappable character (0x8C) for encoding UTF-8
+            // ?�일 ?�??
+                ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\service\BoardService.java:79: error: unmappable character (0x80) for encoding UTF-8
+            // ?�일 ?�??
+                    ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\service\BoardService.java:83: error: unmappable character (0xB4) for encoding UTF-8
+            // ?��?지 URL ?�정 (?�라?�언???�근??
+                ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\service\BoardService.java:83: error: unmappable character (0xEB) for encoding UTF-8
+            // ?��?지 URL ?�정 (?�라?�언???�근??
+                 ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\service\BoardService.java:83: error: unmappable character (0xA4) for encoding UTF-8
+            // ?��?지 URL ?�정 (?�라?�언???�근??
+                          ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\service\BoardService.java:83: error: unmappable character (0xB4) for encoding UTF-8
+            // ?��?지 URL ?�정 (?�라?�언???�근??
+                               ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\service\BoardService.java:83: error: unmappable character (0xB4) for encoding UTF-8
+            // ?��?지 URL ?�정 (?�라?�언???�근??
+                                  ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\service\BoardService.java:83: error: unmappable character (0x91) for encoding UTF-8
+            // ?��?지 URL ?�정 (?�라?�언???�근??
+                                       ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\service\BulkJobService.java:34: error: unmappable character (0xAB) for encoding UTF-8
+   * XLSX ???�탣??1?????�쐭):
+             ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\service\BulkJobService.java:34: error: unmappable character (0xB3) for encoding UTF-8
+   * XLSX ???�탣??1?????�쐭):
+                       ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\service\BulkJobService.java:38: error: unmappable character (0x9B) for encoding UTF-8
+   * - PRICE: value=???꼻揶?�(int) (?????????optionSku??????筌왖???
+                          ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\service\NoticeService.java:51: error: unmappable character (0xEAB0) for encoding UTF-8
+        // ref, step, depth 초기�?(?��???경우)
+                              ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\service\NoticeService.java:51: error: unmappable character (0x90) for encoding UTF-8
+        // ref, step, depth 초기�?(?��???경우)
+                                  ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\service\NoticeService.java:51: error: unmappable character (0xEA) for encoding UTF-8
+        // ref, step, depth 초기�?(?��???경우)
+                                   ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\service\NoticeService.java:52: error: unmappable character (0x84) for encoding UTF-8
+        notice.setRef(0); // ?�시�?
+                              ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\service\NoticeService.java:52: error: unmappable character (0xEAB0) for encoding UTF-8
+        notice.setRef(0); // ?�시�?
+                                ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\service\NoticeService.java:57: error: unmappable character (0xEBA5) for encoding UTF-8
+        noticeMapper.updateRef(notice.getId()); // ref�??�신??id�??�데?�트
+                                                      ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\service\NoticeService.java:57: error: unmappable character (0x90) for encoding UTF-8
+        noticeMapper.updateRef(notice.getId()); // ref�??�신??id�??�데?�트
+                                                         ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\service\NoticeService.java:57: error: unmappable character (0xEBA1) for encoding UTF-8
+        noticeMapper.updateRef(notice.getId()); // ref�??�신??id�??�데?�트
+                                                               ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\service\NoticeService.java:57: error: unmappable character (0x85) for encoding UTF-8
+        noticeMapper.updateRef(notice.getId()); // ref�??�신??id�??�데?�트
+                                                                  ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\service\NoticeService.java:57: error: unmappable character (0xB4) for encoding UTF-8
+        noticeMapper.updateRef(notice.getId()); // ref�??�신??id�??�데?�트
+                                                                     ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\service\NoticeService.java:66: error: unmappable character (0x90) for encoding UTF-8
+            throw new RuntimeException("?��???찾을 ???�습?�다.");
+                                         ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\service\NoticeService.java:66: error: unmappable character (0xEA) for encoding UTF-8
+            throw new RuntimeException("?��???찾을 ???�습?�다.");
+                                          ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\service\TradeHistoryService.java:194: error: unclosed string literal
+                        history.setFee(csvRecord.get("?�수�?));
+                                                     ^
+101 errors
+
+[Incubating] Problems report is available at: file:///D:/cursorAi/demo2/build/reports/problems/problems-report.html
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':compileJava'.
+> Compilation failed; see the compiler output below.
+  D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\AuthController.java:48: error: unmappable character (0xA4) for encoding UTF-8
+              // Cookie ?�정
+                         ^
+  101 errors
+
+* Try:
+> Check your code and dependencies to fix the compilation error(s)
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 10.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/9.3.1/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD FAILED in 2s
+1 actionable task: 1 executed

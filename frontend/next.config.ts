@@ -1,6 +1,10 @@
 import type { NextConfig } from "next";
 
-const nextConfig: NextConfig = {
+const nextConfig = {
+  devIndicators: {
+    buildActivity: false,
+    appIsrStatus: false,
+  },
   async rewrites() {
     return [
       {

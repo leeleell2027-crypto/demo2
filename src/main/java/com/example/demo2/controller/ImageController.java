@@ -92,7 +92,7 @@ public class ImageController {
 
             javax.swing.JFileChooser chooser = new javax.swing.JFileChooser();
             chooser.setFileSelectionMode(javax.swing.JFileChooser.DIRECTORIES_ONLY);
-            chooser.setDialogTitle("폴더를 선택하세요");
+            chooser.setDialogTitle("?대뜑 ?좏깮");
 
             int returnVal = chooser.showOpenDialog(null);
             if (returnVal == javax.swing.JFileChooser.APPROVE_OPTION) {
@@ -125,7 +125,7 @@ public class ImageController {
     }
 
     /**
-     * Asset Gallery 등에서 파일명으로 직접 요청 시 uploads 폴더에서 파일을 서빙하는 핸들러
+     * Asset Gallery ?占쎌뿉???占쎌씪紐낆쑝占?吏곸젒 ?占쎌껌 ??uploads ?占쎈뜑?占쎌꽌 ?占쎌씪???占쎈튃?占쎈뒗 ?占쎈뱾??
      */
     @GetMapping("/{filename:.+}")
     public ResponseEntity<Resource> getImage(@org.springframework.web.bind.annotation.PathVariable String filename)

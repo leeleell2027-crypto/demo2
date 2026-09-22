@@ -64,3 +64,5 @@ public interface NoticeMapper {
 
         int insertAllReadStatus(@Param("memberId") String memberId);
 }
+
+

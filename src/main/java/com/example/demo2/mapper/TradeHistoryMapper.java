@@ -40,3 +40,5 @@ public interface TradeHistoryMapper {
 
     void truncateTradeHistory();
 }
+
+

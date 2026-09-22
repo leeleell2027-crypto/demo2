@@ -48,13 +48,13 @@ public class NoticeService {
 
     @Transactional
     public void createNotice(Notice notice, List<MultipartFile> files) throws IOException {
-        // ref, step, depth 초기값 (원글인 경우)
-        notice.setRef(0); // 임시값
+        // ref, step, depth 珥덇린媛?(?먭???寃쎌슦)
+        notice.setRef(0); // ?꾩떆媛?
         notice.setStep(0);
         notice.setDepth(0);
 
         noticeMapper.insert(notice);
-        noticeMapper.updateRef(notice.getId()); // ref를 자신의 id로 업데이트
+        noticeMapper.updateRef(notice.getId()); // ref瑜??먯떊??id濡??낅뜲?댄듃
 
         saveAttachments(notice.getId(), files);
     }
@@ -63,9 +63,9 @@ public class NoticeService {
     public void createReply(Long parentId, Notice reply, List<MultipartFile> files) throws IOException {
         Notice parent = noticeMapper.findById(parentId);
         if (parent == null)
-            throw new RuntimeException("원글을 찾을 수 없습니다.");
+            throw new RuntimeException("?먭???李얠쓣 ???놁뒿?덈떎.");
 
-        // 계층형 로직: 부모의 ref를 따르고, step을 부모 뒤로 밀기
+        // 怨꾩링??濡쒖쭅: 遺紐⑥쓽 ref瑜??곕Ⅴ怨? step??遺紐??ㅻ줈 諛湲?
         reply.setRef(parent.getRef());
         reply.setStep(parent.getStep() + 1);
         reply.setDepth(parent.getDepth() + 1);
@@ -95,14 +95,14 @@ public class NoticeService {
             throws IOException {
         Notice original = noticeMapper.findById(notice.getId());
         if (original == null)
-            throw new RuntimeException("게시글을 찾을 수 없습니다.");
+            throw new RuntimeException("寃뚯떆湲??李얠쓣 ???놁뒿?덈떎.");
         if (!original.getMemberId().equals(requesterId)) {
-            throw new RuntimeException("수정 권한이 없습니다.");
+            throw new RuntimeException("?섏젙 沅뚰븳???놁뒿?덈떎.");
         }
 
         noticeMapper.update(notice);
 
-        // 기존 파일 삭제 처리
+        // 湲곗〈 ?뚯씪 ??젣 泥섎━
         if (deleteFileIds != null) {
             for (Long fileId : deleteFileIds) {
                 NoticeAttachment att = noticeMapper.findAttachmentById(fileId);
@@ -120,9 +120,9 @@ public class NoticeService {
     public void deleteNotice(Long id, String requesterId) {
         Notice original = noticeMapper.findById(id);
         if (original == null)
-            throw new RuntimeException("게시글을 찾을 수 없습니다.");
+            throw new RuntimeException("寃뚯떆湲??李얠쓣 ???놁뒿?덈떎.");
         if (!original.getMemberId().equals(requesterId)) {
-            throw new RuntimeException("삭제 권한이 없습니다.");
+            throw new RuntimeException("??젣 沅뚰븳???놁뒿?덈떎.");
         }
 
         List<NoticeAttachment> attachments = noticeMapper.findAttachmentsByNoticeId(id);
@@ -140,9 +140,9 @@ public class NoticeService {
     public void deleteComment(Long commentId, String requesterId) {
         NoticeComment comment = noticeMapper.findCommentById(commentId);
         if (comment == null)
-            throw new RuntimeException("댓글을 찾을 수 없습니다.");
+            throw new RuntimeException("?볤???李얠쓣 ???놁뒿?덈떎.");
         if (!comment.getMemberId().equals(requesterId)) {
-            throw new RuntimeException("삭제 권한이 없습니다.");
+            throw new RuntimeException("??젣 沅뚰븳???놁뒿?덈떎.");
         }
         noticeMapper.deleteComment(commentId);
     }
@@ -185,10 +185,12 @@ public class NoticeService {
     }
 
     private void deleteFile(NoticeAttachment attachment) {
-        // 실제 파일 삭제 로직 추가 가능
+        // ?ㅼ젣 ?뚯씪 ??젣 濡쒖쭅 異붽? 媛??
         String fileName = attachment.getFilePath().substring(attachment.getFilePath().lastIndexOf("/") + 1);
         File file = new File(uploadPath + File.separator + fileName);
         if (file.exists())
             file.delete();
     }
 }
+
+

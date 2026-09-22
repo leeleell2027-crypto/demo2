@@ -18,3 +18,5 @@ public interface MenuMapper {
 
     int delete(Integer id);
 }
+
+

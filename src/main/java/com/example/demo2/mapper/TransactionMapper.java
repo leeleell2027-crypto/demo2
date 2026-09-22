@@ -30,3 +30,5 @@ public interface TransactionMapper {
                         @Param("searchCard") String searchCard,
                         @Param("startDate") String startDate, @Param("endDate") String endDate);
 }
+
+

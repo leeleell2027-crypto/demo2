@@ -8,3 +8,4 @@ public class BCryptGenerator {
         System.out.println(encoder.encode("1234"));
     }
 }
+

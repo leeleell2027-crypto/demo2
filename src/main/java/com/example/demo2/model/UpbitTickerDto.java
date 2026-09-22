@@ -29,3 +29,5 @@ public class UpbitTickerDto {
 
     private String koreanName;
 }
+
+

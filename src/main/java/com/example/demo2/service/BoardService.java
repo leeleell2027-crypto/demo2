@@ -17,7 +17,7 @@ public class BoardService {
     @Autowired
     private BoardMapper boardMapper;
 
-    // 이미지 저장 경로 (프로젝트 루트의 uploads 폴더)
+    // ?대?吏 ???寃쎈줈 (?꾨줈?앺듃 猷⑦듃??uploads ?대뜑)
     private final String uploadPath = System.getProperty("user.dir") + File.separator + "uploads";
 
     public BoardPageResponse getPaginatedBoards(
@@ -60,13 +60,13 @@ public class BoardService {
 
     private String saveImage(MultipartFile imageFile) throws IOException {
         if (imageFile != null && !imageFile.isEmpty()) {
-            // 폴더 생성
+            // ?대뜑 ?앹꽦
             File uploadDir = new File(uploadPath);
             if (!uploadDir.exists()) {
                 uploadDir.mkdirs();
             }
 
-            // 파일명 중복 방지 (UUID)
+            // ?뚯씪紐?以묐났 諛⑹? (UUID)
             String originalFilename = imageFile.getOriginalFilename();
             if (originalFilename == null) {
                 originalFilename = "unknown.jpg";
@@ -76,13 +76,15 @@ public class BoardService {
                     : ".jpg";
             String savedFilename = UUID.randomUUID().toString() + extension;
 
-            // 파일 저장
+            // ?뚯씪 ???
             File fileToSave = new File(uploadPath + File.separator + savedFilename);
             imageFile.transferTo(fileToSave);
 
-            // 이미지 URL 설정 (클라이언트 접근용)
+            // ?대?吏 URL ?ㅼ젙 (?대씪?댁뼵???묎렐??
             return "/api/images/" + savedFilename;
         }
         return null;
     }
 }
+
+

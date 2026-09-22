@@ -16,3 +16,5 @@ public interface CategoryItemMapper {
     void delete(@Param("id") Long id);
     void updateChecked(@Param("id") Long id, @Param("isChecked") boolean isChecked);
 }
+
+

@@ -13,3 +13,5 @@ public class Holiday {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }
+
+

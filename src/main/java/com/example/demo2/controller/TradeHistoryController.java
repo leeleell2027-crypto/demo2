@@ -64,11 +64,11 @@ public class TradeHistoryController {
     public ResponseEntity<?> uploadTradeHistory(@RequestParam("file") MultipartFile file) {
         try {
             tradeHistoryService.uploadTradeHistory(file);
-            return ResponseEntity.ok(Map.of("message", "파일이 성공적으로 업로드되었습니다.", "success", true));
+            return ResponseEntity.ok(Map.of("message", "?뚯씪???깃났?곸쑝濡??낅줈?쒕릺?덉뒿?덈떎.", "success", true));
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("message", "파일 업로드 중 오류가 발생했습니다: " + e.getMessage(), "success", false));
+                    .body(Map.of("message", "?뚯씪 ?낅줈??以??ㅻ쪟媛 諛쒖깮?덉뒿?덈떎: " + e.getMessage(), "success", false));
         }
     }
 
@@ -76,10 +76,12 @@ public class TradeHistoryController {
     public ResponseEntity<?> deleteAllTradeHistories() {
         try {
             tradeHistoryService.truncateTradeHistory();
-            return ResponseEntity.ok(Map.of("message", "모든 거래 내역이 삭제되었습니다.", "success", true));
+            return ResponseEntity.ok(Map.of("message", "紐⑤뱺 嫄곕옒 ?댁뿭????젣?섏뿀?듬땲??", "success", true));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("message", "삭제 중 오류가 발생했습니다.", "success", false));
+                    .body(Map.of("message", "??젣 以??ㅻ쪟媛 諛쒖깮?덉뒿?덈떎.", "success", false));
         }
     }
 }
+
+

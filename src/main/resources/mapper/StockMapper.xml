@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.demo2.mapper.StockMapper">
+
+    <select id="findById" resultType="com.example.demo2.model.Stock">
+        SELECT * FROM stocks WHERE stock_id = #{stockId}
+    </select>
+
+    <select id="findByProductId" resultType="com.example.demo2.model.Stock">
+        SELECT * FROM stocks WHERE product_id = #{productId}
+    </select>
+
+    <select id="findByOptionId" resultType="com.example.demo2.model.Stock">
+        SELECT * FROM stocks WHERE option_id = #{optionId}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="stockId">
+        INSERT INTO stocks (
+            product_id, option_id, quantity, safety_stock, created_at, updated_at
+        ) VALUES (
+            #{productId}, #{optionId}, #{quantity}, #{safetyStock}, NOW(), NOW()
+        )
+    </insert>
+
+    <update id="update">
+        UPDATE stocks
+        SET
+            product_id = #{productId},
+            option_id = #{optionId},
+            quantity = #{quantity},
+            safety_stock = #{safetyStock},
+            updated_at = NOW()
+        WHERE stock_id = #{stockId}
+    </update>
+
+</mapper>

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.demo2.mapper.BulkJobItemMapper">
+
+    <select id="findByJobIdOrderByRowNoAsc" resultType="com.example.demo2.model.BulkJobItem">
+        SELECT * FROM bulk_job_items WHERE job_id = #{jobId} ORDER BY row_no ASC
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="itemId">
+        INSERT INTO bulk_job_items (
+            job_id, row_no, product_id, option_sku, payload_json, status, error_message, created_at
+        ) VALUES (
+            #{jobId}, #{rowNo}, #{productId}, #{optionSku}, #{payloadJson}, #{status}, #{errorMessage}, NOW()
+        )
+    </insert>
+
+    <update id="update">
+        UPDATE bulk_job_items
+        SET
+            status = #{status},
+            error_message = #{errorMessage}
+        WHERE item_id = #{itemId}
+    </update>
+
+</mapper>

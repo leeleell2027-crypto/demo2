@@ -179,3 +179,5 @@ public class Notice {
         this.isRead = isRead;
     }
 }
+
+

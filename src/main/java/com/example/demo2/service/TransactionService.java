@@ -69,7 +69,7 @@ public class TransactionService {
         } else if (fileName != null && fileName.endsWith(".csv")) {
             processCsvFile(file);
         } else {
-            throw new IllegalArgumentException("지원하지 않는 파일 형식입니다. CSV 또는 Excel 파일을 업로드해주세요.");
+            throw new IllegalArgumentException("吏?먰븯吏 ?딅뒗 ?뚯씪 ?뺤떇?낅땲?? CSV ?먮뒗 Excel ?뚯씪???낅줈?쒗빐二쇱꽭??");
         }
     }
 
@@ -180,3 +180,5 @@ public class TransactionService {
         }
     }
 }
+
+

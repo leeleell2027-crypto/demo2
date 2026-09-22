@@ -23,3 +23,5 @@ public class Transaction {
     private String approvalNo;
     private LocalDateTime createdAt;
 }
+
+

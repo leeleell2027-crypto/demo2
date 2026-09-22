@@ -48,3 +48,5 @@ public class NoticePageResponse {
         this.currentPage = currentPage;
     }
 }
+
+

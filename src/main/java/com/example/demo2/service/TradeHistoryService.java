@@ -153,7 +153,7 @@ public class TradeHistoryService {
         } else if (fileName != null && fileName.endsWith(".csv")) {
             processCsvFile(file);
         } else {
-            throw new IllegalArgumentException("지원하지 않는 파일 형식입니다. CSV 또는 Excel 파일을 업로드해주세요.");
+            throw new IllegalArgumentException("IllegalArgumentException");
         }
     }
 
@@ -169,8 +169,7 @@ public class TradeHistoryService {
                                 .build())) {
 
             List<TradeHistory> tradeHistories = new ArrayList<>();
-            // 체결시간,코인,마켓,종류,거래수량,거래단가,거래금액,수수료,정산금액,주문시간
-
+         
             for (CSVRecord csvRecord : csvParser) {
                 // Determine headers or just rely on indices if headers don't strictly match
                 // For safety and compatibility, we can read by index if the format is fixed,
@@ -178,12 +177,10 @@ public class TradeHistoryService {
                 // custom fixed format.
 
                 TradeHistory history = new TradeHistory();
-                // Usually headers are exact strings like "체결시간"
+                // Usually headers are exact strings like "泥닿껐?占쎄컙"
                 // To be robust, if headers might slightly differ, we parse by index or try to
                 // map.
-                // Assuming standard
-                // "체결시간","코인","마켓","종류","거래수량","거래단가","거래금액","수수료","정산금액","주문시간"
-
+                // Assuming standard 
                 if (csvRecord.size() >= 10) {
                     // Try to get by header name, fallback to index
                     try {

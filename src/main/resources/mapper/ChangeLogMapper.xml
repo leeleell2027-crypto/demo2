@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.demo2.mapper.ChangeLogMapper">
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="logId">
+        INSERT INTO change_logs (
+            actor_id, actor_role, target_type, product_id, option_id, 
+            change_type, before_json, after_json, reason, created_at
+        ) VALUES (
+            #{actorId}, #{actorRole}, #{targetType}, #{productId}, #{optionId}, 
+            #{changeType}, #{beforeJson}, #{afterJson}, #{reason}, NOW()
+        )
+    </insert>
+
+</mapper>

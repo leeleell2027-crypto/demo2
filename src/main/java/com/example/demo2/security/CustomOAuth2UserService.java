@@ -26,17 +26,17 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
         OAuth2User oAuth2User = super.loadUser(userRequest);
 
-        // 인스타그램 정보 추출
+        // 異붿텧
         String username = oAuth2User.getAttribute("username");
         String id = oAuth2User.getAttribute("id");
 
-        // DB 확인 및 자동 가입
+        // DB
         Member member = memberService.getMemberByUsername(username);
         if (member == null) {
             member = new Member();
             member.setUsername(username);
             member.setName("Instagram User (" + username + ")");
-            member.setPassword(""); // 소셜 로그인이므로 비밀번호 무의미
+            member.setPassword(""); //
             memberService.saveMember(member);
         }
 

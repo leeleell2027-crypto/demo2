@@ -22,3 +22,5 @@ public interface MemberMapper {
 
     int delete(String id);
 }
+
+

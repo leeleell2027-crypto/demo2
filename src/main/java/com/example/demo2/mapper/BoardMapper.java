@@ -30,3 +30,5 @@ public interface BoardMapper {
 
     int delete(Long id);
 }
+
+

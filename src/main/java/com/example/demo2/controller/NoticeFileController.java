@@ -30,7 +30,7 @@ public class NoticeFileController {
             Resource resource = new UrlResource(file.toUri());
 
             if (resource.exists() || resource.isReadable()) {
-                // 원본 파일명 추출 (UUID_ 제거)
+                // ?먮낯 ?뚯씪紐?異붿텧 (UUID_ ?쒓굅)
                 String originalName = filename.contains("_") ? filename.substring(filename.indexOf("_") + 1) : filename;
                 ContentDisposition contentDisposition = ContentDisposition.attachment()
                         .filename(originalName, StandardCharsets.UTF_8)
@@ -47,3 +47,5 @@ public class NoticeFileController {
         }
     }
 }
+
+

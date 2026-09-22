@@ -95,3 +95,5 @@ public class BoardController {
         return ResponseEntity.ok("Board entry deleted successfully");
     }
 }
+
+

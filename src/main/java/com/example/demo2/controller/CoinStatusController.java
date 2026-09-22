@@ -21,3 +21,5 @@ public class CoinStatusController {
         return upbitService.getTop5VolumedCoins();
     }
 }
+
+

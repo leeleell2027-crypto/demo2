@@ -84,3 +84,5 @@ public class Member {
         this.updatedAt = updatedAt;
     }
 }
+
+

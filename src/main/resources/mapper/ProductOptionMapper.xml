@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.demo2.mapper.ProductOptionMapper">
+
+    <select id="findById" resultType="com.example.demo2.model.ProductOption">
+        SELECT * FROM product_options WHERE option_id = #{optionId}
+    </select>
+
+    <select id="findByProductId" resultType="com.example.demo2.model.ProductOption">
+        SELECT * FROM product_options WHERE product_id = #{productId} ORDER BY option_id ASC
+    </select>
+
+    <select id="findByOptionSku" resultType="com.example.demo2.model.ProductOption">
+        SELECT * FROM product_options WHERE option_sku = #{optionSku}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="optionId">
+        INSERT INTO product_options (
+            product_id, option_key, option_sku, option_price, 
+            display_yn, sale_status, created_at, updated_at
+        ) VALUES (
+            #{productId}, #{optionKey}, #{optionSku}, #{optionPrice}, 
+            #{displayYn}, #{saleStatus}, NOW(), NOW()
+        )
+    </insert>
+
+    <update id="update">
+        UPDATE product_options
+        SET
+            product_id = #{productId},
+            option_key = #{optionKey},
+            option_sku = #{optionSku},
+            option_price = #{optionPrice},
+            display_yn = #{displayYn},
+            sale_status = #{saleStatus},
+            updated_at = NOW()
+        WHERE option_id = #{optionId}
+    </update>
+
+</mapper>

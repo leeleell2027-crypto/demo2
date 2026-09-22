@@ -55,13 +55,13 @@ public class MemberController {
             throw new RuntimeException("Member not found: " + member.getId());
         }
 
-        // 비밀번호 처리 로직
+        // 鍮꾨?踰덊샇 泥섎━ 濡쒖쭅
         String newPassword = member.getPassword();
         if (newPassword == null || newPassword.trim().isEmpty()) {
-            // 입력이 없으면 기존 비밀번호 유지
+            // ?낅젰???놁쑝硫?湲곗〈 鍮꾨?踰덊샇 ?좎?
             member.setPassword(existing.getPassword());
         } else {
-            // 새 비밀번호가 입력되었고, 이미 해시된 형태가 아니라면 암호화
+            // ??鍮꾨?踰덊샇媛 ?낅젰?섏뿀怨? ?대? ?댁떆???뺥깭媛 ?꾨땲?쇰㈃ ?뷀샇??
             if (!newPassword.startsWith("$2a$")) {
                 member.setPassword(passwordEncoder.encode(newPassword));
             }
@@ -75,3 +75,5 @@ public class MemberController {
         memberService.removeMember(id);
     }
 }
+
+

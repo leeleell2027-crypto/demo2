@@ -23,3 +23,15 @@ DELETE FROM member;
 INSERT INTO member (id, name, email, username, password, role) VALUES
 ('admin', '슈퍼관리자', 'admin@example.com', 'admin', '$2a$10$GRLdNijSQMUvl/au9ShLOmqnWQmL4.ybBE672FeTrAnQun9S/K9H6', 'SUPER_ADMIN');
 -- Note: password hash is for '1234'
+
+
+
+-- 쇼핑몰 대메뉴 생성 (ID는 자동 증가 혹은 비어있는 번호로 지정)
+INSERT INTO menus (id, name, url, icon, sort_order, role) 
+VALUES (20, 'Shopping', null, 'ShoppingBag', 4, 'SUPER_ADMIN,MIDDLE_ADMIN');
+-- 하위 메뉴: 상품 관리
+INSERT INTO menus (parent_id, name, url, icon, sort_order) 
+VALUES (20, 'Products', '/admin/products', 'Package', 1);
+-- 하위 메뉴: 대량 업로드
+INSERT INTO menus (parent_id, name, url, icon, sort_order) 
+VALUES (20, 'Bulk Upload', '/admin/bulk-upload', 'UploadCloud', 2);

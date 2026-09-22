@@ -45,12 +45,12 @@ public class AuthController {
         if (member != null && passwordEncoder.matches(request.getPassword(), member.getPassword())) {
             String token = jwtTokenProvider.createToken(member.getUsername());
 
-            // Cookie 설정
+            // Cookie ?ㅼ젙
             Cookie cookie = new Cookie("token", token);
             cookie.setHttpOnly(true);
-            cookie.setSecure(false); // 로컬 환경이므로 false, 운영에서는 true 권장
+            cookie.setSecure(false); // 濡쒖뺄 ?섍꼍?대?濡?false, ?댁쁺?먯꽌??true 沅뚯옣
             cookie.setPath("/");
-            cookie.setMaxAge(3600); // 1시간
+            cookie.setMaxAge(3600); // 1?쒓컙
             response.addCookie(cookie);
 
             Map<String, String> body = new HashMap<>();
@@ -67,16 +67,16 @@ public class AuthController {
 
     @PostMapping("/logout")
     public ResponseEntity<?> logout(HttpServletRequest request, HttpServletResponse response) {
-        // SecurityContext 비우기
+        // SecurityContext 鍮꾩슦湲?
         SecurityContextHolder.clearContext();
 
-        // Session 무효화
+        // Session 臾댄슚??
         jakarta.servlet.http.HttpSession session = request.getSession(false);
         if (session != null) {
             session.invalidate();
         }
 
-        // 쿠키 삭제
+        // 荑좏궎 ??젣
         Cookie cookie = new Cookie("token", null);
         cookie.setHttpOnly(true);
         cookie.setPath("/");
@@ -174,3 +174,5 @@ public class AuthController {
         }
     }
 }
+
+

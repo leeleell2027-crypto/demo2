@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.demo2.mapper.ProductMapper">
+
+    <select id="findById" resultType="com.example.demo2.model.Product">
+        SELECT * FROM products WHERE product_id = #{productId}
+    </select>
+
+    <select id="findByProductCode" resultType="com.example.demo2.model.Product">
+        SELECT * FROM products WHERE product_code = #{productCode}
+    </select>
+
+    <select id="findAll" resultType="com.example.demo2.model.Product">
+        SELECT * FROM products
+        <where>
+            <if test="q != null and q != ''">
+                <choose>
+                    <when test="qType == 'NAME'">AND product_name LIKE CONCAT('%', #{q}, '%')</when>
+                    <when test="qType == 'CODE'">AND product_code = #{q}</when>
+                </choose>
+            </if>
+            <if test="saleStatus != null and saleStatus.size() > 0">
+                AND sale_status IN
+                <foreach collection="saleStatus" item="status" open="(" separator="," close=")">
+                    #{status}
+                </foreach>
+            </if>
+            <if test="displayYn != null">
+                AND display_yn = #{displayYn}
+            </if>
+            <if test="fromDt != null">
+                AND created_at &gt;= #{fromDt}
+            </if>
+            <if test="toDt != null">
+                AND created_at &lt;= #{toDt}
+            </if>
+        </where>
+        ORDER BY product_id DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="countAll" resultType="long">
+        SELECT COUNT(*) FROM products
+        <where>
+            <if test="q != null and q != ''">
+                <choose>
+                    <when test="qType == 'NAME'">AND product_name LIKE CONCAT('%', #{q}, '%')</when>
+                    <when test="qType == 'CODE'">AND product_code = #{q}</when>
+                </choose>
+            </if>
+            <if test="saleStatus != null and saleStatus.size() > 0">
+                AND sale_status IN
+                <foreach collection="saleStatus" item="status" open="(" separator="," close=")">
+                    #{status}
+                </foreach>
+            </if>
+            <if test="displayYn != null">
+                AND display_yn = #{displayYn}
+            </if>
+            <if test="fromDt != null">
+                AND created_at &gt;= #{fromDt}
+            </if>
+            <if test="toDt != null">
+                AND created_at &lt;= #{toDt}
+            </if>
+        </where>
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="productId">
+        INSERT INTO products (
+            product_code, product_name, brand_id, supplier_id, tax_type, 
+            sale_status, display_yn, list_price, sale_price, 
+            stock_manage_yn, total_stock, safety_stock, thumb_image_url, 
+            created_at, updated_at
+        ) VALUES (
+            #{productCode}, #{productName}, #{brandId}, #{supplierId}, #{taxType}, 
+            #{saleStatus}, #{displayYn}, #{listPrice}, #{salePrice}, 
+            #{stockManageYn}, #{totalStock}, #{safetyStock}, #{thumbImageUrl}, 
+            NOW(), NOW()
+        )
+    </insert>
+
+    <update id="update">
+        UPDATE products
+        SET
+            product_code = #{productCode},
+            product_name = #{productName},
+            brand_id = #{brandId},
+            supplier_id = #{supplierId},
+            tax_type = #{taxType},
+            sale_status = #{saleStatus},
+            display_yn = #{displayYn},
+            list_price = #{listPrice},
+            sale_price = #{salePrice},
+            stock_manage_yn = #{stockManageYn},
+            total_stock = #{totalStock},
+            safety_stock = #{safetyStock},
+            thumb_image_url = #{thumbImageUrl},
+            updated_at = NOW()
+        WHERE product_id = #{productId}
+    </update>
+
+</mapper>

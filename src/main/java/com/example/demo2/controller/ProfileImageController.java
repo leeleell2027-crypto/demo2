@@ -18,7 +18,8 @@ import java.nio.file.Paths;
 @RequestMapping("/api/images/profile")
 public class ProfileImageController {
 
-    private final String uploadPath = System.getProperty("user.dir") + File.separator + "uploads" + File.separator + "profile";
+    private final String uploadPath = System.getProperty("user.dir") + File.separator + "uploads" + File.separator
+            + "profile";
 
     @GetMapping("/{filename:.+}")
     public ResponseEntity<Resource> getProfileImage(@PathVariable String filename) {
@@ -28,9 +29,12 @@ public class ProfileImageController {
 
             if (resource.exists() || resource.isReadable()) {
                 MediaType mediaType = MediaType.IMAGE_JPEG;
-                if (filename.toLowerCase().endsWith(".png")) mediaType = MediaType.IMAGE_PNG;
-                else if (filename.toLowerCase().endsWith(".gif")) mediaType = MediaType.IMAGE_GIF;
-                else if (filename.toLowerCase().endsWith(".webp")) mediaType = MediaType.parseMediaType("image/webp");
+                if (filename.toLowerCase().endsWith(".png"))
+                    mediaType = MediaType.IMAGE_PNG;
+                else if (filename.toLowerCase().endsWith(".gif"))
+                    mediaType = MediaType.IMAGE_GIF;
+                else if (filename.toLowerCase().endsWith(".webp"))
+                    mediaType = MediaType.parseMediaType("image/webp");
 
                 return ResponseEntity.ok()
                         .contentType(mediaType)

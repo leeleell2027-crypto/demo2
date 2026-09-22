@@ -1,0 +1,614 @@
+﻿
+> Task :compileJava FAILED
+.\gradlew : D:\cursorAi\demo2\src\main\java\com\example\demo2
+\controller\AuthController.java:48: error: unmappable charact
+er (0xA4) for encoding UTF-8
+위치 줄:1 문자:1
++ .\gradlew compileJava --console=plain 2>&1 | Out-File compi
+le_error.t ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (D:\cursorAi\dem 
+   ... encoding UTF-8:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+            // Cookie ?占쎌젙
+                       ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\
+AuthController.java:51: error: unmappable character (0x98) fo
+r encoding UTF-8
+            cookie.setSecure(false); // 濡쒖뺄 ?占쎄꼍?占쏙옙?占?false,
+ ?占쎌쁺?占쎌꽌??true 沅뚯옣
+                                            ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\
+AuthController.java:51: error: unmappable character (0xB4) fo
+r encoding UTF-8
+            cookie.setSecure(false); // 濡쒖뺄 ?占쎄꼍?占쏙옙?占?false,
+ ?占쎌쁺?占쎌꽌??true 沅뚯옣
+                                               ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\
+AuthController.java:51: error: unmappable character (0xEB) fo
+r encoding UTF-8
+            cookie.setSecure(false); // 濡쒖뺄 ?占쎄꼍?占쏙옙?占?false,
+ ?占쎌쁺?占쎌꽌??true 沅뚯옣
+                                                ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\
+AuthController.java:51: error: unmappable character (0xEBA1) 
+for encoding UTF-8
+            cookie.setSecure(false); // 濡쒖뺄 ?占쎄꼍?占쏙옙?占?false,
+ ?占쎌쁺?占쎌꽌??true 沅뚯옣
+                                                  ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\
+AuthController.java:51: error: unmappable character (0xB4) fo
+r encoding UTF-8
+            cookie.setSecure(false); // 濡쒖뺄 ?占쎄꼍?占쏙옙?占?false,
+ ?占쎌쁺?占쎌꽌??true 沅뚯옣
+                                                            ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\
+AuthController.java:51: error: unmappable character (0x90) fo
+r encoding UTF-8
+            cookie.setSecure(false); // 濡쒖뺄 ?占쎄꼍?占쏙옙?占?false,
+ ?占쎌쁺?占쎌꽌??true 沅뚯옣
+                                                             
+  ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\
+AuthController.java:53: error: unmappable character (0x9C) fo
+r encoding UTF-8
+            cookie.setMaxAge(3600); // 1?占쎄컙
+                                         ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\
+AuthController.java:70: error: unmappable character (0xEAB8) 
+for encoding UTF-8
+        // SecurityContext 鍮꾩슦占?
+                             ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\
+AuthController.java:79: error: unmappable character (0xA0) fo
+r encoding UTF-8
+        // 荑좏궎 ??占쏙옙
+                ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\
+AuthController.java:79: error: unmappable character (0x9C) fo
+r encoding UTF-8
+        // 荑좏궎 ??占쏙옙
+                 ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\
+MemberController.java:58: error: unmappable character (0xEB) 
+for encoding UTF-8
+        // 鍮꾬옙?踰덊샇 泥섎━ 濡쒖쭅
+            ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\
+MemberController.java:61: error: unmappable character (0x85) 
+for encoding UTF-8
+            // ?占쎈젰???占쎌쑝占?湲곗〈 鍮꾬옙?踰덊샇 ?占쏙옙?
+                ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\
+MemberController.java:61: error: unmappable character (0x86) 
+for encoding UTF-8
+            // ?占쎈젰???占쎌쑝占?湲곗〈 鍮꾬옙?踰덊샇 ?占쏙옙?
+                     ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\
+MemberController.java:61: error: unmappable character (0xEBA9
+) for encoding UTF-8
+            // ?占쎈젰???占쎌쑝占?湲곗〈 鍮꾬옙?踰덊샇 ?占쏙옙?
+                       ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\
+MemberController.java:61: error: unmappable character (0xEB) 
+for encoding UTF-8
+            // ?占쎈젰???占쎌쑝占?湲곗〈 鍮꾬옙?踰덊샇 ?占쏙옙?
+                             ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\
+MemberController.java:61: error: unmappable character (0xA0) 
+for encoding UTF-8
+            // ?占쎈젰???占쎌쑝占?湲곗〈 鍮꾬옙?踰덊샇 ?占쏙옙?
+                                   ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\
+MemberController.java:61: error: unmappable character (0xEC) 
+for encoding UTF-8
+            // ?占쎈젰???占쎌쑝占?湲곗〈 鍮꾬옙?踰덊샇 ?占쏙옙?
+                                    ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\
+MemberController.java:64: error: unmappable character (0xEB) 
+for encoding UTF-8
+            // ??鍮꾬옙?踰덊샇媛 ?占쎈젰?占쎌뿀占? ?占쏙옙? ?占쎌떆???占쏀깭媛 ?占쎈땲
+?占쎈㈃ ?占쏀샇??
+                  ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\
+MemberController.java:64: error: unmappable character (0x85) 
+for encoding UTF-8
+            // ??鍮꾬옙?踰덊샇媛 ?占쎈젰?占쎌뿀占? ?占쏙옙? ?占쎌떆???占쏀깭媛 ?占쎈땲
+?占쎈㈃ ?占쏀샇??
+                         ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\
+MemberController.java:64: error: unmappable character (0x98) 
+for encoding UTF-8
+            // ??鍮꾬옙?踰덊샇媛 ?占쎈젰?占쎌뿀占? ?占쏙옙? ?占쎌떆???占쏀깭媛 ?占쎈땲
+?占쎈㈃ ?占쏀샇??
+                            ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\
+MemberController.java:64: error: unmappable character (0xEAB3
+) for encoding UTF-8
+            // ??鍮꾬옙?踰덊샇媛 ?占쎈젰?占쎌뿀占? ?占쏙옙? ?占쎌떆???占쏀깭媛 ?占쎈땲
+?占쎈㈃ ?占쏀샇??
+                              ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\
+MemberController.java:64: error: unmappable character (0xB4) 
+for encoding UTF-8
+            // ??鍮꾬옙?踰덊샇媛 ?占쎈젰?占쎌뿀占? ?占쏙옙? ?占쎌떆???占쏀깭媛 ?占쎈땲
+?占쎈㈃ ?占쏀샇??
+                                  ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\
+MemberController.java:64: error: unmappable character (0xEB) 
+for encoding UTF-8
+            // ??鍮꾬옙?踰덊샇媛 ?占쎈젰?占쎌뿀占? ?占쏙옙? ?占쎌떆???占쏀깭媛 ?占쎈땲
+?占쎈㈃ ?占쏀샇??
+                                   ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\
+MemberController.java:64: error: unmappable character (0xB4) 
+for encoding UTF-8
+            // ??鍮꾬옙?踰덊샇媛 ?占쎈젰?占쎌뿀占? ?占쏙옙? ?占쎌떆???占쏀깭媛 ?占쎈땲
+?占쎈㈃ ?占쏀샇??
+                                       ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\
+MemberController.java:64: error: unmappable character (0x95) 
+for encoding UTF-8
+            // ??鍮꾬옙?踰덊샇媛 ?占쎈젰?占쎌뿀占? ?占쏙옙? ?占쎌떆???占쏀깭媛 ?占쎈땲
+?占쎈㈃ ?占쏀샇??
+                                            ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\
+MemberController.java:64: error: unmappable character (0x84) 
+for encoding UTF-8
+            // ??鍮꾬옙?踰덊샇媛 ?占쎈젰?占쎌뿀占? ?占쏙옙? ?占쎌떆???占쏀깭媛 ?占쎈땲
+?占쎈㈃ ?占쏀샇??
+                                                 ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\
+MemberController.java:64: error: unmappable character (0xBC) 
+for encoding UTF-8
+            // ??鍮꾬옙?踰덊샇媛 ?占쎈젰?占쎌뿀占? ?占쏙옙? ?占쎌떆???占쏀깭媛 ?占쎈땲
+?占쎈㈃ ?占쏀샇??
+                                                    ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\
+MemberController.java:64: error: unmappable character (0x94) 
+for encoding UTF-8
+            // ??鍮꾬옙?踰덊샇媛 ?占쎈젰?占쎌뿀占? ?占쏙옙? ?占쎌떆???占쏀깭媛 ?占쎈땲
+?占쎈㈃ ?占쏀샇??
+                                                        ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\
+NoticeFileController.java:33: error: unmappable character (0x
+90) for encoding UTF-8
+                // ?占쎈낯 ?占쎌씪占?異붿텧 (UUID_ ?占쎄굅)
+                    ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\
+NoticeFileController.java:33: error: unmappable character (0x
+8C) for encoding UTF-8
+                // ?占쎈낯 ?占쎌씪占?異붿텧 (UUID_ ?占쎄굅)
+                        ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\
+NoticeFileController.java:33: error: unmappable character (0x
+EBAA) for encoding UTF-8
+                // ?占쎈낯 ?占쎌씪占?異붿텧 (UUID_ ?占쎄굅)
+                          ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\
+NoticeFileController.java:33: error: unmappable character (0x
+9C) for encoding UTF-8
+                // ?占쎈낯 ?占쎌씪占?異붿텧 (UUID_ ?占쎄굅)
+                                       ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\
+TradeHistoryController.java:67: error: unmappable character (
+0x8C) for encoding UTF-8
+            return ResponseEntity.ok(Map.of("message", "?占쎌씪?
+??占쎄났?占쎌쑝占??占쎈줈?占쎈릺?占쎌뒿?占쎈떎.", "success", true));
+                                                         ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\
+TradeHistoryController.java:67: error: unmappable character (
+0xB1) for encoding UTF-8
+            return ResponseEntity.ok(Map.of("message", "?占쎌씪?
+??占쎄났?占쎌쑝占??占쎈줈?占쎈릺?占쎌뒿?占쎈떎.", "success", true));
+                                                             
+ ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\
+TradeHistoryController.java:67: error: unmappable character (
+0x81) for encoding UTF-8
+            return ResponseEntity.ok(Map.of("message", "?占쎌씪?
+??占쎄났?占쎌쑝占??占쎈줈?占쎈릺?占쎌뒿?占쎈떎.", "success", true));
+                                                             
+    ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\
+TradeHistoryController.java:67: error: unmappable character (
+0xEBA1) for encoding UTF-8
+            return ResponseEntity.ok(Map.of("message", "?占쎌씪?
+??占쎄났?占쎌쑝占??占쎈줈?占쎈릺?占쎌뒿?占쎈떎.", "success", true));
+                                                             
+      ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\
+TradeHistoryController.java:67: error: unmappable character (
+0x85) for encoding UTF-8
+            return ResponseEntity.ok(Map.of("message", "?占쎌씪?
+??占쎄났?占쎌쑝占??占쎈줈?占쎈릺?占쎌뒿?占쎈떎.", "success", true));
+                                                             
+         ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\
+TradeHistoryController.java:67: error: unmappable character (
+0x9C) for encoding UTF-8
+            return ResponseEntity.ok(Map.of("message", "?占쎌씪?
+??占쎄났?占쎌쑝占??占쎈줈?占쎈릺?占쎌뒿?占쎈떎.", "success", true));
+                                                             
+            ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\
+TradeHistoryController.java:67: error: unmappable character (
+0x88) for encoding UTF-8
+            return ResponseEntity.ok(Map.of("message", "?占쎌씪?
+??占쎄났?占쎌쑝占??占쎈줈?占쎈릺?占쎌뒿?占쎈떎.", "success", true));
+                                                             
+               ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\
+TradeHistoryController.java:67: error: unmappable character (
+0x88) for encoding UTF-8
+            return ResponseEntity.ok(Map.of("message", "?占쎌씪?
+??占쎄났?占쎌쑝占??占쎈줈?占쎈릺?占쎌뒿?占쎈떎.", "success", true));
+                                                             
+                  ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\
+TradeHistoryController.java:71: error: unmappable character (
+0x8C) for encoding UTF-8
+                    .body(Map.of("message", "?占쎌씪 ?占쎈줈??占??占쎈
+쪟媛 諛쒖깮?占쎌뒿?占쎈떎: " + e.getMessage(), "success", false));
+                                              ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\
+TradeHistoryController.java:71: error: unmappable character (
+0x85) for encoding UTF-8
+                    .body(Map.of("message", "?占쎌씪 ?占쎈줈??占??占쎈
+쪟媛 諛쒖깮?占쎌뒿?占쎈떎: " + e.getMessage(), "success", false));
+                                                  ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\
+TradeHistoryController.java:71: error: unmappable character (
+0xECA4) for encoding UTF-8
+                    .body(Map.of("message", "?占쎌씪 ?占쎈줈??占??占쎈
+쪟媛 諛쒖깮?占쎌뒿?占쎈떎: " + e.getMessage(), "success", false));
+                                                      ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\
+TradeHistoryController.java:71: error: unmappable character (
+0xA4) for encoding UTF-8
+                    .body(Map.of("message", "?占쎌씪 ?占쎈줈??占??占쎈
+쪟媛 諛쒖깮?占쎌뒿?占쎈떎: " + e.getMessage(), "success", false));
+                                                         ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\
+TradeHistoryController.java:71: error: unmappable character (
+0x88) for encoding UTF-8
+                    .body(Map.of("message", "?占쎌씪 ?占쎈줈??占??占쎈
+쪟媛 諛쒖깮?占쎌뒿?占쎈떎: " + e.getMessage(), "success", false));
+                                                             
+   ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\
+TradeHistoryController.java:71: error: unmappable character (
+0x88) for encoding UTF-8
+                    .body(Map.of("message", "?占쎌씪 ?占쎈줈??占??占쎈
+쪟媛 諛쒖깮?占쎌뒿?占쎈떎: " + e.getMessage(), "success", false));
+                                                             
+      ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\
+TradeHistoryController.java:79: error: unmappable character (
+0xB4) for encoding UTF-8
+            return ResponseEntity.ok(Map.of("message", "紐⑤뱺 嫄
+곕옒 ?占쎌뿭????占쏙옙?占쎌뿀?占쎈땲??", "success", true));
+                                                             
+  ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\
+TradeHistoryController.java:79: error: unmappable character (
+0xA0) for encoding UTF-8
+            return ResponseEntity.ok(Map.of("message", "紐⑤뱺 嫄
+곕옒 ?占쎌뿭????占쏙옙?占쎌뿀?占쎈땲??", "success", true));
+                                                             
+        ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\
+TradeHistoryController.java:79: error: unmappable character (
+0x9C) for encoding UTF-8
+            return ResponseEntity.ok(Map.of("message", "紐⑤뱺 嫄
+곕옒 ?占쎌뿭????占쏙옙?占쎌뿀?占쎈땲??", "success", true));
+                                                             
+         ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\
+TradeHistoryController.java:79: error: unmappable character (
+0x98) for encoding UTF-8
+            return ResponseEntity.ok(Map.of("message", "紐⑤뱺 嫄
+곕옒 ?占쎌뿭????占쏙옙?占쎌뿀?占쎈땲??", "success", true));
+                                                             
+           ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\
+TradeHistoryController.java:79: error: unmappable character (
+0xB5) for encoding UTF-8
+            return ResponseEntity.ok(Map.of("message", "紐⑤뱺 嫄
+곕옒 ?占쎌뿭????占쏙옙?占쎌뿀?占쎈땲??", "success", true));
+                                                             
+              ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\
+TradeHistoryController.java:82: error: unmappable character (
+0xA0) for encoding UTF-8
+                    .body(Map.of("message", "??占쏙옙 占??占쎈쪟媛 諛
+쒖깮?占쎌뒿?占쎈떎.", "success", false));
+                                               ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\
+TradeHistoryController.java:82: error: unmappable character (
+0x9C) for encoding UTF-8
+                    .body(Map.of("message", "??占쏙옙 占??占쎈쪟媛 諛
+쒖깮?占쎌뒿?占쎈떎.", "success", false));
+                                                ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\
+TradeHistoryController.java:82: error: unmappable character (
+0xECA4) for encoding UTF-8
+                    .body(Map.of("message", "??占쏙옙 占??占쎈쪟媛 諛
+쒖깮?占쎌뒿?占쎈떎.", "success", false));
+                                                  ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\
+TradeHistoryController.java:82: error: unmappable character (
+0xA4) for encoding UTF-8
+                    .body(Map.of("message", "??占쏙옙 占??占쎈쪟媛 諛
+쒖깮?占쎌뒿?占쎈떎.", "success", false));
+                                                     ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\
+TradeHistoryController.java:82: error: unmappable character (
+0x88) for encoding UTF-8
+                    .body(Map.of("message", "??占쏙옙 占??占쎈쪟媛 諛
+쒖깮?占쎌뒿?占쎈떎.", "success", false));
+                                                            ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\controller\
+TradeHistoryController.java:82: error: unmappable character (
+0x88) for encoding UTF-8
+                    .body(Map.of("message", "??占쏙옙 占??占쎈쪟媛 諛
+쒖깮?占쎌뒿?占쎈떎.", "success", false));
+                                                             
+  ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\model\Trade
+History.java:8: error: unmappable character (0x9C) for encodi
+ng UTF-8
+    private String executedAt; // 泥닿껐?占쎄컙
+                                     ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\model\Trade
+History.java:12: error: unmappable character (0x98) for encod
+ing UTF-8
+    private String quantity; // 嫄곕옒?占쎈웾
+                                   ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\model\Trade
+History.java:13: error: unmappable character (0xA8) for encod
+ing UTF-8
+    private String price; // 嫄곕옒?占쏙옙?
+                                ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\model\Trade
+History.java:13: error: unmappable character (0xEA) for encod
+ing UTF-8
+    private String price; // 嫄곕옒?占쏙옙?
+                                 ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\model\Trade
+History.java:15: error: unmappable character (0x98) for encod
+ing UTF-8
+    private String fee; // ?占쎌닔占?
+                            ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\model\Trade
+History.java:15: error: unmappable character (0xEBA3) for enc
+oding UTF-8
+    private String fee; // ?占쎌닔占?
+                              ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\model\Trade
+History.java:16: error: unmappable character (0x95) for encod
+ing UTF-8
+    private String settlementAmount; // ?占쎌궛湲덉븸
+                                         ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\model\Trade
+History.java:17: error: unmappable character (0x9C) for encod
+ing UTF-8
+    private String orderedAt; // 二쇰Ц?占쎄컙
+                                    ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\service\Boa
+rdService.java:20: error: unmappable character (0xB4) for enc
+oding UTF-8
+    // ?占쏙옙?吏 ?占??寃쎈줈 (?占쎈줈?占쏀듃 猷⑦듃??uploads ?占쎈뜑)
+        ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\service\Boa
+rdService.java:20: error: unmappable character (0xEB) for enc
+oding UTF-8
+    // ?占쏙옙?吏 ?占??寃쎈줈 (?占쎈줈?占쏀듃 猷⑦듃??uploads ?占쎈뜑)
+         ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\service\Boa
+rdService.java:20: error: unmappable character (0x80) for enc
+oding UTF-8
+    // ?占쏙옙?吏 ?占??寃쎈줈 (?占쎈줈?占쏀듃 猷⑦듃??uploads ?占쎈뜑)
+              ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\service\Boa
+rdService.java:20: error: unmappable character (0x84) for enc
+oding UTF-8
+    // ?占쏙옙?吏 ?占??寃쎈줈 (?占쎈줈?占쏀듃 猷⑦듃??uploads ?占쎈뜑)
+                      ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\service\Boa
+rdService.java:20: error: unmappable character (0x9D) for enc
+oding UTF-8
+    // ?占쏙옙?吏 ?占??寃쎈줈 (?占쎈줈?占쏀듃 猷⑦듃??uploads ?占쎈뜑)
+                         ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\service\Boa
+rdService.java:20: error: unmappable character (0xB4) for enc
+oding UTF-8
+    // ?占쏙옙?吏 ?占??寃쎈줈 (?占쎈줈?占쏀듃 猷⑦듃??uploads ?占쎈뜑)
+                                         ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\service\Boa
+rdService.java:63: error: unmappable character (0xB4) for enc
+oding UTF-8
+            // ?占쎈뜑 ?占쎌꽦
+                ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\service\Boa
+rdService.java:63: error: unmappable character (0x9D) for enc
+oding UTF-8
+            // ?占쎈뜑 ?占쎌꽦
+                    ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\service\Boa
+rdService.java:69: error: unmappable character (0x8C) for enc
+oding UTF-8
+            // ?占쎌씪占?以묐났 諛⑼옙? (UUID)
+                ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\service\Boa
+rdService.java:69: error: unmappable character (0xEBAA) for e
+ncoding UTF-8
+            // ?占쎌씪占?以묐났 諛⑼옙? (UUID)
+                  ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\service\Boa
+rdService.java:69: error: unmappable character (0xEC) for enc
+oding UTF-8
+            // ?占쎌씪占?以묐났 諛⑼옙? (UUID)
+                        ^
+
+[Incubating] Problems report is available at: file:///D:/cursorAi/demo2/build/reports/problems/problems-report.html
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 10.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/9.3.1/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+1 actionable task: 1 executed
+D:\cursorAi\demo2\src\main\java\com\example\demo2\service\Boa
+rdService.java:79: error: unmappable character (0x8C) for enc
+oding UTF-8
+            // ?占쎌씪 ?占??
+                ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\service\Boa
+rdService.java:79: error: unmappable character (0x80) for enc
+oding UTF-8
+            // ?占쎌씪 ?占??
+                    ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\service\Boa
+rdService.java:83: error: unmappable character (0xB4) for enc
+oding UTF-8
+            // ?占쏙옙?吏 URL ?占쎌젙 (?占쎈씪?占쎌뼵???占쎄렐??
+                ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\service\Boa
+rdService.java:83: error: unmappable character (0xEB) for enc
+oding UTF-8
+            // ?占쏙옙?吏 URL ?占쎌젙 (?占쎈씪?占쎌뼵???占쎄렐??
+                 ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\service\Boa
+rdService.java:83: error: unmappable character (0xA4) for enc
+oding UTF-8
+            // ?占쏙옙?吏 URL ?占쎌젙 (?占쎈씪?占쎌뼵???占쎄렐??
+                          ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\service\Boa
+rdService.java:83: error: unmappable character (0xB4) for enc
+oding UTF-8
+            // ?占쏙옙?吏 URL ?占쎌젙 (?占쎈씪?占쎌뼵???占쎄렐??
+                               ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\service\Boa
+rdService.java:83: error: unmappable character (0xB4) for enc
+oding UTF-8
+            // ?占쏙옙?吏 URL ?占쎌젙 (?占쎈씪?占쎌뼵???占쎄렐??
+                                  ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\service\Boa
+rdService.java:83: error: unmappable character (0x91) for enc
+oding UTF-8
+            // ?占쏙옙?吏 URL ?占쎌젙 (?占쎈씪?占쎌뼵???占쎄렐??
+                                       ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\service\Bul
+kJobService.java:34: error: unmappable character (0xAB) for e
+ncoding UTF-8
+   * XLSX ???占쏀깵??1?????占쎌맠):
+             ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\service\Bul
+kJobService.java:34: error: unmappable character (0xB3) for e
+ncoding UTF-8
+   * XLSX ???占쏀깵??1?????占쎌맠):
+                       ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\service\Bul
+kJobService.java:38: error: unmappable character (0x9B) for e
+ncoding UTF-8
+   * - PRICE: value=???瑗삥뤆?占승(int) (?????????optionSku??????
+嶺뚯솘???
+                          ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\service\Not
+iceService.java:51: error: unmappable character (0xEAB0) for 
+encoding UTF-8
+        // ref, step, depth 珥덇린占?(?占쏙옙???寃쎌슦)
+                              ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\service\Not
+iceService.java:51: error: unmappable character (0x90) for en
+coding UTF-8
+        // ref, step, depth 珥덇린占?(?占쏙옙???寃쎌슦)
+                                  ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\service\Not
+iceService.java:51: error: unmappable character (0xEA) for en
+coding UTF-8
+        // ref, step, depth 珥덇린占?(?占쏙옙???寃쎌슦)
+                                   ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\service\Not
+iceService.java:52: error: unmappable character (0x84) for en
+coding UTF-8
+        notice.setRef(0); // ?占쎌떆占?
+                              ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\service\Not
+iceService.java:52: error: unmappable character (0xEAB0) for 
+encoding UTF-8
+        notice.setRef(0); // ?占쎌떆占?
+                                ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\service\Not
+iceService.java:57: error: unmappable character (0xEBA5) for 
+encoding UTF-8
+        noticeMapper.updateRef(notice.getId()); // ref占??占쎌떊?
+?id占??占쎈뜲?占쏀듃
+                                                      ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\service\Not
+iceService.java:57: error: unmappable character (0x90) for en
+coding UTF-8
+        noticeMapper.updateRef(notice.getId()); // ref占??占쎌떊?
+?id占??占쎈뜲?占쏀듃
+                                                         ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\service\Not
+iceService.java:57: error: unmappable character (0xEBA1) for 
+encoding UTF-8
+        noticeMapper.updateRef(notice.getId()); // ref占??占쎌떊?
+?id占??占쎈뜲?占쏀듃
+                                                             
+  ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\service\Not
+iceService.java:57: error: unmappable character (0x85) for en
+coding UTF-8
+        noticeMapper.updateRef(notice.getId()); // ref占??占쎌떊?
+?id占??占쎈뜲?占쏀듃
+                                                             
+     ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\service\Not
+iceService.java:57: error: unmappable character (0xB4) for en
+coding UTF-8
+        noticeMapper.updateRef(notice.getId()); // ref占??占쎌떊?
+?id占??占쎈뜲?占쏀듃
+                                                             
+        ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\service\Not
+iceService.java:66: error: unmappable character (0x90) for en
+coding UTF-8
+            throw new RuntimeException("?占쏙옙???李얠쓣 ???占쎌뒿?占쎈떎
+.");
+                                         ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\service\Not
+iceService.java:66: error: unmappable character (0xEA) for en
+coding UTF-8
+            throw new RuntimeException("?占쏙옙???李얠쓣 ???占쎌뒿?占쎈떎
+.");
+                                          ^
+D:\cursorAi\demo2\src\main\java\com\example\demo2\service\Tra
+deHistoryService.java:194: error: unclosed string literal
+                        history.setFee(csvRecord.get("?占쎌닔占?)
+);
+                                                     ^
+101 errors
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':compileJava'.
+> Compilation failed; see the compiler output below.
+  D:\cursorAi\demo2\src\main\java\com\example\demo2\controlle
+r\AuthController.java:48: error: unmappable character (0xA4) 
+for encoding UTF-8
+              // Cookie ?占쎌젙
+                         ^
+  101 errors
+
+* Try:
+> Check your code and dependencies to fix the compilation err
+or(s)
+> Run with --scan to get full insights from a Build Scan (pow
+ered by Develocity).
+
+BUILD FAILED in 2s
