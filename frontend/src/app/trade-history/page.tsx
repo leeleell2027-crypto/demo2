@@ -68,6 +68,16 @@ export default function TradeHistoryPage() {
     };
 
     useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const params = new URLSearchParams(window.location.search);
+            const view = params.get('view');
+            if (view === 'btc' || view === 'chart' || view === 'table') {
+                setViewMode(view);
+            }
+        }
+    }, []);
+
+    useEffect(() => {
         fetchHistories(page);
     }, [page, size]);
 
@@ -252,19 +262,28 @@ export default function TradeHistoryPage() {
                         <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
                             <div className="glass-panel" style={{ display: 'flex', padding: '4px', borderRadius: '12px' }}>
                                 <button
-                                    onClick={() => setViewMode('table')}
+                                    onClick={() => {
+                                        setViewMode('table');
+                                        if (typeof window !== 'undefined') window.history.replaceState(null, '', '/trade-history');
+                                    }}
                                     className={`tab-btn ${viewMode === 'table' ? 'active' : ''}`}
                                 >
                                     <Table size={16} /> Table
                                 </button>
                                 <button
-                                    onClick={() => setViewMode('chart')}
+                                    onClick={() => {
+                                        setViewMode('chart');
+                                        if (typeof window !== 'undefined') window.history.replaceState(null, '', '/trade-history?view=chart');
+                                    }}
                                     className={`tab-btn ${viewMode === 'chart' ? 'active' : ''}`}
                                 >
                                     <BarChart2 size={16} /> Stats
                                 </button>
                                 <button
-                                    onClick={() => setViewMode('btc')}
+                                    onClick={() => {
+                                        setViewMode('btc');
+                                        if (typeof window !== 'undefined') window.history.replaceState(null, '', '/trade-history?view=btc');
+                                    }}
                                     className={`tab-btn ${viewMode === 'btc' ? 'active' : ''}`}
                                 >
                                     <RefreshCw size={16} /> BTC
@@ -272,10 +291,10 @@ export default function TradeHistoryPage() {
                                 <Link
                                     href="/trade-summary"
                                     className="tab-btn"
-                                    style={{ textDecoration: 'none', color: 'var(--primary)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}
+                                    style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '6px' }}
                                     title="분할 체결 블록을 동일 주문 및 시간대별로 합산하여 확인합니다."
                                 >
-                                    <Layers size={16} /> 주문/시간별 합산 (New)
+                                    <Layers size={16} /> 주문/시간별 합산
                                 </Link>
                             </div>
 

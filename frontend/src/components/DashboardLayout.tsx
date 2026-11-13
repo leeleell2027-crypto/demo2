@@ -161,7 +161,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
     // Sync activeCategory with pathname
     useEffect(() => {
-        const cat = filteredCategories.find((c: Category) => c.items.some((item: NavItem) => pathname.startsWith(item.href)));
+        const cat = filteredCategories.find((c: Category) => c.items.some((item: NavItem) => pathname.startsWith(item.href) || (item.href === '/trade-history' && pathname.startsWith('/trade-summary'))));
         if (cat) {
             setActiveCategory(cat.id);
         } else if (filteredCategories.length > 0 && !filteredCategories.find((c: Category) => c.id === activeCategory)) {
@@ -186,7 +186,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
     // Sync active tab with pathname
     useEffect(() => {
-        const currentTab = tabs.find(t => t.href === pathname);
+        const currentTab = tabs.find(t => t.href === pathname || (t.href === '/trade-history' && (pathname.startsWith('/trade-summary') || pathname.startsWith('/trade-history/summary'))));
         if (currentTab) {
             setActiveTab(currentTab.id);
         }
@@ -454,7 +454,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                             {currentCategory?.items.map((item: NavItem) => {
-                                const isActive = pathname === item.href;
+                                const isActive = pathname === item.href || (item.href === '/trade-history' && (pathname.startsWith('/trade-summary') || pathname.startsWith('/trade-history/summary')));
                                 return (
                                     <div 
                                         key={item.href} 

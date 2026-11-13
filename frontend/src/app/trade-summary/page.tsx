@@ -415,7 +415,7 @@ export default function TradeSummaryPage() {
                                     <Table size={20} />
                                     <span style={{ fontWeight: 600, fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Financial</span>
                                 </div>
-                                <h1 className="header-title" style={{ fontSize: '2.5rem', margin: 0 }}>Trade Summary</h1>
+                                <h1 className="header-title" style={{ fontSize: '2.5rem', margin: 0 }}>Trade History</h1>
                             </div>
                         </div>
 
@@ -430,14 +430,14 @@ export default function TradeSummaryPage() {
                                     <Table size={16} /> Table
                                 </Link>
                                 <Link
-                                    href="/trade-history"
+                                    href="/trade-history?view=chart"
                                     className="tab-btn"
                                     style={{ textDecoration: 'none' }}
                                 >
                                     <BarChart2 size={16} /> Stats
                                 </Link>
                                 <Link
-                                    href="/trade-history"
+                                    href="/trade-history?view=btc"
                                     className="tab-btn"
                                     style={{ textDecoration: 'none' }}
                                 >
@@ -445,9 +445,9 @@ export default function TradeSummaryPage() {
                                 </Link>
                                 <button
                                     className="tab-btn active"
-                                    style={{ color: 'var(--primary)', fontWeight: 700 }}
+                                    style={{ color: 'var(--primary)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px' }}
                                 >
-                                    <Layers size={16} /> 주문/시간별 합산 (New)
+                                    <Layers size={16} /> 주문/시간별 합산
                                 </button>
                             </div>
 
