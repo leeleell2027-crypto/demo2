@@ -167,7 +167,8 @@ INSERT INTO menus (id, name, url, icon, sort_order) VALUES (1, 'Financial', null
 INSERT INTO menus (parent_id, name, url, icon, sort_order) VALUES (1, 'Transactions', '/transactions', 'CreditCard', 1);
 INSERT INTO menus (parent_id, name, url, icon, sort_order) VALUES (1, 'Notice', '/notice', 'Hash', 2);
 INSERT INTO menus (parent_id, name, url, icon, sort_order) VALUES (1, 'Trade History', '/trade-history', 'Wallet', 3);
-INSERT INTO menus (parent_id, name, url, icon, sort_order) VALUES (1, 'Coin Status', '/coin-status', 'LayoutDashboard', 4);
+INSERT INTO menus (parent_id, name, url, icon, sort_order) VALUES (1, 'Trade Summary', '/trade-summary', 'Layers', 4);
+INSERT INTO menus (parent_id, name, url, icon, sort_order) VALUES (1, 'Coin Status', '/coin-status', 'LayoutDashboard', 5);
 
 -- Asset
 INSERT INTO menus (id, name, url, icon, sort_order) VALUES (6, 'Asset', null, 'Image', 2);

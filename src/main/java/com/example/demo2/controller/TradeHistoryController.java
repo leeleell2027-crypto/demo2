@@ -72,6 +72,25 @@ public class TradeHistoryController {
         }
     }
 
+    @GetMapping("/raw-list")
+    public ResponseEntity<List<com.example.demo2.model.TradeHistory>> getAllFilteredTradeHistories(
+            @RequestParam(required = false) String startDate,
+            @RequestParam(required = false) String endDate,
+            @RequestParam(required = false) String coin,
+            @RequestParam(required = false) String side) {
+        return ResponseEntity.ok(tradeHistoryService.getAllFilteredTradeHistories(startDate, endDate, coin, side));
+    }
+
+    @GetMapping("/grouped")
+    public ResponseEntity<List<com.example.demo2.model.TradeGroupSummaryDto>> getGroupedTradeHistories(
+            @RequestParam(required = false) String startDate,
+            @RequestParam(required = false) String endDate,
+            @RequestParam(required = false) String coin,
+            @RequestParam(required = false) String side,
+            @RequestParam(defaultValue = "orderedAt") String window) {
+        return ResponseEntity.ok(tradeHistoryService.getGroupedTradeHistories(startDate, endDate, coin, side, window));
+    }
+
     @DeleteMapping("/all")
     public ResponseEntity<?> deleteAllTradeHistories() {
         try {

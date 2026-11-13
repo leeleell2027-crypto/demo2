@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Upload, Trash2, ArrowLeft, RefreshCw, Table, BarChart2, ChevronLeft, ChevronRight, ChevronUp, ChevronDown } from 'lucide-react';
+import { Upload, Trash2, ArrowLeft, RefreshCw, Table, BarChart2, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, Layers } from 'lucide-react';
 import Link from 'next/link';
 import Pagination from '@/components/Pagination';
 
@@ -269,6 +269,14 @@ export default function TradeHistoryPage() {
                                 >
                                     <RefreshCw size={16} /> BTC
                                 </button>
+                                <Link
+                                    href="/trade-summary"
+                                    className="tab-btn"
+                                    style={{ textDecoration: 'none', color: 'var(--primary)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}
+                                    title="분할 체결 블록을 동일 주문 및 시간대별로 합산하여 확인합니다."
+                                >
+                                    <Layers size={16} /> 주문/시간별 합산 (New)
+                                </Link>
                             </div>
 
                             <div style={{ display: 'flex', gap: '8px' }}>
@@ -304,6 +312,37 @@ export default function TradeHistoryPage() {
                             </div>
                         </div>
                     </div>
+
+                    {/* Banner to Aggregated Summary Page */}
+                    {viewMode === 'table' && (
+                        <div style={{
+                            padding: '12px 18px',
+                            background: 'rgba(99, 102, 241, 0.1)',
+                            border: '1px solid rgba(99, 102, 241, 0.25)',
+                            borderRadius: '12px',
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            marginBottom: '16px',
+                            flexWrap: 'wrap',
+                            gap: '12px'
+                        }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.9rem' }}>
+                                <span style={{ fontSize: '1.2rem' }}>💡</span>
+                                <div>
+                                    <span style={{ fontWeight: 600, color: 'var(--text-main)' }}>분할 체결(블록구매) 내역을 합쳐서 보고 싶으신가요?</span>
+                                    <span style={{ color: 'var(--text-muted)', marginLeft: '8px' }}>동일 주문 및 특정 시간 범위별로 묶어 실제 총 매수 금액과 수량을 확인하세요.</span>
+                                </div>
+                            </div>
+                            <Link
+                                href="/trade-summary"
+                                className="btn btn-primary"
+                                style={{ color: '#fff', fontSize: '0.82rem', padding: '6px 14px', textDecoration: 'none', whiteSpace: 'nowrap' }}
+                            >
+                                주문/시간별 합산 페이지 이동 →
+                            </Link>
+                        </div>
+                    )}
 
                     {/* Filter Section (Row 2) */}
                     {viewMode !== 'btc' && (

@@ -272,4 +272,192 @@ public class TradeHistoryService {
     public void truncateTradeHistory() {
         tradeHistoryMapper.truncateTradeHistory();
     }
+
+    public List<TradeHistory> getAllFilteredTradeHistories(String startDate, String endDate, String coin, String side) {
+        if (startDate != null && !startDate.isEmpty() && !startDate.contains(" ")) {
+            startDate = startDate + " 00:00:00";
+        }
+        if (endDate != null && !endDate.isEmpty() && !endDate.contains(" ")) {
+            endDate = endDate + " 23:59:59";
+        }
+        return tradeHistoryMapper.getTradeHistories(startDate, endDate, coin, side, 0, 0);
+    }
+
+    public List<com.example.demo2.model.TradeGroupSummaryDto> getGroupedTradeHistories(
+            String startDate, String endDate, String coin, String side, String window) {
+        List<TradeHistory> rawList = getAllFilteredTradeHistories(startDate, endDate, coin, side);
+        if (rawList == null || rawList.isEmpty()) {
+            return java.util.Collections.emptyList();
+        }
+
+        // Sort chronologically ascending for clustering (earliest to latest)
+        rawList.sort((a, b) -> {
+            String timeA = a.getExecutedAt() != null ? a.getExecutedAt() : (a.getOrderedAt() != null ? a.getOrderedAt() : "");
+            String timeB = b.getExecutedAt() != null ? b.getExecutedAt() : (b.getOrderedAt() != null ? b.getOrderedAt() : "");
+            return timeA.compareTo(timeB);
+        });
+
+        long windowMillis = parseWindowToMillis(window);
+        boolean isOrderedAtMode = "orderedAt".equalsIgnoreCase(window) || window == null || window.isEmpty();
+        boolean isDayMode = "day".equalsIgnoreCase(window);
+        boolean isAllMode = "all".equalsIgnoreCase(window);
+
+        List<com.example.demo2.model.TradeGroupSummaryDto> groups = new ArrayList<>();
+
+        for (TradeHistory th : rawList) {
+            String coinName = th.getCoin() != null ? th.getCoin() : "";
+            String market = th.getMarket() != null ? th.getMarket() : "";
+            String s = th.getSide() != null ? th.getSide() : "";
+            String orderedAt = th.getOrderedAt() != null ? th.getOrderedAt().trim() : "";
+            String executedAt = th.getExecutedAt() != null ? th.getExecutedAt().trim() : orderedAt;
+
+            double qty = parseDoubleSafe(th.getQuantity());
+            double price = parseDoubleSafe(th.getPrice());
+            double amount = parseDoubleSafe(th.getTotalAmount());
+            if (amount <= 0 && qty > 0 && price > 0) {
+                amount = qty * price;
+            }
+            double fee = parseDoubleSafe(th.getFee());
+            double settlement = parseDoubleSafe(th.getSettlementAmount());
+            if (settlement <= 0 && amount > 0) {
+                settlement = amount;
+            }
+
+            long execMillis = parseDateToMillis(executedAt);
+            com.example.demo2.model.TradeGroupSummaryDto matchedGroup = null;
+
+            if (isAllMode) {
+                for (com.example.demo2.model.TradeGroupSummaryDto g : groups) {
+                    if (g.getCoin().equals(coinName) && g.getMarket().equals(market) && g.getSide().equals(s)) {
+                        matchedGroup = g;
+                        break;
+                    }
+                }
+            } else if (isDayMode) {
+                String dayKey = executedAt.length() >= 10 ? executedAt.substring(0, 10) : "";
+                for (com.example.demo2.model.TradeGroupSummaryDto g : groups) {
+                    String gDay = g.getFirstExecutedAt() != null && g.getFirstExecutedAt().length() >= 10 ? g.getFirstExecutedAt().substring(0, 10) : "";
+                    if (gDay.equals(dayKey) && g.getCoin().equals(coinName) && g.getMarket().equals(market) && g.getSide().equals(s)) {
+                        matchedGroup = g;
+                        break;
+                    }
+                }
+            } else if (isOrderedAtMode) {
+                for (com.example.demo2.model.TradeGroupSummaryDto g : groups) {
+                    if (g.getCoin().equals(coinName) && g.getMarket().equals(market) && g.getSide().equals(s)) {
+                        if (!orderedAt.isEmpty() && orderedAt.equals(g.getOrderedAt())) {
+                            matchedGroup = g;
+                            break;
+                        }
+                    }
+                }
+            } else {
+                for (int i = groups.size() - 1; i >= 0; i--) {
+                    com.example.demo2.model.TradeGroupSummaryDto g = groups.get(i);
+                    if (g.getCoin().equals(coinName) && g.getMarket().equals(market) && g.getSide().equals(s)) {
+                        long lastExecMillis = parseDateToMillis(g.getLastExecutedAt());
+                        if (Math.abs(execMillis - lastExecMillis) <= windowMillis) {
+                            matchedGroup = g;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (matchedGroup != null) {
+                matchedGroup.setTradeCount(matchedGroup.getTradeCount() + 1);
+                matchedGroup.setTotalQuantity(matchedGroup.getTotalQuantity() + qty);
+                matchedGroup.setTotalAmount(matchedGroup.getTotalAmount() + amount);
+                matchedGroup.setTotalFee(matchedGroup.getTotalFee() + fee);
+                matchedGroup.setTotalSettlementAmount(matchedGroup.getTotalSettlementAmount() + settlement);
+                if (price > 0) {
+                    matchedGroup.setMinPrice(Math.min(matchedGroup.getMinPrice(), price));
+                    matchedGroup.setMaxPrice(Math.max(matchedGroup.getMaxPrice(), price));
+                }
+                if (executedAt.compareTo(matchedGroup.getLastExecutedAt()) > 0) {
+                    matchedGroup.setLastExecutedAt(executedAt);
+                }
+                if (executedAt.compareTo(matchedGroup.getFirstExecutedAt()) < 0) {
+                    matchedGroup.setFirstExecutedAt(executedAt);
+                }
+                matchedGroup.getTrades().add(th);
+            } else {
+                com.example.demo2.model.TradeGroupSummaryDto newGroup = com.example.demo2.model.TradeGroupSummaryDto.builder()
+                        .id(java.util.UUID.randomUUID().toString())
+                        .coin(coinName)
+                        .market(market)
+                        .side(s)
+                        .orderedAt(orderedAt.isEmpty() ? executedAt : orderedAt)
+                        .firstExecutedAt(executedAt)
+                        .lastExecutedAt(executedAt)
+                        .tradeCount(1)
+                        .totalQuantity(qty)
+                        .totalAmount(amount)
+                        .totalFee(fee)
+                        .totalSettlementAmount(settlement)
+                        .minPrice(price)
+                        .maxPrice(price)
+                        .trades(new ArrayList<>(List.of(th)))
+                        .build();
+                groups.add(newGroup);
+            }
+        }
+
+        for (com.example.demo2.model.TradeGroupSummaryDto g : groups) {
+            if (g.getTotalQuantity() > 0) {
+                g.setAvgPrice(g.getTotalAmount() / g.getTotalQuantity());
+            } else {
+                g.setAvgPrice(0.0);
+            }
+        }
+
+        groups.sort((a, b) -> b.getLastExecutedAt().compareTo(a.getLastExecutedAt()));
+        return groups;
+    }
+
+    private long parseWindowToMillis(String window) {
+        if (window == null || window.isEmpty()) return 0;
+        String w = window.toLowerCase().trim();
+        try {
+            if (w.endsWith("s")) {
+                return Long.parseLong(w.replace("s", "")) * 1000L;
+            } else if (w.endsWith("m")) {
+                return Long.parseLong(w.replace("m", "")) * 60 * 1000L;
+            } else if (w.endsWith("h")) {
+                return Long.parseLong(w.replace("h", "")) * 3600 * 1000L;
+            } else if (w.endsWith("d")) {
+                return Long.parseLong(w.replace("d", "")) * 86400 * 1000L;
+            }
+        } catch (Exception ignored) {}
+        return 60 * 1000L;
+    }
+
+    private double parseDoubleSafe(String val) {
+        if (val == null || val.trim().isEmpty()) return 0.0;
+        try {
+            return Double.parseDouble(val.replace(",", "").trim());
+        } catch (Exception e) {
+            return 0.0;
+        }
+    }
+
+    private long parseDateToMillis(String dateStr) {
+        if (dateStr == null || dateStr.trim().isEmpty()) return 0L;
+        String cleaned = dateStr.trim().replace("T", " ");
+        String[] patterns = {
+            "yyyy-MM-dd HH:mm:ss",
+            "yyyy-MM-dd HH:mm",
+            "yyyy-MM-dd",
+            "yyyy/MM/dd HH:mm:ss",
+            "yyyy.MM.dd HH:mm:ss"
+        };
+        for (String p : patterns) {
+            try {
+                SimpleDateFormat sdf = new SimpleDateFormat(p);
+                sdf.setLenient(true);
+                return sdf.parse(cleaned).getTime();
+            } catch (Exception ignored) {}
+        }
+        return 0L;
+    }
 }
