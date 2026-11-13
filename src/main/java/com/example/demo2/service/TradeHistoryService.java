@@ -169,7 +169,7 @@ public class TradeHistoryService {
                                 .build())) {
 
             List<TradeHistory> tradeHistories = new ArrayList<>();
-         
+
             for (CSVRecord csvRecord : csvParser) {
                 // Determine headers or just rely on indices if headers don't strictly match
                 // For safety and compatibility, we can read by index if the format is fixed,
@@ -180,7 +180,7 @@ public class TradeHistoryService {
                 // Usually headers are exact strings like "泥닿껐?占쎄컙"
                 // To be robust, if headers might slightly differ, we parse by index or try to
                 // map.
-                // Assuming standard 
+                // Assuming standard
                 if (csvRecord.size() >= 10) {
                     // Try to get by header name, fallback to index
                     try {
@@ -292,8 +292,10 @@ public class TradeHistoryService {
 
         // Sort chronologically ascending for clustering (earliest to latest)
         rawList.sort((a, b) -> {
-            String timeA = a.getExecutedAt() != null ? a.getExecutedAt() : (a.getOrderedAt() != null ? a.getOrderedAt() : "");
-            String timeB = b.getExecutedAt() != null ? b.getExecutedAt() : (b.getOrderedAt() != null ? b.getOrderedAt() : "");
+            String timeA = a.getExecutedAt() != null ? a.getExecutedAt()
+                    : (a.getOrderedAt() != null ? a.getOrderedAt() : "");
+            String timeB = b.getExecutedAt() != null ? b.getExecutedAt()
+                    : (b.getOrderedAt() != null ? b.getOrderedAt() : "");
             return timeA.compareTo(timeB);
         });
 
@@ -336,8 +338,11 @@ public class TradeHistoryService {
             } else if (isDayMode) {
                 String dayKey = executedAt.length() >= 10 ? executedAt.substring(0, 10) : "";
                 for (com.example.demo2.model.TradeGroupSummaryDto g : groups) {
-                    String gDay = g.getFirstExecutedAt() != null && g.getFirstExecutedAt().length() >= 10 ? g.getFirstExecutedAt().substring(0, 10) : "";
-                    if (gDay.equals(dayKey) && g.getCoin().equals(coinName) && g.getMarket().equals(market) && g.getSide().equals(s)) {
+                    String gDay = g.getFirstExecutedAt() != null && g.getFirstExecutedAt().length() >= 10
+                            ? g.getFirstExecutedAt().substring(0, 10)
+                            : "";
+                    if (gDay.equals(dayKey) && g.getCoin().equals(coinName) && g.getMarket().equals(market)
+                            && g.getSide().equals(s)) {
                         matchedGroup = g;
                         break;
                     }
@@ -382,7 +387,8 @@ public class TradeHistoryService {
                 }
                 matchedGroup.getTrades().add(th);
             } else {
-                com.example.demo2.model.TradeGroupSummaryDto newGroup = com.example.demo2.model.TradeGroupSummaryDto.builder()
+                com.example.demo2.model.TradeGroupSummaryDto newGroup = com.example.demo2.model.TradeGroupSummaryDto
+                        .builder()
                         .id(java.util.UUID.randomUUID().toString())
                         .coin(coinName)
                         .market(market)
@@ -416,7 +422,8 @@ public class TradeHistoryService {
     }
 
     private long parseWindowToMillis(String window) {
-        if (window == null || window.isEmpty()) return 0;
+        if (window == null || window.isEmpty())
+            return 0;
         String w = window.toLowerCase().trim();
         try {
             if (w.endsWith("s")) {
@@ -428,12 +435,14 @@ public class TradeHistoryService {
             } else if (w.endsWith("d")) {
                 return Long.parseLong(w.replace("d", "")) * 86400 * 1000L;
             }
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
         return 60 * 1000L;
     }
 
     private double parseDoubleSafe(String val) {
-        if (val == null || val.trim().isEmpty()) return 0.0;
+        if (val == null || val.trim().isEmpty())
+            return 0.0;
         try {
             return Double.parseDouble(val.replace(",", "").trim());
         } catch (Exception e) {
@@ -442,21 +451,23 @@ public class TradeHistoryService {
     }
 
     private long parseDateToMillis(String dateStr) {
-        if (dateStr == null || dateStr.trim().isEmpty()) return 0L;
+        if (dateStr == null || dateStr.trim().isEmpty())
+            return 0L;
         String cleaned = dateStr.trim().replace("T", " ");
         String[] patterns = {
-            "yyyy-MM-dd HH:mm:ss",
-            "yyyy-MM-dd HH:mm",
-            "yyyy-MM-dd",
-            "yyyy/MM/dd HH:mm:ss",
-            "yyyy.MM.dd HH:mm:ss"
+                "yyyy-MM-dd HH:mm:ss",
+                "yyyy-MM-dd HH:mm",
+                "yyyy-MM-dd",
+                "yyyy/MM/dd HH:mm:ss",
+                "yyyy.MM.dd HH:mm:ss"
         };
         for (String p : patterns) {
             try {
                 SimpleDateFormat sdf = new SimpleDateFormat(p);
                 sdf.setLenient(true);
                 return sdf.parse(cleaned).getTime();
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
         }
         return 0L;
     }

@@ -3,22 +3,19 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-    ArrowLeft,
+    Table,
+    BarChart2,
     RefreshCw,
-    Download,
     Layers,
-    Clock,
-    DollarSign,
+    Download,
     TrendingUp,
     TrendingDown,
+    DollarSign,
     ChevronDown,
-    ChevronUp,
-    ExternalLink,
-    Filter,
-    HelpCircle,
-    CheckCircle2
+    ChevronUp
 } from 'lucide-react';
 import Link from 'next/link';
+import Pagination from '@/components/Pagination';
 
 interface TradeHistoryItem {
     id: number;
@@ -62,18 +59,15 @@ export default function TradeSummaryPage() {
     const [endDate, setEndDate] = useState('');
     const [coin, setCoin] = useState('');
     const [side, setSide] = useState('전체');
-    const [timeWindow, setTimeWindow] = useState('orderedAt'); // 'orderedAt', '10s', '30s', '1m', '5m', '10m', '30m', '1h', 'day', 'all'
+    const [timeWindow, setTimeWindow] = useState('orderedAt');
     const [availableCoins, setAvailableCoins] = useState<string[]>([]);
 
-    // Expanded accordion row state
+    // Pagination
+    const [page, setPage] = useState(1);
+    const [size, setSize] = useState(20);
+
+    // Accordion row expansion state
     const [expandedIds, setExpandedIds] = useState<Record<string, boolean>>({});
-
-    // Min total amount filter (optional)
-    const [minAmount, setMinAmount] = useState<string>('');
-
-    // Sort options
-    const [sortBy, setSortBy] = useState<'date' | 'amount' | 'quantity' | 'count'>('date');
-    const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
 
     // 1. Fetch available coins
     useEffect(() => {
@@ -91,7 +85,7 @@ export default function TradeSummaryPage() {
         fetchCoins();
     }, []);
 
-    // 2. Fetch trade histories (all filtered list for client grouping & fast instant window switching)
+    // 2. Fetch trade histories
     const fetchTrades = async () => {
         setLoading(true);
         try {
@@ -101,13 +95,11 @@ export default function TradeSummaryPage() {
             if (coin) query.append('coin', coin);
             if (side !== '전체') query.append('side', side);
 
-            // Fetch from backend raw-list
             const res = await fetch(`/api/trade-history/raw-list?${query.toString()}`);
             if (res.ok) {
                 const data = await res.json();
                 setRawTrades(data || []);
             } else {
-                // Fallback to paged API with large size if raw-list fails
                 const fallbackQuery = new URLSearchParams({
                     page: '1',
                     size: '5000',
@@ -132,9 +124,10 @@ export default function TradeSummaryPage() {
 
     useEffect(() => {
         fetchTrades();
+        setPage(1);
     }, [startDate, endDate, coin, side]);
 
-    // Parse numeric string safely
+    // Numeric parsing helper
     const parseNumber = (val: string | number | undefined | null): number => {
         if (val === undefined || val === null || val === '') return 0;
         if (typeof val === 'number') return val;
@@ -142,7 +135,7 @@ export default function TradeSummaryPage() {
         return isNaN(num) ? 0 : num;
     };
 
-    // Parse date into epoch millis
+    // Date parsing helper
     const parseDateMillis = (dateStr: string | undefined): number => {
         if (!dateStr) return 0;
         const cleaned = dateStr.replace(' ', 'T');
@@ -151,11 +144,10 @@ export default function TradeSummaryPage() {
         return isNaN(t) ? 0 : t;
     };
 
-    // Client-side grouping algorithm
+    // Grouping & Aggregation Logic
     const groupedTrades = useMemo(() => {
         if (!rawTrades || rawTrades.length === 0) return [];
 
-        // Sort ascending by time for sequential window grouping
         const sorted = [...rawTrades].sort((a, b) => {
             const timeA = a.executedAt || a.orderedAt || '';
             const timeB = b.executedAt || b.orderedAt || '';
@@ -197,14 +189,11 @@ export default function TradeSummaryPage() {
             }
 
             const execMillis = parseDateMillis(executedAt);
-
             let matched: GroupedTrade | null = null;
 
             if (timeWindow === 'all') {
-                // Aggregate everything for the same coin, market, side
                 matched = groups.find(g => g.coin === coinName && g.market === market && g.side === itemSide) || null;
             } else if (timeWindow === 'day') {
-                // Group by calendar day (YYYY-MM-DD)
                 const dayStr = executedAt.slice(0, 10);
                 matched = groups.find(g =>
                     g.coin === coinName &&
@@ -213,7 +202,6 @@ export default function TradeSummaryPage() {
                     g.firstExecutedAt.slice(0, 10) === dayStr
                 ) || null;
             } else if (timeWindow === 'orderedAt') {
-                // Exact orderedAt match (1 single buy/sell order split across orderbook)
                 matched = groups.find(g =>
                     g.coin === coinName &&
                     g.market === market &&
@@ -222,7 +210,6 @@ export default function TradeSummaryPage() {
                     g.orderedAt === orderedAt
                 ) || null;
             } else {
-                // Window clustering: if consecutive execution within windowMillis
                 for (let i = groups.length - 1; i >= 0; i--) {
                     const g = groups[i];
                     if (g.coin === coinName && g.market === market && g.side === itemSide) {
@@ -254,7 +241,7 @@ export default function TradeSummaryPage() {
                 matched.trades.push(item);
             } else {
                 groups.push({
-                    id: `group-${coinName}-${market}-${itemSide}-${executedAt}-${Math.random().toString(36).substr(2, 6)}`,
+                    id: `group-${coinName}-${market}-${itemSide}-${executedAt}-${groups.length}`,
                     coin: coinName,
                     market: market,
                     side: itemSide,
@@ -274,62 +261,37 @@ export default function TradeSummaryPage() {
             }
         }
 
-        // Calculate average price
         for (const g of groups) {
             if (g.totalQuantity > 0) {
                 g.avgPrice = g.totalAmount / g.totalQuantity;
             }
         }
 
-        // Apply min amount filter if set
-        const minVal = parseFloat(minAmount);
-        let result = groups;
-        if (!isNaN(minVal) && minVal > 0) {
-            result = result.filter(g => g.totalAmount >= minVal);
-        }
+        // Sort descending by latest execution time
+        groups.sort((a, b) => b.lastExecutedAt.localeCompare(a.lastExecutedAt));
+        return groups;
+    }, [rawTrades, timeWindow]);
 
-        // Sort groups
-        result.sort((a, b) => {
-            let diff = 0;
-            if (sortBy === 'date') {
-                diff = a.lastExecutedAt.localeCompare(b.lastExecutedAt);
-            } else if (sortBy === 'amount') {
-                diff = a.totalAmount - b.totalAmount;
-            } else if (sortBy === 'quantity') {
-                diff = a.totalQuantity - b.totalQuantity;
-            } else if (sortBy === 'count') {
-                diff = a.tradeCount - b.tradeCount;
-            }
-            return sortOrder === 'desc' ? -diff : diff;
-        });
-
-        return result;
-    }, [rawTrades, timeWindow, minAmount, sortBy, sortOrder]);
-
-    // KPI Summary Calculations
+    // Overall KPI Summary
     const stats = useMemo(() => {
         let buyAmount = 0;
-        let buyQty = 0;
-        let buyCount = 0;
         let buyBlocks = 0;
+        let buyCount = 0;
 
         let sellAmount = 0;
-        let sellQty = 0;
-        let sellCount = 0;
         let sellBlocks = 0;
+        let sellCount = 0;
 
         let totalFees = 0;
 
         for (const g of groupedTrades) {
             totalFees += g.totalFee;
-            if (g.side === '매수') {
+            if (g.side === '매수' || g.side?.toLowerCase().includes('buy')) {
                 buyAmount += g.totalAmount;
-                buyQty += g.totalQuantity;
                 buyCount += 1;
                 buyBlocks += g.tradeCount;
-            } else if (g.side === '매도') {
+            } else {
                 sellAmount += g.totalAmount;
-                sellQty += g.totalQuantity;
                 sellCount += 1;
                 sellBlocks += g.tradeCount;
             }
@@ -337,11 +299,9 @@ export default function TradeSummaryPage() {
 
         return {
             buyAmount,
-            buyQty,
             buyCount,
             buyBlocks,
             sellAmount,
-            sellQty,
             sellCount,
             sellBlocks,
             totalOrders: groupedTrades.length,
@@ -350,6 +310,27 @@ export default function TradeSummaryPage() {
         };
     }, [groupedTrades, rawTrades]);
 
+    // Paged slice for current page
+    const totalElements = groupedTrades.length;
+    const totalPages = Math.max(1, Math.ceil(totalElements / size));
+    const pagedTrades = useMemo(() => {
+        const start = (page - 1) * size;
+        return groupedTrades.slice(start, start + size);
+    }, [groupedTrades, page, size]);
+
+    // Page totals for tfoot
+    const pageTotals = useMemo(() => {
+        let settlementSum = 0;
+        let feeSum = 0;
+        let amountSum = 0;
+        for (const t of pagedTrades) {
+            settlementSum += t.totalSettlementAmount;
+            feeSum += t.totalFee;
+            amountSum += t.totalAmount;
+        }
+        return { settlementSum, feeSum, amountSum };
+    }, [pagedTrades]);
+
     const toggleRow = (id: string) => {
         setExpandedIds(prev => ({
             ...prev,
@@ -357,22 +338,19 @@ export default function TradeSummaryPage() {
         }));
     };
 
-    const toggleAllRows = (expand: boolean) => {
-        const next: Record<string, boolean> = {};
-        if (expand) {
-            groupedTrades.forEach(g => { next[g.id] = true; });
-        }
-        setExpandedIds(next);
+    // Formatters
+    const formatCurrency = (val: number | string | undefined | null) => {
+        if (val === undefined || val === null || val === '') return '0';
+        const num = typeof val === 'number' ? val : parseFloat(String(val).replace(/,/g, ''));
+        if (isNaN(num)) return String(val);
+        return new Intl.NumberFormat('ko-KR', { maximumFractionDigits: 0 }).format(Math.round(num));
     };
 
-    // Format currency
-    const formatCurrency = (val: number) => {
-        return new Intl.NumberFormat('ko-KR', { maximumFractionDigits: 0 }).format(Math.round(val));
-    };
-
-    // Format quantity
-    const formatQuantity = (val: number) => {
-        return new Intl.NumberFormat('ko-KR', { maximumFractionDigits: 8 }).format(val);
+    const formatQuantity = (val: number | string | undefined | null) => {
+        if (val === undefined || val === null || val === '') return '0';
+        const num = typeof val === 'number' ? val : parseFloat(String(val).replace(/,/g, ''));
+        if (isNaN(num)) return String(val);
+        return new Intl.NumberFormat('ko-KR', { maximumFractionDigits: 8 }).format(num);
     };
 
     // Export CSV
@@ -389,7 +367,7 @@ export default function TradeSummaryPage() {
             '코인',
             '마켓',
             '종류',
-            '합산체결건수(블록수)',
+            '체결블록수',
             '총체결수량',
             '평균체결단가',
             '총거래금액',
@@ -424,186 +402,196 @@ export default function TradeSummaryPage() {
     };
 
     return (
-        <div className="page-container-full" style={{ paddingBottom: '60px' }}>
+        <div className="page-container-full">
             <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '24px' }}>
 
-                {/* Top Nav & Breadcrumb */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
-                    <div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--primary)', marginBottom: '6px' }}>
-                            <Link href="/trade-history" style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-muted)', textDecoration: 'none', fontSize: '0.85rem' }}>
-                                <ArrowLeft size={16} /> 원본 거래내역으로 이동
-                            </Link>
-                            <span style={{ color: 'var(--text-muted)' }}>/</span>
-                            <span style={{ fontWeight: 600, fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                                Aggregated Summary
-                            </span>
+                {/* Header Section (Exactly matching trade-history design) */}
+                <div style={{ marginBottom: '4px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+                            <div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--primary)', marginBottom: '4px' }}>
+                                    <Table size={20} />
+                                    <span style={{ fontWeight: 600, fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Financial</span>
+                                </div>
+                                <h1 className="header-title" style={{ fontSize: '2.5rem', margin: 0 }}>Trade Summary</h1>
+                            </div>
                         </div>
-                        <h1 className="header-title" style={{ fontSize: '2.3rem', margin: 0, display: 'flex', alignItems: 'center', gap: '12px' }}>
-                            <Layers style={{ color: 'var(--primary)' }} size={32} />
-                            주문 및 시간대별 합산 내역
-                        </h1>
-                        <p style={{ margin: '8px 0 0 0', color: 'var(--text-muted)', fontSize: '0.92rem' }}>
-                            분할 체결(블록구매)된 내역들을 동일 주문 또는 시간 범위와 코인 단위로 묶어 실제 총 구매/매도 금액을 확인합니다.
-                        </p>
+
+                        {/* Top Navigation Tabs & Actions */}
+                        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                            <div className="glass-panel" style={{ display: 'flex', padding: '4px', borderRadius: '12px' }}>
+                                <Link
+                                    href="/trade-history"
+                                    className="tab-btn"
+                                    style={{ textDecoration: 'none' }}
+                                >
+                                    <Table size={16} /> Table
+                                </Link>
+                                <Link
+                                    href="/trade-history"
+                                    className="tab-btn"
+                                    style={{ textDecoration: 'none' }}
+                                >
+                                    <BarChart2 size={16} /> Stats
+                                </Link>
+                                <Link
+                                    href="/trade-history"
+                                    className="tab-btn"
+                                    style={{ textDecoration: 'none' }}
+                                >
+                                    <RefreshCw size={16} /> BTC
+                                </Link>
+                                <button
+                                    className="tab-btn active"
+                                    style={{ color: 'var(--primary)', fontWeight: 700 }}
+                                >
+                                    <Layers size={16} /> 주문/시간별 합산 (New)
+                                </button>
+                            </div>
+
+                            <div style={{ display: 'flex', gap: '8px' }}>
+                                <button
+                                    onClick={exportCSV}
+                                    className="btn btn-secondary"
+                                    style={{ fontSize: '0.85rem' }}
+                                    title="CSV 엑셀 파일 다운로드"
+                                >
+                                    <Download size={16} /> CSV
+                                </button>
+                                <button
+                                    onClick={fetchTrades}
+                                    disabled={loading}
+                                    className="btn btn-primary"
+                                    style={{ color: '#ffffff' }}
+                                    title="새로고침"
+                                >
+                                    <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
+                                </button>
+                            </div>
+                        </div>
                     </div>
 
-                    <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                    {/* Banner (Matching exactly with Trade History banner) */}
+                    <div style={{
+                        padding: '14px 20px',
+                        background: 'rgba(99, 102, 241, 0.08)',
+                        border: '1px solid rgba(99, 102, 241, 0.2)',
+                        borderRadius: '12px',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        marginBottom: '16px',
+                        flexWrap: 'wrap',
+                        gap: '12px'
+                    }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.92rem' }}>
+                            <span style={{ fontSize: '1.25rem' }}>💡</span>
+                            <div>
+                                <span style={{ fontWeight: 700, color: 'var(--text-main)' }}>분할 체결(블록구매) 내역을 동일 주문 또는 특정 시간 범위와 코인 단위로 합산하여 조회합니다.</span>
+                                <span style={{ color: 'var(--text-muted)', marginLeft: '8px' }}>100만 원 매수 시 나뉘어 체결된 건들의 총 매수 금액과 수량을 확인할 수 있습니다.</span>
+                            </div>
+                        </div>
                         <Link
                             href="/trade-history"
-                            className="btn btn-secondary"
-                            style={{ display: 'flex', alignItems: 'center', gap: '6px', textDecoration: 'none', fontSize: '0.85rem', padding: '10px 16px' }}
-                        >
-                            <Clock size={16} /> 블록별 개별 내역 보기
-                        </Link>
-                        <button
-                            onClick={exportCSV}
-                            className="btn btn-secondary"
-                            style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', padding: '10px 16px' }}
-                            title="CSV 다운로드"
-                        >
-                            <Download size={16} /> CSV 저장
-                        </button>
-                        <button
-                            onClick={fetchTrades}
-                            disabled={loading}
                             className="btn btn-primary"
-                            style={{ color: '#fff', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', padding: '10px 18px' }}
+                            style={{ color: '#fff', fontSize: '0.85rem', padding: '8px 16px', textDecoration: 'none', whiteSpace: 'nowrap' }}
                         >
-                            <RefreshCw size={16} className={loading ? 'animate-spin' : ''} /> 새로고침
-                        </button>
+                            블록별 개별 내역 보기 →
+                        </Link>
                     </div>
-                </div>
 
-                {/* Key Summary Stats Cards */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
-                    {/* Buy Card */}
-                    <div className="glass-panel" style={{ padding: '20px', borderRadius: '16px', position: 'relative', overflow: 'hidden' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                            <div>
-                                <div style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>총 매수 합계</div>
-                                <div style={{ fontSize: '1.8rem', fontWeight: 700, color: '#ef4444', marginTop: '6px' }}>
-                                    {formatCurrency(stats.buyAmount)} <span style={{ fontSize: '1rem', fontWeight: 500, color: 'var(--text-muted)' }}>KRW</span>
+                    {/* KPI Summary Cards (Light Theme Clean Style) */}
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px', marginBottom: '20px' }}>
+                        {/* Buy Total */}
+                        <div className="glass-panel" style={{ padding: '20px', borderRadius: '12px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                <div>
+                                    <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>총 매수 합계</div>
+                                    <div style={{ fontSize: '1.75rem', fontWeight: 800, color: '#ef4444', marginTop: '6px' }}>
+                                        {formatCurrency(stats.buyAmount)} <span style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-muted)' }}>KRW</span>
+                                    </div>
+                                </div>
+                                <div style={{ padding: '8px', borderRadius: '10px', background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444' }}>
+                                    <TrendingUp size={20} />
                                 </div>
                             </div>
-                            <div style={{ padding: '10px', borderRadius: '12px', background: 'rgba(239, 68, 68, 0.12)', color: '#ef4444' }}>
-                                <TrendingUp size={22} />
+                            <div style={{ marginTop: '10px', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+                                합산 주문 <b>{stats.buyCount}</b>건 (체결 블록 {stats.buyBlocks}개)
                             </div>
                         </div>
-                        <div style={{ marginTop: '12px', fontSize: '0.82rem', color: 'var(--text-muted)', display: 'flex', justifyContent: 'space-between' }}>
-                            <span>합산 주문 <b>{stats.buyCount}</b>건</span>
-                            <span>(원본 블록 {stats.buyBlocks}개 체결)</span>
-                        </div>
-                    </div>
 
-                    {/* Sell Card */}
-                    <div className="glass-panel" style={{ padding: '20px', borderRadius: '16px', position: 'relative', overflow: 'hidden' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                            <div>
-                                <div style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>총 매도 합계</div>
-                                <div style={{ fontSize: '1.8rem', fontWeight: 700, color: '#3b82f6', marginTop: '6px' }}>
-                                    {formatCurrency(stats.sellAmount)} <span style={{ fontSize: '1rem', fontWeight: 500, color: 'var(--text-muted)' }}>KRW</span>
+                        {/* Sell Total */}
+                        <div className="glass-panel" style={{ padding: '20px', borderRadius: '12px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                <div>
+                                    <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>총 매도 합계</div>
+                                    <div style={{ fontSize: '1.75rem', fontWeight: 800, color: '#3b82f6', marginTop: '6px' }}>
+                                        {formatCurrency(stats.sellAmount)} <span style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-muted)' }}>KRW</span>
+                                    </div>
+                                </div>
+                                <div style={{ padding: '8px', borderRadius: '10px', background: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6' }}>
+                                    <TrendingDown size={20} />
                                 </div>
                             </div>
-                            <div style={{ padding: '10px', borderRadius: '12px', background: 'rgba(59, 130, 246, 0.12)', color: '#3b82f6' }}>
-                                <TrendingDown size={22} />
+                            <div style={{ marginTop: '10px', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+                                합산 주문 <b>{stats.sellCount}</b>건 (체결 블록 {stats.sellBlocks}개)
                             </div>
                         </div>
-                        <div style={{ marginTop: '12px', fontSize: '0.82rem', color: 'var(--text-muted)', display: 'flex', justifyContent: 'space-between' }}>
-                            <span>합산 주문 <b>{stats.sellCount}</b>건</span>
-                            <span>(원본 블록 {stats.sellBlocks}개 체결)</span>
-                        </div>
-                    </div>
 
-                    {/* Aggregated compression ratio */}
-                    <div className="glass-panel" style={{ padding: '20px', borderRadius: '16px', position: 'relative', overflow: 'hidden' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                            <div>
-                                <div style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>블록 압축률</div>
-                                <div style={{ fontSize: '1.8rem', fontWeight: 700, color: 'var(--primary)', marginTop: '6px' }}>
-                                    {stats.totalOrders} <span style={{ fontSize: '1rem', fontWeight: 500, color: 'var(--text-muted)' }}>/ {stats.totalRawBlocks}건</span>
+                        {/* Compression Ratio */}
+                        <div className="glass-panel" style={{ padding: '20px', borderRadius: '12px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                <div>
+                                    <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>블록 압축률</div>
+                                    <div style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--primary)', marginTop: '6px' }}>
+                                        {stats.totalOrders} <span style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-muted)' }}>/ {stats.totalRawBlocks}건</span>
+                                    </div>
+                                </div>
+                                <div style={{ padding: '8px', borderRadius: '10px', background: 'rgba(255, 77, 77, 0.1)', color: 'var(--primary)' }}>
+                                    <Layers size={20} />
                                 </div>
                             </div>
-                            <div style={{ padding: '10px', borderRadius: '12px', background: 'rgba(99, 102, 241, 0.12)', color: 'var(--primary)' }}>
-                                <Layers size={22} />
+                            <div style={{ marginTop: '10px', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+                                {stats.totalRawBlocks > 0
+                                    ? `${stats.totalRawBlocks}개 블록이 ${stats.totalOrders}개 주문으로 집계됨`
+                                    : '데이터 없음'}
                             </div>
                         </div>
-                        <div style={{ marginTop: '12px', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
-                            {stats.totalRawBlocks > 0
-                                ? `${stats.totalRawBlocks}개의 분할 블록이 ${stats.totalOrders}개 주문으로 집계됨`
-                                : '데이터 없음'}
-                        </div>
-                    </div>
 
-                    {/* Total Fee Card */}
-                    <div className="glass-panel" style={{ padding: '20px', borderRadius: '16px', position: 'relative', overflow: 'hidden' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                            <div>
-                                <div style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>총 수수료 합계</div>
-                                <div style={{ fontSize: '1.8rem', fontWeight: 700, color: 'var(--text-main)', marginTop: '6px' }}>
-                                    {formatCurrency(stats.totalFees)} <span style={{ fontSize: '1rem', fontWeight: 500, color: 'var(--text-muted)' }}>KRW</span>
+                        {/* Total Fees */}
+                        <div className="glass-panel" style={{ padding: '20px', borderRadius: '12px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                <div>
+                                    <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>총 수수료</div>
+                                    <div style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-main)', marginTop: '6px' }}>
+                                        {formatCurrency(stats.totalFees)} <span style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-muted)' }}>KRW</span>
+                                    </div>
+                                </div>
+                                <div style={{ padding: '8px', borderRadius: '10px', background: 'rgba(0, 0, 0, 0.04)', color: 'var(--text-muted)' }}>
+                                    <DollarSign size={20} />
                                 </div>
                             </div>
-                            <div style={{ padding: '10px', borderRadius: '12px', background: 'rgba(255, 255, 255, 0.05)', color: 'var(--text-muted)' }}>
-                                <DollarSign size={22} />
+                            <div style={{ marginTop: '10px', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+                                전체 거래에 부과된 거래소 수수료
                             </div>
                         </div>
-                        <div style={{ marginTop: '12px', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
-                            거래소에 지불된 총 수수료 금액
-                        </div>
-                    </div>
-                </div>
-
-                {/* Filter and Grouping Bar */}
-                <div className="glass-panel" style={{ padding: '22px', borderRadius: '16px', display: 'flex', flexDirection: 'column', gap: '18px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--glass-border)', paddingBottom: '14px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 600, fontSize: '0.95rem' }}>
-                            <Filter size={18} style={{ color: 'var(--primary)' }} />
-                            합산 기준 및 검색 조건 설정
-                        </div>
-                        <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                            선택하신 시간 기준에 따라 즉시 합산되어 표에 반영됩니다.
-                        </div>
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', alignItems: 'flex-end' }}>
-
-                        {/* Grouping Window (Key Feature!) */}
-                        <div style={{ gridColumn: 'span 1' }}>
-                            <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.78rem', fontWeight: 700, color: 'var(--primary)', marginBottom: '8px', textTransform: 'uppercase' }}>
-                                ⏱️ 시간 묶음 기준 (Window)
+                    {/* Filter Section (Row 2, Matching trade-history Exactly) */}
+                    <div className="glass-panel" style={{ padding: '24px', display: 'flex', flexWrap: 'wrap', gap: '20px', alignItems: 'flex-end', borderRadius: '12px' }}>
+                        {/* PERIOD */}
+                        <div style={{ flex: '1', minWidth: '280px' }}>
+                            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '8px', textTransform: 'uppercase' }}>
+                                PERIOD
                             </label>
-                            <select
-                                value={timeWindow}
-                                onChange={(e) => setTimeWindow(e.target.value)}
-                                className="input-control"
-                                style={{ borderColor: 'var(--primary)', fontWeight: 600 }}
-                            >
-                                <option value="orderedAt" style={{ color: '#000' }}>⭐ 동일 주문시간 (1회 주문 묶음)</option>
-                                <option value="10s" style={{ color: '#000' }}>10초 이내 연속 체결</option>
-                                <option value="30s" style={{ color: '#000' }}>30초 이내 연속 체결</option>
-                                <option value="1m" style={{ color: '#000' }}>1분 이내 연속 체결</option>
-                                <option value="5m" style={{ color: '#000' }}>5분 이내 연속 체결</option>
-                                <option value="10m" style={{ color: '#000' }}>10분 이내 연속 체결</option>
-                                <option value="30m" style={{ color: '#000' }}>30분 이내 연속 체결</option>
-                                <option value="1h" style={{ color: '#000' }}>1시간 이내 연속 체결</option>
-                                <option value="day" style={{ color: '#000' }}>동일 일자(하루 단위)</option>
-                                <option value="all" style={{ color: '#000' }}>선택 기간 전체 합산</option>
-                            </select>
-                        </div>
-
-                        {/* Period Filter */}
-                        <div style={{ gridColumn: 'span 1' }}>
-                            <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '8px', textTransform: 'uppercase' }}>
-                                조회 기간 (시작 ~ 종료)
-                            </label>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                 <input
                                     type="date"
                                     value={startDate}
                                     onChange={(e) => setStartDate(e.target.value)}
                                     className="input-control"
-                                    style={{ flex: 1 }}
                                 />
                                 <span style={{ color: 'var(--text-muted)' }}>~</span>
                                 <input
@@ -611,315 +599,261 @@ export default function TradeSummaryPage() {
                                     value={endDate}
                                     onChange={(e) => setEndDate(e.target.value)}
                                     className="input-control"
-                                    style={{ flex: 1 }}
                                 />
                             </div>
                         </div>
 
-                        {/* Coin Selector */}
-                        <div>
-                            <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '8px', textTransform: 'uppercase' }}>
-                                코인 선택
+                        {/* TIME WINDOW (Grouping Criterion) */}
+                        <div style={{ minWidth: '210px' }}>
+                            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--primary)', marginBottom: '8px', textTransform: 'uppercase' }}>
+                                TIME WINDOW (시간 기준)
+                            </label>
+                            <select
+                                value={timeWindow}
+                                onChange={(e) => setTimeWindow(e.target.value)}
+                                className="input-control"
+                                style={{ fontWeight: 600 }}
+                            >
+                                <option value="orderedAt" style={{ color: 'black' }}>⭐ 동일 주문시간 (Ordered At)</option>
+                                <option value="10s" style={{ color: 'black' }}>10초 이내 연속 체결</option>
+                                <option value="30s" style={{ color: 'black' }}>30초 이내 연속 체결</option>
+                                <option value="1m" style={{ color: 'black' }}>1분 이내 연속 체결</option>
+                                <option value="5m" style={{ color: 'black' }}>5분 이내 연속 체결</option>
+                                <option value="10m" style={{ color: 'black' }}>10분 이내 연속 체결</option>
+                                <option value="30m" style={{ color: 'black' }}>30분 이내 연속 체결</option>
+                                <option value="1h" style={{ color: 'black' }}>1시간 이내 연속 체결</option>
+                                <option value="day" style={{ color: 'black' }}>동일 일자 (하루 단위)</option>
+                                <option value="all" style={{ color: 'black' }}>조회 기간 전체 합산</option>
+                            </select>
+                        </div>
+
+                        {/* COIN */}
+                        <div style={{ minWidth: '130px' }}>
+                            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '8px', textTransform: 'uppercase' }}>
+                                COIN
                             </label>
                             <select
                                 value={coin}
-                                onChange={(e) => setCoin(e.target.value)}
+                                onChange={(e) => { setCoin(e.target.value); setPage(1); }}
                                 className="input-control"
                             >
-                                <option value="" style={{ color: '#000' }}>모든 코인 (All)</option>
+                                <option value="" style={{ color: 'black' }}>All Coins</option>
                                 {availableCoins.map((c) => (
-                                    <option key={c} value={c} style={{ color: '#000' }}>{c}</option>
+                                    <option key={c} value={c} style={{ color: 'black' }}>{c}</option>
                                 ))}
                             </select>
                         </div>
 
-                        {/* Side Selector */}
-                        <div>
-                            <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '8px', textTransform: 'uppercase' }}>
-                                구분 (매수/매도)
+                        {/* SIDE */}
+                        <div style={{ minWidth: '110px' }}>
+                            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '8px', textTransform: 'uppercase' }}>
+                                SIDE
                             </label>
                             <select
                                 value={side}
-                                onChange={(e) => setSide(e.target.value)}
+                                onChange={(e) => { setSide(e.target.value); setPage(1); }}
                                 className="input-control"
                             >
-                                <option value="전체" style={{ color: '#000' }}>전체</option>
-                                <option value="매수" style={{ color: '#000' }}>매수만</option>
-                                <option value="매도" style={{ color: '#000' }}>매도만</option>
+                                <option value="전체" style={{ color: 'black' }}>All</option>
+                                <option value="매수" style={{ color: 'black' }}>Buy</option>
+                                <option value="매도" style={{ color: 'black' }}>Sell</option>
                             </select>
                         </div>
 
-                        {/* Min Amount Filter */}
-                        <div>
-                            <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '8px', textTransform: 'uppercase' }}>
-                                최소 금액 필터 (원)
+                        {/* ROWS */}
+                        <div style={{ minWidth: '110px' }}>
+                            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '8px', textTransform: 'uppercase' }}>
+                                ROWS
                             </label>
-                            <input
-                                type="number"
-                                placeholder="예: 100000"
-                                value={minAmount}
-                                onChange={(e) => setMinAmount(e.target.value)}
+                            <select
+                                value={size}
+                                onChange={(e) => { setSize(Number(e.target.value)); setPage(1); }}
                                 className="input-control"
-                            />
+                            >
+                                <option value={20} style={{ color: 'black' }}>20 rows</option>
+                                <option value={50} style={{ color: 'black' }}>50 rows</option>
+                                <option value={100} style={{ color: 'black' }}>100 rows</option>
+                            </select>
                         </div>
 
-                    </div>
-
-                    {/* Sorting & Expand controls */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', paddingTop: '8px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '0.85rem' }}>
-                            <span style={{ color: 'var(--text-muted)' }}>정렬:</span>
-                            <button
-                                onClick={() => {
-                                    if (sortBy === 'date') setSortOrder(prev => prev === 'desc' ? 'asc' : 'desc');
-                                    else { setSortBy('date'); setSortOrder('desc'); }
-                                }}
-                                className={`tab-btn ${sortBy === 'date' ? 'active' : ''}`}
-                                style={{ padding: '4px 10px', fontSize: '0.8rem' }}
-                            >
-                                시간순 {sortBy === 'date' && (sortOrder === 'desc' ? '▼' : '▲')}
-                            </button>
-                            <button
-                                onClick={() => {
-                                    if (sortBy === 'amount') setSortOrder(prev => prev === 'desc' ? 'asc' : 'desc');
-                                    else { setSortBy('amount'); setSortOrder('desc'); }
-                                }}
-                                className={`tab-btn ${sortBy === 'amount' ? 'active' : ''}`}
-                                style={{ padding: '4px 10px', fontSize: '0.8rem' }}
-                            >
-                                금액순 {sortBy === 'amount' && (sortOrder === 'desc' ? '▼' : '▲')}
-                            </button>
-                            <button
-                                onClick={() => {
-                                    if (sortBy === 'count') setSortOrder(prev => prev === 'desc' ? 'asc' : 'desc');
-                                    else { setSortBy('count'); setSortOrder('desc'); }
-                                }}
-                                className={`tab-btn ${sortBy === 'count' ? 'active' : ''}`}
-                                style={{ padding: '4px 10px', fontSize: '0.8rem' }}
-                            >
-                                체결건수순 {sortBy === 'count' && (sortOrder === 'desc' ? '▼' : '▲')}
-                            </button>
-                        </div>
-
-                        <div style={{ display: 'flex', gap: '8px' }}>
-                            <button
-                                onClick={() => toggleAllRows(true)}
-                                className="btn btn-secondary"
-                                style={{ fontSize: '0.78rem', padding: '6px 12px' }}
-                            >
-                                전체 블록 펼치기
-                            </button>
-                            <button
-                                onClick={() => toggleAllRows(false)}
-                                className="btn btn-secondary"
-                                style={{ fontSize: '0.78rem', padding: '6px 12px' }}
-                            >
-                                전체 접기
-                            </button>
-                        </div>
+                        {/* SEARCH BUTTON */}
+                        <button
+                            onClick={() => {
+                                setPage(1);
+                                fetchTrades();
+                            }}
+                            className="btn btn-primary"
+                            style={{ color: '#ffffff', padding: '10px 32px', fontWeight: 'bold' }}
+                        >
+                            Search
+                        </button>
                     </div>
                 </div>
 
-                {/* Aggregated Result Table */}
+                {/* Content Section (Table exactly matching trade-history) */}
                 <div className="data-table-container">
                     <div style={{ overflowX: 'auto' }}>
                         <table className="data-table">
                             <thead>
                                 <tr>
-                                    <th style={{ width: '40px', textAlign: 'center' }}></th>
-                                    <th>주문 및 체결시간</th>
-                                    <th>마켓 / 코인</th>
+                                    <th style={{ width: '36px' }}></th>
+                                    <th>체결시간</th>
+                                    <th>마켓/코인</th>
                                     <th>종류</th>
-                                    <th style={{ textAlign: 'center' }}>체결 블록</th>
-                                    <th style={{ textAlign: 'right' }}>총 체결수량 (갯수)</th>
-                                    <th style={{ textAlign: 'right' }}>평균 체결단가</th>
-                                    <th style={{ textAlign: 'right', color: 'var(--primary)', fontWeight: 'bold' }}>총 거래금액</th>
-                                    <th style={{ textAlign: 'right' }}>수수료 / 정산금액</th>
+                                    <th style={{ textAlign: 'right' }}>수량/단가</th>
+                                    <th style={{ textAlign: 'right' }}>정산금액/수수료</th>
+                                    <th style={{ textAlign: 'right' }}>거래금액</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {loading ? (
                                     <tr>
-                                        <td colSpan={9} style={{ padding: '60px', textAlign: 'center', color: 'var(--text-muted)' }}>
-                                            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px' }}>
-                                                <RefreshCw size={20} className="animate-spin" />
-                                                데이터를 집계 분석 중입니다...
-                                            </div>
+                                        <td colSpan={7} style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>
+                                            로딩 중...
                                         </td>
                                     </tr>
-                                ) : groupedTrades.length === 0 ? (
+                                ) : pagedTrades.length === 0 ? (
                                     <tr>
-                                        <td colSpan={9} style={{ padding: '60px', textAlign: 'center', color: 'var(--text-muted)' }}>
-                                            조건에 해당하는 거래 내역이 없습니다.
+                                        <td colSpan={7} style={{ padding: '60px', textAlign: 'center', color: 'var(--text-muted)' }}>
+                                            등록된 거래 내역이 없습니다.
                                         </td>
                                     </tr>
                                 ) : (
-                                    groupedTrades.map((g, index) => {
-                                        const isExpanded = !!expandedIds[g.id];
-                                        const isBuy = g.side === '매수';
+                                    pagedTrades.map((t, i) => {
+                                        const isExpanded = !!expandedIds[t.id];
+                                        const isBuy = t.side === '매수' || t.side?.toLowerCase().includes('buy');
 
                                         return (
-                                            <React.Fragment key={g.id || index}>
+                                            <React.Fragment key={t.id || i}>
                                                 <motion.tr
-                                                    initial={{ opacity: 0, y: 4 }}
+                                                    initial={{ opacity: 0, y: 10 }}
                                                     animate={{ opacity: 1, y: 0 }}
-                                                    transition={{ delay: Math.min(index * 0.015, 0.3) }}
+                                                    transition={{ delay: i * 0.01 }}
                                                     style={{
                                                         borderBottom: isExpanded ? 'none' : '1px solid var(--glass-border)',
-                                                        backgroundColor: isExpanded ? 'rgba(255, 255, 255, 0.03)' : undefined,
-                                                        cursor: 'pointer',
+                                                        backgroundColor: isExpanded ? '#fafafa' : undefined,
+                                                        cursor: 'pointer'
                                                     }}
-                                                    onClick={() => toggleRow(g.id)}
-                                                    whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.04)' }}
+                                                    onClick={() => toggleRow(t.id)}
+                                                    whileHover={{ backgroundColor: '#f9fafb' }}
                                                 >
-                                                    {/* Chevron expand icon */}
-                                                    <td style={{ textAlign: 'center', padding: '16px 8px', color: 'var(--text-muted)' }}>
-                                                        {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                                                    </td>
-
-                                                    {/* Execution and Ordered Time */}
-                                                    <td style={{ padding: '16px' }}>
-                                                        <div style={{ fontWeight: 600, color: 'var(--text-main)', fontSize: '0.92rem' }}>
-                                                            {g.firstExecutedAt === g.lastExecutedAt
-                                                                ? g.firstExecutedAt
-                                                                : `${g.firstExecutedAt} ~ ${g.lastExecutedAt.slice(11)}`}
-                                                        </div>
-                                                        <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '2px' }}>
-                                                            주문: {g.orderedAt || '-'}
-                                                        </div>
-                                                    </td>
-
-                                                    {/* Coin and Market */}
-                                                    <td style={{ padding: '16px' }}>
-                                                        <div style={{ fontWeight: 700, fontSize: '1rem', color: 'var(--text-main)' }}>
-                                                            {g.coin}
-                                                        </div>
-                                                        <div style={{ fontSize: '0.8rem', color: 'var(--primary)', opacity: 0.9 }}>
-                                                            {g.market}
-                                                        </div>
-                                                    </td>
-
-                                                    {/* Side */}
-                                                    <td style={{ padding: '16px' }}>
-                                                        <span
-                                                            style={{
-                                                                padding: '4px 10px',
-                                                                borderRadius: '20px',
-                                                                fontSize: '0.8rem',
-                                                                fontWeight: 700,
-                                                                backgroundColor: isBuy ? 'rgba(239, 68, 68, 0.15)' : 'rgba(59, 130, 246, 0.15)',
-                                                                color: isBuy ? '#ef4444' : '#3b82f6',
-                                                                border: isBuy ? '1px solid rgba(239, 68, 68, 0.3)' : '1px solid rgba(59, 130, 246, 0.3)',
-                                                            }}
-                                                        >
-                                                            {g.side}
-                                                        </span>
-                                                    </td>
-
-                                                    {/* Trade Count Badge */}
-                                                    <td style={{ textAlign: 'center', padding: '16px' }}>
-                                                        <span
-                                                            style={{
-                                                                padding: '4px 10px',
-                                                                borderRadius: '12px',
-                                                                fontSize: '0.82rem',
-                                                                fontWeight: 600,
-                                                                backgroundColor: g.tradeCount > 1 ? 'rgba(99, 102, 241, 0.15)' : 'rgba(255, 255, 255, 0.05)',
-                                                                color: g.tradeCount > 1 ? 'var(--primary)' : 'var(--text-muted)',
-                                                                display: 'inline-flex',
-                                                                alignItems: 'center',
-                                                                gap: '4px',
-                                                            }}
-                                                        >
-                                                            {g.tradeCount}건 블록
-                                                        </span>
-                                                    </td>
-
-                                                    {/* Total Quantity */}
-                                                    <td style={{ textAlign: 'right', padding: '16px' }}>
-                                                        <div style={{ fontWeight: 600, color: 'var(--text-main)', fontSize: '0.95rem' }}>
-                                                            {formatQuantity(g.totalQuantity)}
-                                                        </div>
-                                                        <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                                                            {g.coin}
-                                                        </div>
-                                                    </td>
-
-                                                    {/* Weighted Average Price */}
-                                                    <td style={{ textAlign: 'right', padding: '16px' }}>
-                                                        <div style={{ fontWeight: 600, color: 'var(--text-main)' }}>
-                                                            {formatCurrency(g.avgPrice)} <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>KRW</span>
-                                                        </div>
-                                                        {g.tradeCount > 1 && g.minPrice !== g.maxPrice && (
-                                                            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                                                                {formatCurrency(g.minPrice)} ~ {formatCurrency(g.maxPrice)}
-                                                            </div>
+                                                    {/* Accordion Toggle Indicator */}
+                                                    <td style={{ padding: '16px 8px 16px 16px', color: 'var(--text-muted)', textAlign: 'center' }}>
+                                                        {t.tradeCount > 1 && (
+                                                            isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />
                                                         )}
                                                     </td>
 
-                                                    {/* Total Amount (Main highlight!) */}
-                                                    <td style={{ textAlign: 'right', padding: '16px' }}>
-                                                        <div style={{ fontWeight: 800, fontSize: '1.15rem', color: isBuy ? '#ef4444' : '#3b82f6' }}>
-                                                            {formatCurrency(g.totalAmount)}
+                                                    {/* Execution Time & Ordered Time */}
+                                                    <td style={{ padding: '16px' }}>
+                                                        <div style={{ fontWeight: '500' }}>
+                                                            {t.firstExecutedAt === t.lastExecutedAt
+                                                                ? t.firstExecutedAt
+                                                                : `${t.firstExecutedAt} ~ ${t.lastExecutedAt.slice(11)}`}
                                                         </div>
                                                         <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                                                            KRW
+                                                            주문: {t.orderedAt || '-'}
                                                         </div>
                                                     </td>
 
-                                                    {/* Fees and Settlement */}
-                                                    <td style={{ textAlign: 'right', padding: '16px' }}>
-                                                        <div style={{ fontWeight: 500, color: 'var(--text-main)', fontSize: '0.88rem' }}>
-                                                            정산: {formatCurrency(g.totalSettlementAmount)}
+                                                    {/* Market / Coin */}
+                                                    <td style={{ padding: '16px' }}>
+                                                        <div style={{ fontWeight: 'bold', color: 'var(--text-main)' }}>{t.coin}</div>
+                                                        <div style={{ fontSize: '0.85rem', color: 'var(--primary)', opacity: 0.8 }}>{t.market}</div>
+                                                    </td>
+
+                                                    {/* Side & Block Count */}
+                                                    <td style={{ padding: '16px' }}>
+                                                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                            <span style={{
+                                                                padding: '4px 8px',
+                                                                borderRadius: '6px',
+                                                                fontSize: '0.8rem',
+                                                                fontWeight: 'bold',
+                                                                backgroundColor: isBuy ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)',
+                                                                color: isBuy ? '#10b981' : '#ef4444'
+                                                            }}>
+                                                                {t.side}
+                                                            </span>
+                                                            {t.tradeCount > 1 && (
+                                                                <span style={{
+                                                                    fontSize: '0.72rem',
+                                                                    padding: '2px 6px',
+                                                                    borderRadius: '4px',
+                                                                    background: '#f4f4f5',
+                                                                    color: 'var(--text-muted)',
+                                                                    fontWeight: 600
+                                                                }}>
+                                                                    {t.tradeCount}건 체결
+                                                                </span>
+                                                            )}
                                                         </div>
-                                                        <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                                                            수수료: {formatCurrency(g.totalFee)}
+                                                    </td>
+
+                                                    {/* Quantity / Avg Price */}
+                                                    <td style={{ padding: '16px', textAlign: 'right' }}>
+                                                        <div style={{ fontWeight: '500' }}>{formatQuantity(t.totalQuantity)}</div>
+                                                        <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                                                            @ {formatCurrency(t.avgPrice)}
                                                         </div>
+                                                    </td>
+
+                                                    {/* Settlement / Fee */}
+                                                    <td style={{ padding: '16px', textAlign: 'right' }}>
+                                                        <div style={{ fontWeight: '500' }}>{formatCurrency(t.totalSettlementAmount)}</div>
+                                                        <div style={{ fontSize: '0.85rem', color: '#f59e0b' }}>
+                                                            수수료: {formatCurrency(t.totalFee)}
+                                                        </div>
+                                                    </td>
+
+                                                    {/* Total Amount (Main Focus!) */}
+                                                    <td style={{ padding: '16px', textAlign: 'right', fontWeight: 'bold', color: isBuy ? '#ef4444' : '#3b82f6', fontSize: '1.05rem' }}>
+                                                        {formatCurrency(t.totalAmount)}
                                                     </td>
                                                 </motion.tr>
 
-                                                {/* Expanded Accordion: Details of Raw Split Blocks */}
+                                                {/* Expanded Details Sub-Table */}
                                                 <AnimatePresence>
                                                     {isExpanded && (
-                                                        <tr style={{ backgroundColor: 'rgba(0, 0, 0, 0.25)', borderBottom: '1px solid var(--glass-border)' }}>
-                                                            <td colSpan={9} style={{ padding: '0 24px 20px 48px' }}>
+                                                        <tr style={{ background: '#fafafa', borderBottom: '1px solid var(--glass-border)' }}>
+                                                            <td colSpan={7} style={{ padding: '0 24px 20px 48px' }}>
                                                                 <div style={{
-                                                                    backgroundColor: 'rgba(255, 255, 255, 0.02)',
-                                                                    borderRadius: '12px',
+                                                                    background: '#ffffff',
                                                                     border: '1px solid var(--glass-border)',
+                                                                    borderRadius: '8px',
                                                                     padding: '16px',
-                                                                    marginTop: '8px'
+                                                                    boxShadow: '0 2px 6px rgba(0,0,0,0.02)'
                                                                 }}>
                                                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                                                                        <div style={{ fontWeight: 600, fontSize: '0.85rem', color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                                                            <Layers size={15} />
-                                                                            체결 블록 상세 내역 ({g.trades.length}건)
+                                                                        <div style={{ fontWeight: 700, fontSize: '0.85rem', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                                            <Layers size={14} style={{ color: 'var(--primary)' }} />
+                                                                            분할 체결 블록 상세 ({t.trades.length}건)
                                                                         </div>
                                                                         <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                                                                            * 거래소에서 1회 주문이 호가 잔량에 맞춰 분할 체결된 원본 단위입니다.
+                                                                            * 거래소에서 1회 주문이 호가별로 나뉘어 체결된 원본 내역입니다.
                                                                         </div>
                                                                     </div>
 
                                                                     <table style={{ width: '100%', fontSize: '0.82rem', borderCollapse: 'collapse' }}>
                                                                         <thead>
-                                                                            <tr style={{ color: 'var(--text-muted)', borderBottom: '1px solid rgba(255, 255, 255, 0.08)' }}>
-                                                                                <th style={{ textAlign: 'left', padding: '6px 8px' }}>순번</th>
-                                                                                <th style={{ textAlign: 'left', padding: '6px 8px' }}>체결시간</th>
-                                                                                <th style={{ textAlign: 'right', padding: '6px 8px' }}>체결단가 (KRW)</th>
-                                                                                <th style={{ textAlign: 'right', padding: '6px 8px' }}>체결수량</th>
-                                                                                <th style={{ textAlign: 'right', padding: '6px 8px' }}>체결금액 (KRW)</th>
-                                                                                <th style={{ textAlign: 'right', padding: '6px 8px' }}>수수료</th>
+                                                                            <tr style={{ color: 'var(--text-muted)', borderBottom: '1px solid var(--glass-border)', background: '#f4f4f5' }}>
+                                                                                <th style={{ textAlign: 'left', padding: '8px 10px' }}>순번</th>
+                                                                                <th style={{ textAlign: 'left', padding: '8px 10px' }}>체결시간</th>
+                                                                                <th style={{ textAlign: 'right', padding: '8px 10px' }}>체결단가 (KRW)</th>
+                                                                                <th style={{ textAlign: 'right', padding: '8px 10px' }}>체결수량</th>
+                                                                                <th style={{ textAlign: 'right', padding: '8px 10px' }}>체결금액 (KRW)</th>
+                                                                                <th style={{ textAlign: 'right', padding: '8px 10px' }}>수수료</th>
                                                                             </tr>
                                                                         </thead>
                                                                         <tbody>
-                                                                            {g.trades.map((t, tIdx) => (
-                                                                                <tr key={t.id || tIdx} style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.03)' }}>
-                                                                                    <td style={{ padding: '6px 8px', color: 'var(--text-muted)' }}>#{tIdx + 1}</td>
-                                                                                    <td style={{ padding: '6px 8px' }}>{t.executedAt}</td>
-                                                                                    <td style={{ padding: '6px 8px', textAlign: 'right' }}>{formatCurrency(parseNumber(t.price))}</td>
-                                                                                    <td style={{ padding: '6px 8px', textAlign: 'right' }}>{formatQuantity(parseNumber(t.quantity))}</td>
-                                                                                    <td style={{ padding: '6px 8px', textAlign: 'right', fontWeight: 600 }}>{formatCurrency(parseNumber(t.totalAmount))}</td>
-                                                                                    <td style={{ padding: '6px 8px', textAlign: 'right', color: 'var(--text-muted)' }}>{formatCurrency(parseNumber(t.fee))}</td>
+                                                                            {t.trades.map((item, idx) => (
+                                                                                <tr key={item.id || idx} style={{ borderBottom: '1px solid #f4f4f5' }}>
+                                                                                    <td style={{ padding: '8px 10px', color: 'var(--text-muted)' }}>#{idx + 1}</td>
+                                                                                    <td style={{ padding: '8px 10px' }}>{item.executedAt}</td>
+                                                                                    <td style={{ padding: '8px 10px', textAlign: 'right' }}>{formatCurrency(item.price)}</td>
+                                                                                    <td style={{ padding: '8px 10px', textAlign: 'right' }}>{formatQuantity(item.quantity)}</td>
+                                                                                    <td style={{ padding: '8px 10px', textAlign: 'right', fontWeight: 600 }}>{formatCurrency(item.totalAmount)}</td>
+                                                                                    <td style={{ padding: '8px 10px', textAlign: 'right', color: '#f59e0b' }}>{formatCurrency(item.fee)}</td>
                                                                                 </tr>
                                                                             ))}
                                                                         </tbody>
@@ -934,12 +868,47 @@ export default function TradeSummaryPage() {
                                     })
                                 )}
                             </tbody>
+
+                            {/* Table Footer (Matching exactly with trade-history tfoot) */}
+                            {!loading && pagedTrades.length > 0 && (
+                                <tfoot style={{ background: '#fafafa', borderTop: '2px solid var(--glass-border)' }}>
+                                    <tr style={{ borderBottom: 'none' }}>
+                                        <td colSpan={4} style={{ padding: '20px 16px', fontWeight: 'bold', textAlign: 'right', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+                                            페이지 합계 (Page Totals)
+                                        </td>
+                                        <td style={{ padding: '20px 16px', textAlign: 'right' }}>
+                                            <div style={{ fontWeight: 'bold', color: 'var(--text-main)', fontSize: '1rem' }}>
+                                                {formatQuantity(pagedTrades.reduce((sum, t) => sum + t.totalQuantity, 0))}
+                                            </div>
+                                        </td>
+                                        <td style={{ padding: '20px 16px', textAlign: 'right' }}>
+                                            <div style={{ fontWeight: 'bold', color: 'var(--primary)', fontSize: '1.2rem' }}>
+                                                {formatCurrency(pageTotals.settlementSum)}
+                                            </div>
+                                            <div style={{ fontSize: '0.8rem', color: '#f59e0b', marginTop: '4px' }}>
+                                                수수료: {formatCurrency(pageTotals.feeSum)}
+                                            </div>
+                                        </td>
+                                        <td style={{ padding: '20px 16px', textAlign: 'right', fontWeight: 'bold', color: 'var(--primary)', fontSize: '1.2rem' }}>
+                                            {formatCurrency(pageTotals.amountSum)}
+                                        </td>
+                                    </tr>
+                                </tfoot>
+                            )}
                         </table>
                     </div>
+
+                    {/* Pagination Controls (Matching trade-history Exactly) */}
+                    <Pagination
+                        currentPage={page}
+                        totalPages={totalPages}
+                        totalCount={totalElements}
+                        onPageChange={setPage}
+                        style={{ borderTop: '1px solid var(--glass-border)', background: '#ffffff', padding: '24px 0 24px' }}
+                    />
                 </div>
 
             </div>
         </div>
     );
 }
-
