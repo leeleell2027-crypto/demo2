@@ -130,11 +130,13 @@ CREATE TABLE trade_history (
 ) ;
 
 
-CREATE TABLE `trade_btc_history` (
+CREATE TABLE IF NOT EXISTS `trade_btc_history` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '고유 거래 식별자', 
+  `coin` varchar(20) NOT NULL DEFAULT 'BTC' COMMENT '코인 심볼',
   `ordered_at` varchar(10) NOT NULL COMMENT '날짜',
   `btc_price` varchar(100) NOT NULL COMMENT '가격', 
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_coin_date` (`coin`, `ordered_at`)
 );
 
 -- https://api.upbit.com/v1/candles/days?market=KRW-BTC&count=1&to=2023-06-06%2023:59:00

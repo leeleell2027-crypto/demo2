@@ -75,8 +75,18 @@ public class TradeHistoryService {
         return stats;
     }
 
+    public static final List<String> SUPPORTED_COINS = List.of(
+            "BTC", "ETH", "XRP", "SOL", "ADA", "XLM", "WLD", "HYPER", "ETC");
+
     public List<Map<String, Object>> getBtcMarketHistory() {
-        return tradeHistoryMapper.getBtcMarketHistory();
+        return getBtcMarketHistory("BTC");
+    }
+
+    public List<Map<String, Object>> getBtcMarketHistory(String coin) {
+        if (coin == null || coin.trim().isEmpty()) {
+            coin = "BTC";
+        }
+        return tradeHistoryMapper.getBtcMarketHistory(coin.toUpperCase().trim());
     }
 
     public void updateBtcPrice(Long id, String price) {
@@ -84,40 +94,117 @@ public class TradeHistoryService {
     }
 
     public void syncBtcPricesFromUpbit() {
-        List<Map<String, Object>> histories = tradeHistoryMapper.getBtcMarketHistory();
-        if (histories.isEmpty())
+        syncCoinPricesFromUpbit("BTC");
+    }
+
+    public void syncCoinPricesFromUpbit(String coin) {
+        if (coin == null || coin.trim().isEmpty() || "ALL".equalsIgnoreCase(coin.trim())) {
+            syncAllCoinPricesFromUpbit();
             return;
+        }
+        syncSingleCoinPrices(coin.toUpperCase().trim());
+    }
+
+    // Upbit candles API URL 생성 (to 파라미터 올바른 URL 인코딩)
+    private java.net.URI buildUpbitCandleUrl(String market, String targetDate) {
+        return org.springframework.web.util.UriComponentsBuilder
+                .fromHttpUrl("https://api.upbit.com/v1/candles/days")
+                .queryParam("market", market)
+                .queryParam("to", targetDate + " 23:59:59")
+                .queryParam("count", 1)
+                .build()
+                .encode()
+                .toUri();
+    }
+
+    // 가격 계산 헬퍼
+    private long extractPrice(Map<String, Object> candle) {
+        double high = candle.get("high_price") != null ? ((Number) candle.get("high_price")).doubleValue() : 0;
+        double low = candle.get("low_price") != null ? ((Number) candle.get("low_price")).doubleValue() : 0;
+        double tradePrice = candle.get("trade_price") != null ? ((Number) candle.get("trade_price")).doubleValue() : 0;
+        if (high > 0 && low > 0) return Math.round((high + low) / 2.0);
+        if (tradePrice > 0) return Math.round(tradePrice);
+        return 0;
+    }
+
+    // 특정 날짜 1개만 동기화 (사용자가 직접 날짜 입력 시)
+    public void syncCoinPriceForDate(String coin, String targetDate) {
+        if (coin == null || coin.trim().isEmpty()) coin = "BTC";
+        String upperCoin = coin.toUpperCase().trim();
+        String market = "KRW-" + upperCoin;
 
         org.springframework.web.client.RestTemplate restTemplate = new org.springframework.web.client.RestTemplate();
-        String url = "https://api.upbit.com/v1/candles/days?market=KRW-BTC&count=200";
-
         try {
-            org.springframework.core.ParameterizedTypeReference<List<Map<String, Object>>> typeRef = new org.springframework.core.ParameterizedTypeReference<List<Map<String, Object>>>() {
-            };
-            org.springframework.http.ResponseEntity<List<Map<String, Object>>> response = restTemplate.exchange(url,
-                    org.springframework.http.HttpMethod.GET, null, typeRef);
+            java.net.URI uri = buildUpbitCandleUrl(market, targetDate);
+            org.springframework.core.ParameterizedTypeReference<List<Map<String, Object>>> typeRef =
+                    new org.springframework.core.ParameterizedTypeReference<>() {};
+            org.springframework.http.ResponseEntity<List<Map<String, Object>>> response =
+                    restTemplate.exchange(uri, org.springframework.http.HttpMethod.GET, null, typeRef);
             List<Map<String, Object>> candles = response.getBody();
 
-            if (candles == null)
-                return;
+            if (candles != null && !candles.isEmpty()) {
+                Map<String, Object> candle = candles.get(0);
+                String candleDate = ((String) candle.get("candle_date_time_kst")).split("T")[0];
+                long finalPrice = extractPrice(candle);
 
-            for (Map<String, Object> history : histories) {
-                Long id = ((Number) history.get("id")).longValue();
-                String date = (String) history.get("date");
-
-                for (Map<String, Object> candle : candles) {
-                    String candleDate = ((String) candle.get("candle_date_time_kst")).split("T")[0];
-                    if (date.equals(candleDate)) {
-                        double high = ((Number) candle.get("high_price")).doubleValue();
-                        double low = ((Number) candle.get("low_price")).doubleValue();
-                        long avgPrice = Math.round((high + low) / 2.0);
-                        tradeHistoryMapper.updateBtcPrice(id, String.valueOf(avgPrice));
-                        break;
-                    }
+                // 날짜 일치 여부 관계없이 targetDate에 가격 저장 (오늘 등 장중 케이스 포함)
+                if (!targetDate.equals(candleDate)) {
+                    System.out.println("Date mismatch: requested=" + targetDate + ", returned=" + candleDate + ", saving price to targetDate");
                 }
+                tradeHistoryMapper.upsertBtcPrice(upperCoin, targetDate, String.valueOf(finalPrice));
+            } else {
+                System.out.println("No candle data returned for " + market + " at " + targetDate);
+                tradeHistoryMapper.upsertBtcPrice(upperCoin, targetDate, "0");
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (Exception ex) {
+            System.err.println("Error fetching candle for " + market + " at " + targetDate + ": " + ex.getMessage());
+            ex.printStackTrace();
+        }
+    }
+
+    public void syncAllCoinPricesFromUpbit() {
+        for (String c : SUPPORTED_COINS) {
+            try {
+                syncSingleCoinPrices(c);
+                Thread.sleep(200);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private void syncSingleCoinPrices(String coin) {
+        org.springframework.web.client.RestTemplate restTemplate = new org.springframework.web.client.RestTemplate();
+        String market = "KRW-" + coin;
+
+        // "내가 등록된 날짜" (BTC에 등록된 고유 날짜들)만 가져와서 그 날짜의 금액만 Upbit에서 조회
+        List<String> targetDates = tradeHistoryMapper.getBaseMarketDates();
+        if (targetDates == null || targetDates.isEmpty()) {
+            return;
+        }
+
+        for (String targetDate : targetDates) {
+            try {
+                java.net.URI uri = buildUpbitCandleUrl(market, targetDate);
+                org.springframework.core.ParameterizedTypeReference<List<Map<String, Object>>> typeRef =
+                        new org.springframework.core.ParameterizedTypeReference<>() {};
+                org.springframework.http.ResponseEntity<List<Map<String, Object>>> response =
+                        restTemplate.exchange(uri, org.springframework.http.HttpMethod.GET, null, typeRef);
+                List<Map<String, Object>> candles = response.getBody();
+
+                if (candles != null && !candles.isEmpty()) {
+                    long finalPrice = extractPrice(candles.get(0));
+                    tradeHistoryMapper.upsertBtcPrice(coin, targetDate, String.valueOf(finalPrice));
+                } else {
+                    tradeHistoryMapper.upsertBtcPrice(coin, targetDate, "0");
+                }
+                Thread.sleep(110); // Respect Upbit API rate limit
+            } catch (Exception ex) {
+                System.err.println("Error fetching candle for " + market + " at " + targetDate + ": " + ex.getMessage());
+                try {
+                    tradeHistoryMapper.upsertBtcPrice(coin, targetDate, "0");
+                } catch (Exception ignored) {}
+            }
         }
     }
 

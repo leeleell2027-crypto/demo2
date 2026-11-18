@@ -34,7 +34,11 @@ public interface TradeHistoryMapper {
             @Param("side") String side,
             @Param("includeBtc") Boolean includeBtc);
 
-    List<java.util.Map<String, Object>> getBtcMarketHistory();
+    List<java.util.Map<String, Object>> getBtcMarketHistory(@Param("coin") String coin);
+
+    void upsertBtcPrice(@Param("coin") String coin, @Param("date") String date, @Param("price") String price);
+
+    List<String> getBaseMarketDates();
 
     void updateBtcPrice(@Param("id") Long id, @Param("price") String price);
 

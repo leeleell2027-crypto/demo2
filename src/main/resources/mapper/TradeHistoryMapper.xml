@@ -44,7 +44,7 @@
             END as settlementAmount,
             t.ordered_at as orderedAt
         FROM trade_history t
-        LEFT JOIN trade_btc_history b ON DATE_FORMAT(t.executed_at, '%Y-%m-%d') = b.ordered_at
+        LEFT JOIN trade_btc_history b ON DATE_FORMAT(t.executed_at, '%Y-%m-%d') = b.ordered_at AND (b.coin = 'BTC' OR b.coin IS NULL)
         ORDER BY t.executed_at DESC
     </select>
 
@@ -78,7 +78,7 @@
             END as settlementAmount,
             t.ordered_at as orderedAt
         FROM trade_history t
-        LEFT JOIN trade_btc_history b ON DATE_FORMAT(t.executed_at, '%Y-%m-%d') = b.ordered_at
+        LEFT JOIN trade_btc_history b ON DATE_FORMAT(t.executed_at, '%Y-%m-%d') = b.ordered_at AND (b.coin = 'BTC' OR b.coin IS NULL)
         <where>
             <if test="startDate != null and startDate != ''">
                 AND executed_at &gt;= #{startDate}
@@ -147,7 +147,7 @@
                     ELSE 0 
                 END as qty
             FROM trade_history t
-            LEFT JOIN trade_btc_history b ON DATE_FORMAT(t.executed_at, '%Y-%m-%d') = b.ordered_at
+            LEFT JOIN trade_btc_history b ON DATE_FORMAT(t.executed_at, '%Y-%m-%d') = b.ordered_at AND (b.coin = 'BTC' OR b.coin IS NULL)
             <where>
                 <if test="endDate != null and endDate != ''">
                     AND t.executed_at &lt;= CONCAT(#{endDate}, ' 23:59:59')
@@ -169,7 +169,7 @@
                     ELSE 0 
                 END as qty
             FROM trade_history t
-            LEFT JOIN trade_btc_history b ON DATE_FORMAT(t.executed_at, '%Y-%m-%d') = b.ordered_at
+            LEFT JOIN trade_btc_history b ON DATE_FORMAT(t.executed_at, '%Y-%m-%d') = b.ordered_at AND (b.coin = 'BTC' OR b.coin IS NULL)
             <where>
                 AND (t.market = 'BTC' OR t.market = 'btc') AND t.coin != 'BTC'
                 <if test="endDate != null and endDate != ''">
@@ -187,9 +187,28 @@
     <select id="getBtcMarketHistory" resultType="java.util.Map">
         SELECT 
             id as "id",
+            coin as "coin",
             ordered_at as "date",
             btc_price as "price"
         FROM trade_btc_history
+        <where>
+            <if test="coin != null and coin != '' and coin != 'ALL'">
+                AND coin = #{coin}
+            </if>
+        </where>
+        ORDER BY ordered_at DESC, coin ASC
+    </select>
+
+    <insert id="upsertBtcPrice">
+        INSERT INTO trade_btc_history (coin, ordered_at, btc_price)
+        VALUES (#{coin}, #{date}, #{price})
+        ON DUPLICATE KEY UPDATE btc_price = #{price}
+    </insert>
+
+    <select id="getBaseMarketDates" resultType="string">
+        SELECT DISTINCT ordered_at 
+        FROM trade_btc_history 
+        WHERE coin = 'BTC'
         ORDER BY ordered_at DESC
     </select>
 

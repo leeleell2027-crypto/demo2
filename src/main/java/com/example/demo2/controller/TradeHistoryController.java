@@ -43,8 +43,9 @@ public class TradeHistoryController {
     }
 
     @GetMapping("/btc-market")
-    public ResponseEntity<List<Map<String, Object>>> getBtcMarketHistory() {
-        return ResponseEntity.ok(tradeHistoryService.getBtcMarketHistory());
+    public ResponseEntity<List<Map<String, Object>>> getBtcMarketHistory(
+            @RequestParam(required = false, defaultValue = "BTC") String coin) {
+        return ResponseEntity.ok(tradeHistoryService.getBtcMarketHistory(coin));
     }
 
     @PutMapping("/btc-market/{id}")
@@ -55,9 +56,22 @@ public class TradeHistoryController {
     }
 
     @PostMapping("/btc-market/sync")
-    public ResponseEntity<?> syncBtcPricesFromUpbit() {
-        tradeHistoryService.syncBtcPricesFromUpbit();
-        return ResponseEntity.ok().build();
+    public ResponseEntity<?> syncBtcPricesFromUpbit(
+            @RequestParam(required = false, defaultValue = "BTC") String coin,
+            @RequestParam(required = false) String date) {
+        if (date != null && !date.trim().isEmpty()) {
+            // 특정 날짜만 동기화
+            tradeHistoryService.syncCoinPriceForDate(coin, date.trim());
+            return ResponseEntity.ok(Map.of("message", coin + " " + date + " 시세 등록 완료", "success", true));
+        }
+        tradeHistoryService.syncCoinPricesFromUpbit(coin);
+        return ResponseEntity.ok(Map.of("message", coin + " 시세 동기화 완료", "success", true));
+    }
+
+    @PostMapping("/btc-market/sync-all")
+    public ResponseEntity<?> syncAllCoinPricesFromUpbit() {
+        tradeHistoryService.syncAllCoinPricesFromUpbit();
+        return ResponseEntity.ok(Map.of("message", "전체 코인 시세 동기화 완료", "success", true));
     }
 
     @PostMapping("/upload")
