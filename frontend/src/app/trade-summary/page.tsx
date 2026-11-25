@@ -12,7 +12,9 @@ import {
     TrendingDown,
     DollarSign,
     ChevronDown,
-    ChevronUp
+    ChevronUp,
+    ArrowDownCircle,
+    ArrowUpCircle
 } from 'lucide-react';
 import Link from 'next/link';
 import Pagination from '@/components/Pagination';
@@ -60,6 +62,8 @@ export default function TradeSummaryPage() {
     const [coin, setCoin] = useState('');
     const [side, setSide] = useState('전체');
     const [timeWindow, setTimeWindow] = useState('orderedAt');
+    const [priceInput, setPriceInput] = useState('');
+    const [priceCondition, setPriceCondition] = useState('all');
     const [availableCoins, setAvailableCoins] = useState<string[]>([]);
 
     // Pagination
@@ -122,6 +126,11 @@ export default function TradeSummaryPage() {
         }
     };
 
+    const handleSearch = () => {
+        setPage(1);
+        fetchTrades();
+    };
+
     useEffect(() => {
         fetchTrades();
         setPage(1);
@@ -148,7 +157,45 @@ export default function TradeSummaryPage() {
     const groupedTrades = useMemo(() => {
         if (!rawTrades || rawTrades.length === 0) return [];
 
-        const sorted = [...rawTrades].sort((a, b) => {
+        let filteredTrades = rawTrades;
+        const targetPrice = parseNumber(priceInput);
+        const hasPriceFilter = priceInput.trim() !== '' && !isNaN(targetPrice) && targetPrice > 0 && priceCondition !== 'all';
+
+        if (hasPriceFilter) {
+            filteredTrades = rawTrades.filter((item) => {
+                const itemPrice = parseNumber(item.price);
+                const itemAmount = parseNumber(item.totalAmount);
+                const isKRW = item.coin === 'KRW' || item.market === '-' || item.side === '입금' || item.side === '출금';
+
+                // KRW는 단가가 항상 1원(또는 0원)이므로 거래금액(totalAmount)을 기준으로 비교
+                if (isKRW) {
+                    if (priceCondition === 'gte' || priceCondition === 'amount_gte' || priceCondition === 'price_gte') {
+                        return itemAmount >= targetPrice;
+                    } else if (priceCondition === 'lte' || priceCondition === 'amount_lte' || priceCondition === 'price_lte') {
+                        return itemAmount <= targetPrice;
+                    }
+                    return true;
+                }
+
+                // 일반 코인
+                if (priceCondition === 'price_gte') {
+                    return itemPrice >= targetPrice;
+                } else if (priceCondition === 'price_lte') {
+                    return itemPrice <= targetPrice;
+                } else if (priceCondition === 'amount_gte') {
+                    return itemAmount >= targetPrice;
+                } else if (priceCondition === 'amount_lte') {
+                    return itemAmount <= targetPrice;
+                } else if (priceCondition === 'gte') {
+                    return itemPrice >= targetPrice || itemAmount >= targetPrice;
+                } else if (priceCondition === 'lte') {
+                    return itemPrice <= targetPrice || itemAmount <= targetPrice;
+                }
+                return true;
+            });
+        }
+
+        const sorted = [...filteredTrades].sort((a, b) => {
             const timeA = a.executedAt || a.orderedAt || '';
             const timeB = b.executedAt || b.orderedAt || '';
             return timeA.localeCompare(timeB);
@@ -267,10 +314,57 @@ export default function TradeSummaryPage() {
             }
         }
 
+        let finalGroups = groups;
+        if (hasPriceFilter) {
+            finalGroups = groups.filter((g) => {
+                const isKRW = g.coin === 'KRW' || g.market === '-' || g.side === '입금' || g.side === '출금';
+                if (isKRW) {
+                    if (priceCondition === 'gte' || priceCondition === 'amount_gte' || priceCondition === 'price_gte') {
+                        return g.totalAmount >= targetPrice;
+                    } else if (priceCondition === 'lte' || priceCondition === 'amount_lte' || priceCondition === 'price_lte') {
+                        return g.totalAmount <= targetPrice;
+                    }
+                    return true;
+                }
+
+                if (priceCondition === 'price_gte') {
+                    return g.avgPrice >= targetPrice;
+                } else if (priceCondition === 'price_lte') {
+                    return g.avgPrice <= targetPrice;
+                } else if (priceCondition === 'amount_gte') {
+                    return g.totalAmount >= targetPrice;
+                } else if (priceCondition === 'amount_lte') {
+                    return g.totalAmount <= targetPrice;
+                } else if (priceCondition === 'gte') {
+                    return g.avgPrice >= targetPrice || g.totalAmount >= targetPrice;
+                } else if (priceCondition === 'lte') {
+                    return g.avgPrice <= targetPrice || g.totalAmount <= targetPrice;
+                }
+                return true;
+            });
+        }
+
         // Sort descending by latest execution time
-        groups.sort((a, b) => b.lastExecutedAt.localeCompare(a.lastExecutedAt));
-        return groups;
-    }, [rawTrades, timeWindow]);
+        finalGroups.sort((a, b) => b.lastExecutedAt.localeCompare(a.lastExecutedAt));
+        return finalGroups;
+    }, [rawTrades, timeWindow, priceInput, priceCondition]);
+
+    const getSideBadgeInfo = (sideStr: string) => {
+        const s = (sideStr || '').trim();
+        if (s === '매수' || s.toLowerCase().includes('buy')) {
+            return { bg: 'rgba(239, 68, 68, 0.15)', text: '#ef4444' };
+        }
+        if (s === '매도' || s.toLowerCase().includes('sell')) {
+            return { bg: 'rgba(59, 130, 246, 0.15)', text: '#3b82f6' };
+        }
+        if (s === '입금' || s.toLowerCase().includes('deposit')) {
+            return { bg: 'rgba(16, 185, 129, 0.15)', text: '#10b981' };
+        }
+        if (s === '출금' || s.toLowerCase().includes('withdraw')) {
+            return { bg: 'rgba(245, 158, 11, 0.15)', text: '#f59e0b' };
+        }
+        return { bg: 'rgba(148, 163, 184, 0.15)', text: '#64748b' };
+    };
 
     // Overall KPI Summary
     const stats = useMemo(() => {
@@ -282,14 +376,35 @@ export default function TradeSummaryPage() {
         let sellBlocks = 0;
         let sellCount = 0;
 
+        let depositAmount = 0;
+        let depositBlocks = 0;
+        let depositCount = 0;
+
+        let withdrawAmount = 0;
+        let withdrawBlocks = 0;
+        let withdrawCount = 0;
+
         let totalFees = 0;
 
         for (const g of groupedTrades) {
             totalFees += g.totalFee;
-            if (g.side === '매수' || g.side?.toLowerCase().includes('buy')) {
+            const sideStr = (g.side || '').trim();
+            if (sideStr === '매수' || sideStr.toLowerCase().includes('buy')) {
                 buyAmount += g.totalAmount;
                 buyCount += 1;
                 buyBlocks += g.tradeCount;
+            } else if (sideStr === '매도' || sideStr.toLowerCase().includes('sell')) {
+                sellAmount += g.totalAmount;
+                sellCount += 1;
+                sellBlocks += g.tradeCount;
+            } else if (sideStr === '입금' || sideStr.toLowerCase().includes('deposit')) {
+                depositAmount += g.totalAmount;
+                depositCount += 1;
+                depositBlocks += g.tradeCount;
+            } else if (sideStr === '출금' || sideStr.toLowerCase().includes('withdraw')) {
+                withdrawAmount += g.totalAmount;
+                withdrawCount += 1;
+                withdrawBlocks += g.tradeCount;
             } else {
                 sellAmount += g.totalAmount;
                 sellCount += 1;
@@ -304,6 +419,12 @@ export default function TradeSummaryPage() {
             sellAmount,
             sellCount,
             sellBlocks,
+            depositAmount,
+            depositCount,
+            depositBlocks,
+            withdrawAmount,
+            withdrawCount,
+            withdrawBlocks,
             totalOrders: groupedTrades.length,
             totalRawBlocks: rawTrades.length,
             totalFees,
@@ -503,42 +624,86 @@ export default function TradeSummaryPage() {
                     </div>
 
                     {/* KPI Summary Cards (Light Theme Clean Style) */}
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px', marginBottom: '20px' }}>
-                        {/* Buy Total */}
-                        <div className="glass-panel" style={{ padding: '20px', borderRadius: '12px' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                                <div>
-                                    <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>총 매수 합계</div>
-                                    <div style={{ fontSize: '1.75rem', fontWeight: 800, color: '#ef4444', marginTop: '6px' }}>
-                                        {formatCurrency(stats.buyAmount)} <span style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-muted)' }}>KRW</span>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: '16px', marginBottom: '20px' }}>
+                        {/* Buy Total (KRW가 아니거나 매수 건수가 있을 때) */}
+                        {(coin !== 'KRW' || stats.buyCount > 0) && (
+                            <div className="glass-panel" style={{ padding: '20px', borderRadius: '12px' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                    <div>
+                                        <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>총 매수 합계</div>
+                                        <div style={{ fontSize: '1.75rem', fontWeight: 800, color: '#ef4444', marginTop: '6px' }}>
+                                            {formatCurrency(stats.buyAmount)} <span style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-muted)' }}>KRW</span>
+                                        </div>
+                                    </div>
+                                    <div style={{ padding: '8px', borderRadius: '10px', background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444' }}>
+                                        <TrendingUp size={20} />
                                     </div>
                                 </div>
-                                <div style={{ padding: '8px', borderRadius: '10px', background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444' }}>
-                                    <TrendingUp size={20} />
+                                <div style={{ marginTop: '10px', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+                                    합산 주문 <b>{stats.buyCount}</b>건 (체결 블록 {stats.buyBlocks}개)
                                 </div>
                             </div>
-                            <div style={{ marginTop: '10px', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
-                                합산 주문 <b>{stats.buyCount}</b>건 (체결 블록 {stats.buyBlocks}개)
-                            </div>
-                        </div>
+                        )}
 
-                        {/* Sell Total */}
-                        <div className="glass-panel" style={{ padding: '20px', borderRadius: '12px' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                                <div>
-                                    <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>총 매도 합계</div>
-                                    <div style={{ fontSize: '1.75rem', fontWeight: 800, color: '#3b82f6', marginTop: '6px' }}>
-                                        {formatCurrency(stats.sellAmount)} <span style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-muted)' }}>KRW</span>
+                        {/* Sell Total (KRW가 아니거나 매도 건수가 있을 때) */}
+                        {(coin !== 'KRW' || stats.sellCount > 0) && (
+                            <div className="glass-panel" style={{ padding: '20px', borderRadius: '12px' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                    <div>
+                                        <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>총 매도 합계</div>
+                                        <div style={{ fontSize: '1.75rem', fontWeight: 800, color: '#3b82f6', marginTop: '6px' }}>
+                                            {formatCurrency(stats.sellAmount)} <span style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-muted)' }}>KRW</span>
+                                        </div>
+                                    </div>
+                                    <div style={{ padding: '8px', borderRadius: '10px', background: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6' }}>
+                                        <TrendingDown size={20} />
                                     </div>
                                 </div>
-                                <div style={{ padding: '8px', borderRadius: '10px', background: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6' }}>
-                                    <TrendingDown size={20} />
+                                <div style={{ marginTop: '10px', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+                                    합산 주문 <b>{stats.sellCount}</b>건 (체결 블록 {stats.sellBlocks}개)
                                 </div>
                             </div>
-                            <div style={{ marginTop: '10px', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
-                                합산 주문 <b>{stats.sellCount}</b>건 (체결 블록 {stats.sellBlocks}개)
+                        )}
+
+                        {/* Deposit Total (KRW이거나 입금 건수가 있을 때) */}
+                        {(coin === 'KRW' || stats.depositCount > 0) && (
+                            <div className="glass-panel" style={{ padding: '20px', borderRadius: '12px' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                    <div>
+                                        <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>총 입금 합계</div>
+                                        <div style={{ fontSize: '1.75rem', fontWeight: 800, color: '#10b981', marginTop: '6px' }}>
+                                            {formatCurrency(stats.depositAmount)} <span style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-muted)' }}>KRW</span>
+                                        </div>
+                                    </div>
+                                    <div style={{ padding: '8px', borderRadius: '10px', background: 'rgba(16, 185, 129, 0.1)', color: '#10b981' }}>
+                                        <ArrowDownCircle size={20} />
+                                    </div>
+                                </div>
+                                <div style={{ marginTop: '10px', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+                                    합산 주문 <b>{stats.depositCount}</b>건 (체결 블록 {stats.depositBlocks}개)
+                                </div>
                             </div>
-                        </div>
+                        )}
+
+                        {/* Withdraw Total (KRW이거나 출금 건수가 있을 때) */}
+                        {(coin === 'KRW' || stats.withdrawCount > 0) && (
+                            <div className="glass-panel" style={{ padding: '20px', borderRadius: '12px' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                    <div>
+                                        <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>총 출금 합계</div>
+                                        <div style={{ fontSize: '1.75rem', fontWeight: 800, color: '#f59e0b', marginTop: '6px' }}>
+                                            {formatCurrency(stats.withdrawAmount)} <span style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-muted)' }}>KRW</span>
+                                        </div>
+                                    </div>
+                                    <div style={{ padding: '8px', borderRadius: '10px', background: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b' }}>
+                                        <ArrowUpCircle size={20} />
+                                    </div>
+                                </div>
+                                <div style={{ marginTop: '10px', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+                                    합산 주문 <b>{stats.withdrawCount}</b>건 (체결 블록 {stats.withdrawBlocks}개)
+                                </div>
+                            </div>
+                        )}
 
                         {/* Compression Ratio */}
                         <div className="glass-panel" style={{ padding: '20px', borderRadius: '12px' }}>
@@ -645,7 +810,7 @@ export default function TradeSummaryPage() {
                         </div>
 
                         {/* SIDE */}
-                        <div style={{ minWidth: '110px' }}>
+                        <div style={{ minWidth: '130px' }}>
                             <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '8px', textTransform: 'uppercase' }}>
                                 SIDE
                             </label>
@@ -654,9 +819,51 @@ export default function TradeSummaryPage() {
                                 onChange={(e) => { setSide(e.target.value); setPage(1); }}
                                 className="input-control"
                             >
-                                <option value="전체" style={{ color: 'black' }}>All</option>
-                                <option value="매수" style={{ color: 'black' }}>Buy</option>
-                                <option value="매도" style={{ color: 'black' }}>Sell</option>
+                                <option value="전체" style={{ color: 'black' }}>All (전체)</option>
+                                <option value="매수" style={{ color: 'black' }}>매수 (Buy)</option>
+                                <option value="매도" style={{ color: 'black' }}>매도 (Sell)</option>
+                                <option value="입금" style={{ color: 'black' }}>입금 (Deposit)</option>
+                                <option value="출금" style={{ color: 'black' }}>출금 (Withdraw)</option>
+                            </select>
+                        </div>
+
+                        {/* PRICE (단가) */}
+                        <div style={{ minWidth: '130px' }}>
+                            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '8px', textTransform: 'uppercase' }}>
+                                단가 (PRICE)
+                            </label>
+                            <input
+                                type="text"
+                                placeholder="예: 10000"
+                                value={priceInput}
+                                onChange={(e) => {
+                                    setPriceInput(e.target.value);
+                                    setPage(1);
+                                }}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') handleSearch();
+                                }}
+                                className="input-control"
+                                style={{ width: '100%' }}
+                            />
+                        </div>
+
+                        {/* PRICE CONDITION (이상 / 이하) */}
+                        <div style={{ minWidth: '120px' }}>
+                            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '8px', textTransform: 'uppercase' }}>
+                                조건 (CONDITION)
+                            </label>
+                            <select
+                                value={priceCondition}
+                                onChange={(e) => {
+                                    setPriceCondition(e.target.value);
+                                    setPage(1);
+                                }}
+                                className="input-control"
+                            >
+                                <option value="all" style={{ color: 'black' }}>선택 안 함</option>
+                                <option value="gte" style={{ color: 'black' }}>이상 (&gt;=)</option>
+                                <option value="lte" style={{ color: 'black' }}>이하 (&lt;=)</option>
                             </select>
                         </div>
 
@@ -678,10 +885,7 @@ export default function TradeSummaryPage() {
 
                         {/* SEARCH BUTTON */}
                         <button
-                            onClick={() => {
-                                setPage(1);
-                                fetchTrades();
-                            }}
+                            onClick={handleSearch}
                             className="btn btn-primary"
                             style={{ color: '#ffffff', padding: '10px 32px', fontWeight: 'bold' }}
                         >
@@ -721,7 +925,7 @@ export default function TradeSummaryPage() {
                                 ) : (
                                     pagedTrades.map((t, i) => {
                                         const isExpanded = !!expandedIds[t.id];
-                                        const isBuy = t.side === '매수' || t.side?.toLowerCase().includes('buy');
+                                        const badge = getSideBadgeInfo(t.side);
 
                                         return (
                                             <React.Fragment key={t.id || i}>
@@ -770,8 +974,8 @@ export default function TradeSummaryPage() {
                                                                 borderRadius: '6px',
                                                                 fontSize: '0.8rem',
                                                                 fontWeight: 'bold',
-                                                                backgroundColor: isBuy ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)',
-                                                                color: isBuy ? '#10b981' : '#ef4444'
+                                                                backgroundColor: badge.bg,
+                                                                color: badge.text
                                                             }}>
                                                                 {t.side}
                                                             </span>
@@ -807,7 +1011,7 @@ export default function TradeSummaryPage() {
                                                     </td>
 
                                                     {/* Total Amount (Main Focus!) */}
-                                                    <td style={{ padding: '16px', textAlign: 'right', fontWeight: 'bold', color: isBuy ? '#ef4444' : '#3b82f6', fontSize: '1.05rem' }}>
+                                                    <td style={{ padding: '16px', textAlign: 'right', fontWeight: 'bold', color: badge.text, fontSize: '1.05rem' }}>
                                                         {formatCurrency(t.totalAmount)}
                                                     </td>
                                                 </motion.tr>

@@ -421,9 +421,11 @@ export default function TradeHistoryPage() {
                                         onChange={(e) => setSide(e.target.value)}
                                         className="input-control"
                                     >
-                                        <option value="전체" style={{ color: 'black' }}>All</option>
-                                        <option value="매수" style={{ color: 'black' }}>Buy</option>
-                                        <option value="매도" style={{ color: 'black' }}>Sell</option>
+                                        <option value="전체" style={{ color: 'black' }}>All (전체)</option>
+                                        <option value="매수" style={{ color: 'black' }}>매수 (Buy)</option>
+                                        <option value="매도" style={{ color: 'black' }}>매도 (Sell)</option>
+                                        <option value="입금" style={{ color: 'black' }}>입금 (Deposit)</option>
+                                        <option value="출금" style={{ color: 'black' }}>출금 (Withdraw)</option>
                                     </select>
                                 </div>
 
@@ -508,16 +510,27 @@ export default function TradeHistoryPage() {
                                                     <div style={{ fontSize: '0.85rem', color: 'var(--primary)', opacity: 0.8 }}>{t.market}</div>
                                                 </td>
                                                 <td style={{ padding: '16px' }}>
-                                                    <span style={{
-                                                        padding: '4px 8px',
-                                                        borderRadius: '6px',
-                                                        fontSize: '0.8rem',
-                                                        fontWeight: 'bold',
-                                                        backgroundColor: t.side === '매수' || t.side?.toLowerCase().includes('buy') ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)',
-                                                        color: t.side === '매수' || t.side?.toLowerCase().includes('buy') ? '#10b981' : '#ef4444'
-                                                    }}>
-                                                        {t.side}
-                                                    </span>
+                                                    {(() => {
+                                                        const s = (t.side || '').trim();
+                                                        const isBuy = s === '매수' || s.toLowerCase().includes('buy');
+                                                        const isSell = s === '매도' || s.toLowerCase().includes('sell');
+                                                        const isDeposit = s === '입금' || s.toLowerCase().includes('deposit');
+                                                        const isWithdraw = s === '출금' || s.toLowerCase().includes('withdraw');
+                                                        const bg = isBuy ? 'rgba(239, 68, 68, 0.15)' : isSell ? 'rgba(59, 130, 246, 0.15)' : isDeposit ? 'rgba(16, 185, 129, 0.15)' : isWithdraw ? 'rgba(245, 158, 11, 0.15)' : 'rgba(148, 163, 184, 0.15)';
+                                                        const color = isBuy ? '#ef4444' : isSell ? '#3b82f6' : isDeposit ? '#10b981' : isWithdraw ? '#f59e0b' : '#64748b';
+                                                        return (
+                                                            <span style={{
+                                                                padding: '4px 8px',
+                                                                borderRadius: '6px',
+                                                                fontSize: '0.8rem',
+                                                                fontWeight: 'bold',
+                                                                backgroundColor: bg,
+                                                                color: color
+                                                            }}>
+                                                                {t.side}
+                                                            </span>
+                                                        );
+                                                    })()}
                                                 </td>
                                                 <td style={{ padding: '16px', textAlign: 'right' }}>
                                                     <div style={{ fontWeight: '500' }}>{formatQuantity(t.quantity)}</div>
@@ -658,185 +671,252 @@ const ChartView = ({ data, chartDate, chartMetric, setChartMetric, formatCurrenc
 
     return (
         <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
+            initial={{ opacity: 0, scale: 0.98 }}
             animate={{ opacity: 1, scale: 1 }}
             className="glass-card"
             style={{
-                padding: '40px',
-                borderRadius: '32px',
+                padding: '32px',
+                borderRadius: '24px',
                 display: 'flex',
-                flexWrap: 'wrap',
-                gap: '40px',
+                flexDirection: 'column',
+                gap: '24px',
                 position: 'relative',
-                alignItems: 'center',
-                justifyContent: 'center'
+                width: '100%'
             }}
         >
-            <div style={{ flex: '1 1 400px', maxWidth: '450px', display: 'flex', flexDirection: 'column' }}>
-                <div style={{ marginBottom: '24px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                        <div>
-                            <h3 style={{ fontSize: '1.5rem', fontWeight: 700, margin: 0 }}>
-                                코인별 누적 합산
-                            </h3>
-                            <p style={{ color: 'var(--text-muted)', margin: '4px 0 0 0', fontSize: '0.9rem' }}>기준일: {chartDate} 이전 데이터</p>
-                        </div>
-                        <div className="glass-panel" style={{ display: 'flex', background: 'rgba(255,255,255,0.05)', borderRadius: '12px', padding: '4px' }}>
-                            <button
-                                onClick={(e) => { e.stopPropagation(); setChartMetric('amount'); }}
-                                className={`tab-btn ${chartMetric === 'amount' ? 'active' : ''}`}
-                            >
-                                금액
-                            </button>
-                            <button
-                                onClick={(e) => { e.stopPropagation(); setChartMetric('quantity'); }}
-                                className={`tab-btn ${chartMetric === 'quantity' ? 'active' : ''}`}
-                            >
-                                수량
-                            </button>
-                        </div>
-                    </div>
-
-                    <div style={{ display: 'flex', gap: '8px' }}>
-                        <button
-                            onClick={() => setStatMode('history')}
-                            className={`tab-btn ${statMode === 'history' ? 'active' : ''}`}
-                        >
-                            누적합산 (History)
-                        </button>
-                        <button
-                            onClick={() => setStatMode('realtime')}
-                            className={`tab-btn ${statMode === 'realtime' ? 'active' : ''}`}
-                        >
-                            실시간평가 (Current)
-                        </button>
-                    </div>
+            {/* Top Toolbar */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', paddingBottom: '16px', borderBottom: '1px solid #f1f5f9' }}>
+                <div>
+                    <h3 style={{ fontSize: '1.45rem', fontWeight: 700, margin: 0, color: 'var(--text-main)' }}>
+                        코인별 누적 합산
+                    </h3>
+                    <p style={{ color: 'var(--text-muted)', margin: '4px 0 0 0', fontSize: '0.88rem' }}>기준일: {chartDate} 이전 데이터</p>
                 </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    {/* Header Row */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 0 8px 0', borderBottom: '1px solid rgba(255,255,255,0.1)', marginBottom: '8px' }}>
+                {/* Tab Controls */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+                    {/* View Mode Tab (누적합산 vs 실시간평가) */}
+                    <div style={{
+                        display: 'inline-flex',
+                        background: '#f1f5f9',
+                        borderRadius: '12px',
+                        padding: '4px',
+                        border: '1px solid #e2e8f0',
+                        boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.03)'
+                    }}>
                         <button
-                            onClick={() => handleSort('name')}
-                            style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: '0.85rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', padding: 0 }}
+                            type="button"
+                            onClick={() => setStatMode('history')}
+                            style={{
+                                padding: '8px 16px',
+                                borderRadius: '9px',
+                                fontSize: '0.88rem',
+                                fontWeight: statMode === 'history' ? 700 : 500,
+                                border: 'none',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s ease',
+                                background: statMode === 'history' ? '#ffffff' : 'transparent',
+                                color: statMode === 'history' ? '#ef4444' : '#64748b',
+                                boxShadow: statMode === 'history' ? '0 2px 6px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04)' : 'none',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '6px'
+                            }}
                         >
-                            코인
-                            {sortBy === 'name' && (sortOrder === 'asc' ? <ChevronUp size={14} /> : <ChevronDown size={14} />)}
+                            <span>📊</span> 누적합산 (History)
                         </button>
                         <button
-                            onClick={() => handleSort('value')}
-                            style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: '0.85rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', padding: 0 }}
+                            type="button"
+                            onClick={() => setStatMode('realtime')}
+                            style={{
+                                padding: '8px 16px',
+                                borderRadius: '9px',
+                                fontSize: '0.88rem',
+                                fontWeight: statMode === 'realtime' ? 700 : 500,
+                                border: 'none',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s ease',
+                                background: statMode === 'realtime' ? '#ffffff' : 'transparent',
+                                color: statMode === 'realtime' ? '#ef4444' : '#64748b',
+                                boxShadow: statMode === 'realtime' ? '0 2px 6px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04)' : 'none',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '6px'
+                            }}
                         >
-                            {statMode === 'history'
-                                ? (chartMetric === 'amount' ? '누적금액' : '누적수량')
-                                : (chartMetric === 'amount' ? '현재가치' : '현재수량')}
-                            {sortBy === 'value' && (sortOrder === 'asc' ? <ChevronUp size={14} /> : <ChevronDown size={14} />)}
+                            <span>⚡</span> 실시간평가 (Current)
                         </button>
                     </div>
 
-                    <div style={{ maxHeight: '300px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '12px', paddingRight: '8px' }}>
-                        {sortedFullData.map((item) => (
-                            <div key={item.name}
-                                onClick={() => toggleCoin(item.name)}
-                                style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', padding: '4px', borderRadius: '8px' }}
-                            >
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                    <input
-                                        type="checkbox"
-                                        checked={selectedCoins.has(item.name)}
-                                        onChange={() => { }}
-                                        style={{ cursor: 'pointer', accentColor: 'var(--primary)', width: '15px', height: '15px' }}
-                                    />
-                                    <div style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: item.color }} />
-                                    <span style={{ fontWeight: 600, color: selectedCoins.has(item.name) ? 'white' : 'var(--text-muted)' }}>{item.name}</span>
-                                </div>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                                    <div style={{ textAlign: 'right' }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'flex-end' }}>
-                                            <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>
-                                                {selectedCoins.has(item.name)
-                                                    ? (((statMode === 'history' ? item.costBasis : item.currentValue) / (statMode === 'history' ? totalHistoryCost : totalCurrentValuation || 1)) * 100).toFixed(1)
-                                                    : '0.0'}%
-                                            </span>
-                                            <span style={{ fontWeight: 700, color: selectedCoins.has(item.name) ? 'white' : 'var(--text-muted)' }}>
-                                                {statMode === 'history'
-                                                    ? (chartMetric === 'quantity' ? formatQuantity(item.heldQuantity) + '개' : formatCurrency(item.costBasis) + '원')
-                                                    : (chartMetric === 'amount' ? formatCurrency(item.currentValue) + '원' : formatQuantity(item.heldQuantity) + '개')
-                                                }
-                                            </span>
-                                        </div>
-                                        {statMode === 'realtime' && (
-                                            <div style={{ fontSize: '0.75rem', marginTop: '2px' }}>
-                                                {chartMetric === 'amount' ? (
-                                                    <span style={{ color: item.currentValue >= item.costBasis ? '#10b981' : '#ef4444' }}>
-                                                        {item.currentValue >= item.costBasis ? '▲' : '▼'}
-                                                        {formatCurrency(Math.abs(item.currentValue - item.costBasis))}원
-                                                        ({(((item.currentValue - item.costBasis) / (Math.abs(item.costBasis) || 1)) * 100).toFixed(2)}%)
-                                                    </span>
-                                                ) : (
-                                                    <span style={{ color: 'var(--text-muted)' }}>
-                                                        현재가: {formatCurrency(item.currentPrice)}원
-                                                    </span>
-                                                )}
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '12px', paddingTop: '12px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <span style={{ fontWeight: 600, color: 'var(--text-muted)' }}>전체 총합계 (Total Value)</span>
-                            <span style={{ fontWeight: 800, fontSize: '1.25rem', color: 'var(--primary)' }}>
-                                {statMode === 'history' ? formatCurrency(totalHistoryCost) : formatCurrency(totalCurrentValuation)}원
-                            </span>
-                        </div>
-                        {statMode === 'realtime' && (
-                            <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '12px' }}>
-                                <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>총 손익:</span>
-                                <span style={{ fontWeight: 700, color: totalCurrentValuation >= totalHistoryCost ? '#10b981' : '#ef4444' }}>
-                                    {totalCurrentValuation >= totalHistoryCost ? '▲' : '▼'}
-                                    {formatCurrency(Math.abs(totalCurrentValuation - totalHistoryCost))}원
-                                    ({(((totalCurrentValuation - totalHistoryCost) / (Math.abs(totalHistoryCost) || 1)) * 100).toFixed(2)}%)
-                                </span>
-                            </div>
-                        )}
+                    {/* Metric Unit Tab (금액 vs 수량) */}
+                    <div style={{
+                        display: 'inline-flex',
+                        background: '#f1f5f9',
+                        borderRadius: '12px',
+                        padding: '4px',
+                        border: '1px solid #e2e8f0',
+                        boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.03)'
+                    }}>
+                        <button
+                            type="button"
+                            onClick={(e) => { e.stopPropagation(); setChartMetric('amount'); }}
+                            style={{
+                                padding: '8px 16px',
+                                borderRadius: '9px',
+                                fontSize: '0.88rem',
+                                fontWeight: chartMetric === 'amount' ? 700 : 500,
+                                border: 'none',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s ease',
+                                background: chartMetric === 'amount' ? '#2563eb' : 'transparent',
+                                color: chartMetric === 'amount' ? '#ffffff' : '#64748b',
+                                boxShadow: chartMetric === 'amount' ? '0 2px 6px rgba(37,99,235,0.3)' : 'none',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '6px'
+                            }}
+                        >
+                            <span>₩</span> 금액
+                        </button>
+                        <button
+                            type="button"
+                            onClick={(e) => { e.stopPropagation(); setChartMetric('quantity'); }}
+                            style={{
+                                padding: '8px 16px',
+                                borderRadius: '9px',
+                                fontSize: '0.88rem',
+                                fontWeight: chartMetric === 'quantity' ? 700 : 500,
+                                border: 'none',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s ease',
+                                background: chartMetric === 'quantity' ? '#2563eb' : 'transparent',
+                                color: chartMetric === 'quantity' ? '#ffffff' : '#64748b',
+                                boxShadow: chartMetric === 'quantity' ? '0 2px 6px rgba(37,99,235,0.3)' : 'none',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '6px'
+                            }}
+                        >
+                            <span>🪙</span> 수량
+                        </button>
                     </div>
                 </div>
             </div>
 
-            <div style={{ flex: '1 1 300px', display: 'flex', justifyContent: 'center', position: 'relative' }}>
-                <svg viewBox="-1 -1 2 2" style={{ transform: 'rotate(-90deg)', width: '100%', maxWidth: '300px', height: 'auto', filter: 'drop-shadow(0 10px 20px rgba(0,0,0,0.5))' }}>
-                    {filteredForChart.map((slice) => {
-                        const val = statMode === 'history' ? slice.costBasis : slice.currentValue;
-                        const percent = val / (displayTotal || 1);
-                        const [startX, startY] = getCoordinatesForPercent(cumulativePercent);
-                        cumulativePercent += percent;
-                        const [endX, endY] = getCoordinatesForPercent(cumulativePercent);
+            {/* List & Content Section */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%' }}>
+                {/* Header Row */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 8px 10px 8px', borderBottom: '1px solid #e2e8f0', marginBottom: '4px' }}>
+                    <button
+                        onClick={() => handleSort('name')}
+                        style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: '0.88rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', padding: 0 }}
+                    >
+                        코인
+                        {sortBy === 'name' && (sortOrder === 'asc' ? <ChevronUp size={14} /> : <ChevronDown size={14} />)}
+                    </button>
+                    <button
+                        onClick={() => handleSort('value')}
+                        style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: '0.88rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', padding: 0 }}
+                    >
+                        {statMode === 'history'
+                            ? (chartMetric === 'amount' ? '누적금액' : '누적수량')
+                            : (chartMetric === 'amount' ? '현재가치' : '현재수량')}
+                        {sortBy === 'value' && (sortOrder === 'asc' ? <ChevronUp size={14} /> : <ChevronDown size={14} />)}
+                    </button>
+                </div>
 
-                        // if the slice is 100%, draw a circle
-                        if (percent === 1) {
-                            return <circle key={slice.name} r="1" cx="0" cy="0" fill={slice.color} />
-                        }
+                {/* Coin Rows */}
+                <div style={{ maxHeight: '420px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '6px', paddingRight: '4px' }}>
+                    {sortedFullData.map((item) => (
+                        <div key={item.name}
+                            onClick={() => toggleCoin(item.name)}
+                            style={{
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                                cursor: 'pointer',
+                                padding: '8px 12px',
+                                borderRadius: '10px',
+                                background: selectedCoins.has(item.name) ? 'rgba(0,0,0,0.015)' : 'transparent',
+                                border: '1px solid',
+                                borderColor: selectedCoins.has(item.name) ? '#f1f5f9' : 'transparent',
+                                transition: 'all 0.15s ease'
+                            }}
+                        >
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                <input
+                                    type="checkbox"
+                                    checked={selectedCoins.has(item.name)}
+                                    onChange={() => { }}
+                                    style={{ cursor: 'pointer', accentColor: 'var(--primary)', width: '16px', height: '16px' }}
+                                />
+                                <div style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: item.color }} />
+                                <span style={{ fontWeight: 600, fontSize: '0.95rem', color: selectedCoins.has(item.name) ? 'var(--text-main)' : 'var(--text-muted)' }}>{item.name}</span>
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                                <div style={{ textAlign: 'right' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', justifyContent: 'flex-end' }}>
+                                        <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', fontWeight: 500 }}>
+                                            {selectedCoins.has(item.name)
+                                                ? (((statMode === 'history' ? item.costBasis : item.currentValue) / (statMode === 'history' ? totalHistoryCost : totalCurrentValuation || 1)) * 100).toFixed(1)
+                                                : '0.0'}%
+                                        </span>
+                                        <span style={{ fontWeight: 700, fontSize: '0.98rem', color: selectedCoins.has(item.name) ? 'var(--text-main)' : 'var(--text-muted)' }}>
+                                            {statMode === 'history'
+                                                ? (chartMetric === 'quantity' ? formatQuantity(item.heldQuantity) + '개' : formatCurrency(item.costBasis) + '원')
+                                                : (chartMetric === 'amount' ? formatCurrency(item.currentValue) + '원' : formatQuantity(item.heldQuantity) + '개')
+                                            }
+                                        </span>
+                                    </div>
+                                    {statMode === 'realtime' && (
+                                        <div style={{ fontSize: '0.78rem', marginTop: '2px' }}>
+                                            {chartMetric === 'amount' ? (
+                                                <span style={{ color: item.currentValue >= item.costBasis ? '#10b981' : '#ef4444', fontWeight: 600 }}>
+                                                    {item.currentValue >= item.costBasis ? '▲' : '▼'}
+                                                    {formatCurrency(Math.abs(item.currentValue - item.costBasis))}원
+                                                    ({(((item.currentValue - item.costBasis) / (Math.abs(item.costBasis) || 1)) * 100).toFixed(2)}%)
+                                                </span>
+                                            ) : (
+                                                <span style={{ color: 'var(--text-muted)' }}>
+                                                    현재가: {formatCurrency(item.currentPrice)}원
+                                                </span>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
 
-                        const largeArcFlag = percent > 0.5 ? 1 : 0;
-                        const pathData = [
-                            `M ${startX} ${startY}`,
-                            `A 1 1 0 ${largeArcFlag} 1 ${endX} ${endY}`,
-                            `L 0 0`,
-                        ].join(' ');
-
-                        return (
-                            <path
-                                key={slice.name}
-                                d={pathData}
-                                fill={slice.color}
-                                style={{ stroke: '#0f172a', strokeWidth: 0.02, transition: 'all 0.3s' }}
-                            />
-                        );
-                    })}
-                </svg>
+                {/* Total Value Summary Box */}
+                <div style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '10px',
+                    marginTop: '12px',
+                    padding: '16px 20px',
+                    borderRadius: '14px',
+                    background: '#f8fafc',
+                    border: '1px solid #e2e8f0'
+                }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontWeight: 700, fontSize: '0.95rem', color: '#475569' }}>선택 합산 총계 (Total Value)</span>
+                        <span style={{ fontWeight: 800, fontSize: '1.35rem', color: 'var(--primary)' }}>
+                            {statMode === 'history' ? formatCurrency(totalHistoryCost) : formatCurrency(totalCurrentValuation)}원
+                        </span>
+                    </div>
+                    {statMode === 'realtime' && (
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '8px', borderTop: '1px dashed #cbd5e1' }}>
+                            <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem', fontWeight: 600 }}>총 평가손익:</span>
+                            <span style={{ fontWeight: 700, fontSize: '1rem', color: totalCurrentValuation >= totalHistoryCost ? '#10b981' : '#ef4444' }}>
+                                {totalCurrentValuation >= totalHistoryCost ? '▲' : '▼'}
+                                {formatCurrency(Math.abs(totalCurrentValuation - totalHistoryCost))}원
+                                ({(((totalCurrentValuation - totalHistoryCost) / (Math.abs(totalHistoryCost) || 1)) * 100).toFixed(2)}%)
+                            </span>
+                        </div>
+                    )}
+                </div>
             </div>
         </motion.div>
     );
