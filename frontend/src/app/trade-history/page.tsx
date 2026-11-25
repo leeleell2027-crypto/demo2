@@ -870,6 +870,13 @@ const BtcTableView = ({
     const [addingDate, setAddingDate] = useState(false);
     const [syncCoin, setSyncCoin] = useState(selectedCoin);
 
+    // ── 투자 비교 계산기 상태 ──
+    const [calcBuyDate, setCalcBuyDate] = useState('');
+    const [calcEvalDate, setCalcEvalDate] = useState('');
+    const [calcCoin1, setCalcCoin1] = useState('BTC');
+    const [calcCoin2, setCalcCoin2] = useState('ETH');
+    const [calcAmount, setCalcAmount] = useState('100000000'); // 1억
+
     // 피벗 데이터 구성: { date -> { coin -> { id, price } } }
     const { allDates, pivotMap } = useMemo(() => {
         const map: Record<string, Record<string, { id: number; price: string }>> = {};
@@ -963,6 +970,46 @@ const BtcTableView = ({
         top: 0,
     };
 
+    // ── 투자 비교 계산 ──
+    const calcResult = useMemo(() => {
+        if (!calcBuyDate || !calcEvalDate || calcCoin1 === calcCoin2) return null;
+        const amount = parseFloat(calcAmount.replace(/,/g, '')) || 100_000_000;
+
+        const getPrice = (date: string, coin: string) => {
+            const p = pivotMap[date]?.[coin]?.price;
+            return p ? parseFloat(p) : 0;
+        };
+
+        const buyP1 = getPrice(calcBuyDate, calcCoin1);
+        const buyP2 = getPrice(calcBuyDate, calcCoin2);
+        const evalP1 = getPrice(calcEvalDate, calcCoin1);
+        const evalP2 = getPrice(calcEvalDate, calcCoin2);
+
+        if (!buyP1 || !buyP2) return null;
+
+        const qty1 = amount / buyP1;
+        const qty2 = amount / buyP2;
+
+        const evalV1 = evalP1 > 0 ? qty1 * evalP1 : null;
+        const evalV2 = evalP2 > 0 ? qty2 * evalP2 : null;
+
+        const totalEval = (evalV1 ?? 0) + (evalV2 ?? 0);
+        const ratio1 = totalEval > 0 && evalV1 != null ? (evalV1 / totalEval) * 100 : null;
+        const ratio2 = totalEval > 0 && evalV2 != null ? (evalV2 / totalEval) * 100 : null;
+
+        // GCD 정수비 계산
+        const gcd = (a: number, b: number): number => b < 0.0001 ? a : gcd(b, a % b);
+        let ratioStr = '';
+        if (ratio1 != null && ratio2 != null) {
+            const g = gcd(ratio1, ratio2);
+            const r1 = Math.round(ratio1 / g);
+            const r2 = Math.round(ratio2 / g);
+            ratioStr = `${r1} : ${r2}`;
+        }
+
+        return { amount, qty1, qty2, buyP1, buyP2, evalP1, evalP2, evalV1, evalV2, ratio1, ratio2, ratioStr, totalEval };
+    }, [calcBuyDate, calcEvalDate, calcCoin1, calcCoin2, calcAmount, pivotMap]);
+
     return (
         <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -1043,6 +1090,171 @@ const BtcTableView = ({
                         </button>
                     ))}
                 </div>
+            </div>
+
+            {/* ── 투자 비교 계산기 패널 ── */}
+            <div style={{ padding: '20px 24px', borderBottom: '2px solid var(--glass-border)', background: 'linear-gradient(135deg, rgba(255,77,77,0.04) 0%, rgba(99,102,241,0.06) 100%)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
+                    <span style={{ fontSize: '1.1rem' }}>📊</span>
+                    <h4 style={{ margin: 0, fontWeight: 700, fontSize: '1rem', color: 'var(--text-main)' }}>투자 비교 계산기</h4>
+                    <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginLeft: '4px' }}>동일 금액으로 두 코인을 샀을 때, 다른 날짜 기준으로 비율을 비교합니다</span>
+                </div>
+
+                {/* 입력 행 */}
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'flex-end' }}>
+                    <div>
+                        <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '4px', textTransform: 'uppercase' }}>💰 투자금액 (1인당)</label>
+                        <input
+                            type="text"
+                            value={Number(calcAmount).toLocaleString('ko-KR')}
+                            onChange={e => setCalcAmount(e.target.value.replace(/,/g, ''))}
+                            className="input-control"
+                            style={{ padding: '7px 10px', fontSize: '0.85rem', width: '140px', textAlign: 'right' }}
+                            placeholder="100000000"
+                        />
+                    </div>
+                    <div>
+                        <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '4px', textTransform: 'uppercase' }}>📅 매수 날짜</label>
+                        <select
+                            value={calcBuyDate}
+                            onChange={e => setCalcBuyDate(e.target.value)}
+                            className="input-control"
+                            style={{ padding: '7px 10px', fontSize: '0.85rem', width: '155px', color: 'black' }}
+                        >
+                            <option value="" style={{ color: 'black' }}>날짜 선택</option>
+                            {allDates.map(d => <option key={d} value={d} style={{ color: 'black' }}>{d}</option>)}
+                        </select>
+                    </div>
+                    <div>
+                        <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '4px', textTransform: 'uppercase' }}>📅 평가 날짜</label>
+                        <select
+                            value={calcEvalDate}
+                            onChange={e => setCalcEvalDate(e.target.value)}
+                            className="input-control"
+                            style={{ padding: '7px 10px', fontSize: '0.85rem', width: '155px', color: 'black' }}
+                        >
+                            <option value="" style={{ color: 'black' }}>날짜 선택</option>
+                            {allDates.map(d => <option key={d} value={d} style={{ color: 'black' }}>{d}</option>)}
+                        </select>
+                    </div>
+                    <div>
+                        <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '4px', textTransform: 'uppercase' }}>코인 A</label>
+                        <select
+                            value={calcCoin1}
+                            onChange={e => setCalcCoin1(e.target.value)}
+                            className="input-control"
+                            style={{ padding: '7px 10px', fontSize: '0.85rem', width: '110px', color: 'black' }}
+                        >
+                            {SUPPORTED_MARKET_COINS.filter(c => c !== calcCoin2).map(c => <option key={c} value={c} style={{ color: 'black' }}>{c}</option>)}
+                        </select>
+                    </div>
+                    <div>
+                        <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '4px', textTransform: 'uppercase' }}>코인 B</label>
+                        <select
+                            value={calcCoin2}
+                            onChange={e => setCalcCoin2(e.target.value)}
+                            className="input-control"
+                            style={{ padding: '7px 10px', fontSize: '0.85rem', width: '110px', color: 'black' }}
+                        >
+                            {SUPPORTED_MARKET_COINS.filter(c => c !== calcCoin1).map(c => <option key={c} value={c} style={{ color: 'black' }}>{c}</option>)}
+                        </select>
+                    </div>
+                </div>
+
+                {/* 결과 출력 */}
+                {calcResult && (
+                    <div style={{ marginTop: '16px', display: 'flex', flexWrap: 'wrap', gap: '16px' }}>
+
+                        {/* 매수 날짜 카드 */}
+                        <div style={{ flex: '1 1 300px', background: '#fff', borderRadius: '12px', padding: '16px', border: '1px solid var(--glass-border)', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
+                            <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontWeight: 700, marginBottom: '10px', textTransform: 'uppercase' }}>
+                                📅 매수 날짜: {calcBuyDate} (초기 투자)
+                            </div>
+                            <div style={{ display: 'flex', gap: '12px' }}>
+                                {[{ coin: calcCoin1, price: calcResult.buyP1, qty: calcResult.qty1 }, { coin: calcCoin2, price: calcResult.buyP2, qty: calcResult.qty2 }].map(({ coin, price, qty }) => (
+                                    <div key={coin} style={{ flex: 1, background: 'rgba(255,77,77,0.05)', borderRadius: '8px', padding: '12px', textAlign: 'center', border: '1px solid rgba(255,77,77,0.15)' }}>
+                                        <div style={{ fontWeight: 800, color: 'var(--primary)', fontSize: '1rem', marginBottom: '4px' }}>{coin}</div>
+                                        <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: '6px' }}>{formatCurrency(price)} KRW</div>
+                                        <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--text-main)' }}>
+                                            {qty >= 1 ? formatCurrency(qty) : qty.toFixed(8)} 개
+                                        </div>
+                                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+                                            {(calcResult.amount / 1_0000_0000).toFixed(0)}억 투자
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                            <div style={{ marginTop: '12px', textAlign: 'center', fontWeight: 700, fontSize: '0.9rem', color: 'var(--text-muted)', background: 'rgba(99,102,241,0.08)', borderRadius: '8px', padding: '8px' }}>
+                                초기 비율: <span style={{ color: 'var(--primary)' }}>50 : 50</span>
+                            </div>
+                        </div>
+
+                        {/* 화살표 */}
+                        <div style={{ display: 'flex', alignItems: 'center', fontSize: '1.5rem', color: 'var(--text-muted)', flexShrink: 0, padding: '0 4px' }}>→</div>
+
+                        {/* 평가 날짜 카드 */}
+                        <div style={{ flex: '1 1 300px', background: '#fff', borderRadius: '12px', padding: '16px', border: '1px solid var(--glass-border)', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
+                            <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontWeight: 700, marginBottom: '10px', textTransform: 'uppercase' }}>
+                                📅 평가 날짜: {calcEvalDate} (현재 환산)
+                            </div>
+                            <div style={{ display: 'flex', gap: '12px' }}>
+                                {[{ coin: calcCoin1, evalPrice: calcResult.evalP1, evalV: calcResult.evalV1, qty: calcResult.qty1, ratio: calcResult.ratio1 },
+                                  { coin: calcCoin2, evalPrice: calcResult.evalP2, evalV: calcResult.evalV2, qty: calcResult.qty2, ratio: calcResult.ratio2 }].map(({ coin, evalPrice, evalV, qty, ratio }) => (
+                                    <div key={coin} style={{
+                                        flex: 1, borderRadius: '8px', padding: '12px', textAlign: 'center',
+                                        background: evalV != null ? (evalV >= calcResult.amount ? 'rgba(16,185,129,0.07)' : 'rgba(239,68,68,0.07)') : 'rgba(0,0,0,0.03)',
+                                        border: evalV != null ? `1px solid ${evalV >= calcResult.amount ? 'rgba(16,185,129,0.25)' : 'rgba(239,68,68,0.25)'}` : '1px solid var(--glass-border)'
+                                    }}>
+                                        <div style={{ fontWeight: 800, color: 'var(--primary)', fontSize: '1rem', marginBottom: '4px' }}>{coin}</div>
+                                        <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: '4px' }}>
+                                            {evalPrice > 0 ? `${formatCurrency(evalPrice)} KRW` : '—'}
+                                        </div>
+                                        <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: '6px' }}>
+                                            {qty >= 1 ? formatCurrency(qty) : qty.toFixed(8)} 개
+                                        </div>
+                                        {evalV != null ? (
+                                            <>
+                                                <div style={{ fontWeight: 700, fontSize: '0.95rem', color: evalV >= calcResult.amount ? '#10b981' : '#ef4444' }}>
+                                                    {formatCurrency(evalV)} 원
+                                                </div>
+                                                <div style={{ fontSize: '0.78rem', marginTop: '3px', color: evalV >= calcResult.amount ? '#10b981' : '#ef4444' }}>
+                                                    {evalV >= calcResult.amount ? '▲' : '▼'} {(((evalV - calcResult.amount) / calcResult.amount) * 100).toFixed(1)}%
+                                                </div>
+                                                {ratio != null && (
+                                                    <div style={{ marginTop: '6px', fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-main)', background: 'rgba(255,255,255,0.7)', borderRadius: '4px', padding: '3px 6px' }}>
+                                                        비중 {ratio.toFixed(1)}%
+                                                    </div>
+                                                )}
+                                            </>
+                                        ) : (
+                                            <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>시세 없음</div>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                            {calcResult.ratioStr && (
+                                <div style={{ marginTop: '12px', textAlign: 'center', fontWeight: 700, fontSize: '0.9rem', background: 'rgba(16,185,129,0.08)', borderRadius: '8px', padding: '8px', border: '1px solid rgba(16,185,129,0.2)' }}>
+                                    평가 비율:&nbsp;
+                                    <span style={{ color: 'var(--primary)' }}>{calcCoin1}</span>
+                                    <span style={{ color: 'var(--text-main)', margin: '0 6px' }}>vs</span>
+                                    <span style={{ color: '#3b82f6' }}>{calcCoin2}</span>
+                                    <span style={{ marginLeft: '10px', fontSize: '1.05rem', letterSpacing: '0.05em' }}>{calcResult.ratioStr}</span>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )}
+
+                {(!calcBuyDate || !calcEvalDate) && (
+                    <div style={{ marginTop: '12px', padding: '12px', background: 'rgba(0,0,0,0.03)', borderRadius: '8px', fontSize: '0.82rem', color: 'var(--text-muted)', textAlign: 'center' }}>
+                        💡 매수 날짜와 평가 날짜를 모두 선택하면 계산 결과가 나타납니다.
+                    </div>
+                )}
+                {calcBuyDate && calcEvalDate && !calcResult && (
+                    <div style={{ marginTop: '12px', padding: '12px', background: 'rgba(255,100,0,0.05)', borderRadius: '8px', fontSize: '0.82rem', color: '#ef4444', textAlign: 'center' }}>
+                        ⚠️ 선택한 날짜에 두 코인의 시세 데이터가 없습니다. 위 테이블에서 해당 날짜 시세를 먼저 등록해주세요.
+                    </div>
+                )}
             </div>
 
             {/* 피벗 테이블 */}
