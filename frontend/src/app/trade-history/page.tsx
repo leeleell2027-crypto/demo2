@@ -98,7 +98,8 @@ export default function TradeHistoryPage() {
 
     // Fetch stats data directly from the backend API when in chart mode
     const [chartData, setChartData] = useState<{ name: string, value: number, color: string }[]>([]);
-    const [btcHistories, setBtcHistories] = useState<{ date: string, price: string }[]>([]);
+    const [selectedBtcCoin, setSelectedBtcCoin] = useState('BTC');
+    const [btcHistories, setBtcHistories] = useState<{ id: number, coin?: string, date: string, price: string }[]>([]);
 
     const fetchStats = async () => {
         if (viewMode !== 'chart') return;
@@ -132,15 +133,16 @@ export default function TradeHistoryPage() {
         }
     };
 
-    const fetchBtcHistories = async () => {
+    const fetchBtcHistories = async (targetCoin = selectedBtcCoin) => {
         try {
-            const res = await fetch('/api/trade-history/btc-market');
+            // 전체 코인 한번에 조회 (피벗 테이블용)
+            const res = await fetch(`/api/trade-history/btc-market?coin=ALL`);
             if (res.ok) {
                 const data = await res.json();
                 setBtcHistories(data || []);
             }
         } catch (error) {
-            console.error('Error fetching BTC market history:', error);
+            console.error('Error fetching coin market history:', error);
         }
     };
 
@@ -148,9 +150,9 @@ export default function TradeHistoryPage() {
         if (viewMode === 'chart') {
             fetchStats();
         } else if (viewMode === 'btc') {
-            fetchBtcHistories();
+            fetchBtcHistories(selectedBtcCoin);
         }
-    }, [viewMode, chartDate, chartMetric]);
+    }, [viewMode, chartDate, chartMetric, selectedBtcCoin]);
 
     const formatCurrency = (value: number) => {
         return new Intl.NumberFormat('ko-KR', { style: 'decimal' }).format(Math.floor(value));
@@ -585,8 +587,12 @@ export default function TradeHistoryPage() {
                 ) : (
                     <BtcTableView
                         data={btcHistories}
+                        selectedCoin={selectedBtcCoin}
+                        onSelectCoin={(coin: string) => {
+                            setSelectedBtcCoin(coin);
+                        }}
                         formatCurrency={formatCurrency}
-                        onRefresh={fetchBtcHistories}
+                        onRefresh={() => fetchBtcHistories()}
                     />
                 )}
             </div>
@@ -922,155 +928,494 @@ const ChartView = ({ data, chartDate, chartMetric, setChartMetric, formatCurrenc
     );
 };
 
-const BtcTableView = ({ data, formatCurrency, onRefresh }: { data: any[], formatCurrency: any, onRefresh: () => void }) => {
-    const [editingId, setEditingId] = useState<number | null>(null);
-    const [editPrice, setEditPrice] = useState<string>('');
-    const [saving, setSaving] = useState(false);
+const SUPPORTED_MARKET_COINS = ['BTC', 'ETH', 'XRP', 'SOL', 'ADA', 'XLM', 'WLD', 'HYPER', 'ETC'];
+
+const BtcTableView = ({
+    data,
+    selectedCoin,
+    onSelectCoin,
+    formatCurrency,
+    onRefresh
+}: {
+    data: any[],
+    selectedCoin: string,
+    onSelectCoin: (coin: string) => void,
+    formatCurrency: any,
+    onRefresh: () => void
+}) => {
     const [syncing, setSyncing] = useState(false);
+    const [syncingAll, setSyncingAll] = useState(false);
+    const [searchDate, setSearchDate] = useState('');
+    const [addDate, setAddDate] = useState('');
+    const [addingDate, setAddingDate] = useState(false);
+    const [syncCoin, setSyncCoin] = useState(selectedCoin);
 
-    const handleEdit = (item: any) => {
-        setEditingId(item.id);
-        setEditPrice(item.price);
-    };
+    // ── 투자 비교 계산기 상태 ──
+    const [calcBuyDate, setCalcBuyDate] = useState('');
+    const [calcEvalDate, setCalcEvalDate] = useState('');
+    const [calcCoin1, setCalcCoin1] = useState('BTC');
+    const [calcCoin2, setCalcCoin2] = useState('ETH');
+    const [calcAmount, setCalcAmount] = useState('100000000'); // 1억
 
-    const handleSave = async (id: number) => {
+    // 피벗 데이터 구성: { date -> { coin -> { id, price } } }
+    const { allDates, pivotMap } = useMemo(() => {
+        const map: Record<string, Record<string, { id: number; price: string }>> = {};
+        const dateSet = new Set<string>();
+        for (const item of data) {
+            const d = item.date as string;
+            const c = (item.coin as string) || 'BTC';
+            if (!map[d]) map[d] = {};
+            map[d][c] = { id: item.id, price: item.price };
+            dateSet.add(d);
+        }
+        const sortedDates = Array.from(dateSet).sort((a, b) => b.localeCompare(a));
+        return { allDates: sortedDates, pivotMap: map };
+    }, [data]);
+
+    const filteredDates = useMemo(() => {
+        if (!searchDate.trim()) return allDates;
+        return allDates.filter(d => d.includes(searchDate.trim()));
+    }, [allDates, searchDate]);
+
+    // 인라인 편집 상태 (date+coin 키로 관리)
+    const [editing, setEditing] = useState<{ date: string; coin: string; id: number; price: string } | null>(null);
+    const [saving, setSaving] = useState(false);
+
+    const handleSave = async () => {
+        if (!editing) return;
         setSaving(true);
         try {
-            const res = await fetch(`/api/trade-history/btc-market/${id}`, {
+            const res = await fetch(`/api/trade-history/btc-market/${editing.id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ price: editPrice })
+                body: JSON.stringify({ price: editing.price })
             });
-            if (res.ok) {
-                setEditingId(null);
-                onRefresh();
-            }
-        } catch (error) {
-            console.error('Error updating BTC price:', error);
-        } finally {
-            setSaving(false);
+            if (res.ok) { setEditing(null); onRefresh(); }
+        } catch (e) { console.error(e); }
+        finally { setSaving(false); }
+    };
+
+    const handleAddDateSync = async () => {
+        const trimmed = addDate.trim();
+        if (!trimmed || !/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+            alert('날짜 형식을 확인해주세요 (예: 2026-11-18)');
+            return;
         }
+        setAddingDate(true);
+        try {
+            const res = await fetch(`/api/trade-history/btc-market/sync?coin=${syncCoin}&date=${trimmed}`, { method: 'POST' });
+            const result = await res.json();
+            if (res.ok && result.success) {
+                alert(`✅ ${syncCoin} ${trimmed} 시세 등록 완료`);
+                setAddDate('');
+                onRefresh();
+            } else {
+                alert(`등록 실패: ${result.message || '오류'}`);
+            }
+        } catch (e) { alert('오류가 발생했습니다.'); }
+        finally { setAddingDate(false); }
     };
 
-    const handleCancel = () => {
-        setEditingId(null);
-        setEditPrice('');
+    const handleSyncAll = async () => {
+        if (!confirm('9개 코인 전체 시세를 일괄 동기화하시겠습니까?\n(10~20초 소요)')) return;
+        setSyncingAll(true);
+        try {
+            const res = await fetch('/api/trade-history/btc-market/sync-all', { method: 'POST' });
+            if (res.ok) { alert('전체 동기화 완료!'); onRefresh(); }
+            else alert('동기화 실패');
+        } catch (e) { alert('오류가 발생했습니다.'); }
+        finally { setSyncingAll(false); }
     };
 
-    const handleSync = async () => {
+    const handleSyncCoin = async (coin: string) => {
         setSyncing(true);
         try {
-            const res = await fetch('/api/trade-history/btc-market/sync', {
-                method: 'POST'
-            });
-            if (res.ok) {
-                onRefresh();
-            }
-        } catch (error) {
-            console.error('Error syncing BTC prices:', error);
-        } finally {
-            setSyncing(false);
-        }
+            const res = await fetch(`/api/trade-history/btc-market/sync?coin=${coin}`, { method: 'POST' });
+            if (res.ok) { alert(`${coin} 시세 동기화 완료!`); onRefresh(); }
+            else alert('동기화 실패');
+        } catch (e) { alert('오류가 발생했습니다.'); }
+        finally { setSyncing(false); }
     };
+
+    const thStyle: React.CSSProperties = {
+        padding: '12px 14px',
+        textAlign: 'right',
+        fontWeight: 700,
+        fontSize: '0.82rem',
+        color: 'var(--text-muted)',
+        whiteSpace: 'nowrap',
+        borderBottom: '2px solid var(--glass-border)',
+        background: '#f8f8f8',
+        position: 'sticky',
+        top: 0,
+    };
+
+    // ── 투자 비교 계산 ──
+    const calcResult = useMemo(() => {
+        if (!calcBuyDate || !calcEvalDate || calcCoin1 === calcCoin2) return null;
+        const amount = parseFloat(calcAmount.replace(/,/g, '')) || 100_000_000;
+
+        const getPrice = (date: string, coin: string) => {
+            const p = pivotMap[date]?.[coin]?.price;
+            return p ? parseFloat(p) : 0;
+        };
+
+        const buyP1 = getPrice(calcBuyDate, calcCoin1);
+        const buyP2 = getPrice(calcBuyDate, calcCoin2);
+        const evalP1 = getPrice(calcEvalDate, calcCoin1);
+        const evalP2 = getPrice(calcEvalDate, calcCoin2);
+
+        if (!buyP1 || !buyP2) return null;
+
+        const qty1 = amount / buyP1;
+        const qty2 = amount / buyP2;
+
+        const evalV1 = evalP1 > 0 ? qty1 * evalP1 : null;
+        const evalV2 = evalP2 > 0 ? qty2 * evalP2 : null;
+
+        const totalEval = (evalV1 ?? 0) + (evalV2 ?? 0);
+        const ratio1 = totalEval > 0 && evalV1 != null ? (evalV1 / totalEval) * 100 : null;
+        const ratio2 = totalEval > 0 && evalV2 != null ? (evalV2 / totalEval) * 100 : null;
+
+        // GCD 정수비 계산
+        const gcd = (a: number, b: number): number => b < 0.0001 ? a : gcd(b, a % b);
+        let ratioStr = '';
+        if (ratio1 != null && ratio2 != null) {
+            const g = gcd(ratio1, ratio2);
+            const r1 = Math.round(ratio1 / g);
+            const r2 = Math.round(ratio2 / g);
+            ratioStr = `${r1} : ${r2}`;
+        }
+
+        return { amount, qty1, qty2, buyP1, buyP2, evalP1, evalP2, evalV1, evalV2, ratio1, ratio2, ratioStr, totalEval };
+    }, [calcBuyDate, calcEvalDate, calcCoin1, calcCoin2, calcAmount, pivotMap]);
 
     return (
         <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="glass-card"
-            style={{ borderRadius: '24px', overflow: 'hidden' }}
+            style={{ borderRadius: '16px', overflow: 'hidden' }}
         >
-            <div style={{ padding: '24px', borderBottom: '1px solid rgba(255,255,255,0.1)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            {/* 상단 액션 바 */}
+            <div style={{ padding: '16px 24px', borderBottom: '1px solid var(--glass-border)', background: '#fafafa', display: 'flex', flexWrap: 'wrap', gap: '10px', alignItems: 'center', justifyContent: 'space-between' }}>
                 <div>
-                    <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 700 }}>BTC Market History (Date & Price)</h3>
-                    <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', margin: '4px 0 0 0' }}>
-                        Total {data.length} records • Click price to edit
+                    <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700 }}>코인 시세 현황 (일자별 × 코인별)</h3>
+                    <p style={{ margin: '3px 0 0', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+                        총 {filteredDates.length}개 날짜 • 셀 클릭으로 직접 수정 가능
                     </p>
                 </div>
-
-                <button
-                    onClick={handleSync}
-                    disabled={syncing}
-                    className="btn btn-primary"
-                    style={{
-                        color: 'black',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px',
-                        padding: '10px 20px',
-                        fontSize: '0.9rem'
-                    }}
-                >
-                    <RefreshCw size={18} className={syncing ? 'spin' : ''} />
-                    {syncing ? '동기화 중...' : 'Upbit 시세 동기화'}
-                </button>
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                    <input
+                        type="text"
+                        placeholder="날짜 검색 (예: 2023-06)"
+                        value={searchDate}
+                        onChange={e => setSearchDate(e.target.value)}
+                        className="input-control"
+                        style={{ padding: '7px 12px', fontSize: '0.83rem', width: '180px' }}
+                    />
+                    <button
+                        onClick={handleSyncAll}
+                        disabled={syncing || syncingAll}
+                        className="btn btn-primary"
+                        style={{ color: '#fff', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.83rem', padding: '8px 16px', fontWeight: 700 }}
+                        title="등록된 날짜들에 대해 9종 코인 시세를 일괄 동기화합니다"
+                    >
+                        <RefreshCw size={14} className={syncingAll ? 'animate-spin' : ''} />
+                        {syncingAll ? '동기화 중...' : '전체 코인 일괄 동기화 (9종)'}
+                    </button>
+                </div>
             </div>
-            <div style={{ overflowX: 'auto' }}>
-                <table className="trade-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
+
+            {/* 날짜 직접 등록 */}
+            <div style={{ padding: '12px 24px', borderBottom: '1px solid var(--glass-border)', background: 'rgba(99,102,241,0.04)', display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                <span style={{ fontSize: '0.83rem', color: 'var(--text-muted)', fontWeight: 600 }}>📅 날짜 직접 등록:</span>
+                <input
+                    type="date"
+                    value={addDate}
+                    onChange={e => setAddDate(e.target.value)}
+                    className="input-control"
+                    style={{ padding: '6px 10px', fontSize: '0.83rem', width: '160px' }}
+                />
+                <select
+                    value={syncCoin}
+                    onChange={e => setSyncCoin(e.target.value)}
+                    className="input-control"
+                    style={{ padding: '6px 10px', fontSize: '0.83rem', width: '100px', color: 'black' }}
+                >
+                    {SUPPORTED_MARKET_COINS.map(c => <option key={c} value={c} style={{ color: 'black' }}>{c}</option>)}
+                </select>
+                <button
+                    onClick={handleAddDateSync}
+                    disabled={addingDate}
+                    className="btn btn-secondary"
+                    style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.83rem', padding: '6px 14px', border: '1px solid var(--primary)', color: 'var(--primary)', fontWeight: 600 }}
+                >
+                    <RefreshCw size={13} className={addingDate ? 'animate-spin' : ''} />
+                    {addingDate ? '등록 중...' : '시세 가져오기'}
+                </button>
+                <span style={{ fontSize: '0.76rem', color: 'var(--text-muted)' }}>날짜 + 코인 선택 후 버튼 클릭 → Upbit에서 해당 날짜 시세 등록</span>
+                <div style={{ marginLeft: 'auto', display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                    {SUPPORTED_MARKET_COINS.map(c => (
+                        <button
+                            key={c}
+                            onClick={() => handleSyncCoin(c)}
+                            disabled={syncing || syncingAll}
+                            className="btn btn-secondary"
+                            style={{ fontSize: '0.75rem', padding: '4px 10px', border: '1px solid var(--glass-border)' }}
+                            title={`${c} 시세만 동기화`}
+                        >
+                            <RefreshCw size={11} style={{ display: 'inline', marginRight: 4 }} />
+                            {c}
+                        </button>
+                    ))}
+                </div>
+            </div>
+
+            {/* ── 투자 비교 계산기 패널 ── */}
+            <div style={{ padding: '20px 24px', borderBottom: '2px solid var(--glass-border)', background: 'linear-gradient(135deg, rgba(255,77,77,0.04) 0%, rgba(99,102,241,0.06) 100%)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
+                    <span style={{ fontSize: '1.1rem' }}>📊</span>
+                    <h4 style={{ margin: 0, fontWeight: 700, fontSize: '1rem', color: 'var(--text-main)' }}>투자 비교 계산기</h4>
+                    <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginLeft: '4px' }}>동일 금액으로 두 코인을 샀을 때, 다른 날짜 기준으로 비율을 비교합니다</span>
+                </div>
+
+                {/* 입력 행 */}
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'flex-end' }}>
+                    <div>
+                        <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '4px', textTransform: 'uppercase' }}>💰 투자금액 (1인당)</label>
+                        <input
+                            type="text"
+                            value={Number(calcAmount).toLocaleString('ko-KR')}
+                            onChange={e => setCalcAmount(e.target.value.replace(/,/g, ''))}
+                            className="input-control"
+                            style={{ padding: '7px 10px', fontSize: '0.85rem', width: '140px', textAlign: 'right' }}
+                            placeholder="100000000"
+                        />
+                    </div>
+                    <div>
+                        <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '4px', textTransform: 'uppercase' }}>📅 매수 날짜</label>
+                        <select
+                            value={calcBuyDate}
+                            onChange={e => setCalcBuyDate(e.target.value)}
+                            className="input-control"
+                            style={{ padding: '7px 10px', fontSize: '0.85rem', width: '155px', color: 'black' }}
+                        >
+                            <option value="" style={{ color: 'black' }}>날짜 선택</option>
+                            {allDates.map(d => <option key={d} value={d} style={{ color: 'black' }}>{d}</option>)}
+                        </select>
+                    </div>
+                    <div>
+                        <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '4px', textTransform: 'uppercase' }}>📅 평가 날짜</label>
+                        <select
+                            value={calcEvalDate}
+                            onChange={e => setCalcEvalDate(e.target.value)}
+                            className="input-control"
+                            style={{ padding: '7px 10px', fontSize: '0.85rem', width: '155px', color: 'black' }}
+                        >
+                            <option value="" style={{ color: 'black' }}>날짜 선택</option>
+                            {allDates.map(d => <option key={d} value={d} style={{ color: 'black' }}>{d}</option>)}
+                        </select>
+                    </div>
+                    <div>
+                        <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '4px', textTransform: 'uppercase' }}>코인 A</label>
+                        <select
+                            value={calcCoin1}
+                            onChange={e => setCalcCoin1(e.target.value)}
+                            className="input-control"
+                            style={{ padding: '7px 10px', fontSize: '0.85rem', width: '110px', color: 'black' }}
+                        >
+                            {SUPPORTED_MARKET_COINS.filter(c => c !== calcCoin2).map(c => <option key={c} value={c} style={{ color: 'black' }}>{c}</option>)}
+                        </select>
+                    </div>
+                    <div>
+                        <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '4px', textTransform: 'uppercase' }}>코인 B</label>
+                        <select
+                            value={calcCoin2}
+                            onChange={e => setCalcCoin2(e.target.value)}
+                            className="input-control"
+                            style={{ padding: '7px 10px', fontSize: '0.85rem', width: '110px', color: 'black' }}
+                        >
+                            {SUPPORTED_MARKET_COINS.filter(c => c !== calcCoin1).map(c => <option key={c} value={c} style={{ color: 'black' }}>{c}</option>)}
+                        </select>
+                    </div>
+                </div>
+
+                {/* 결과 출력 */}
+                {calcResult && (
+                    <div style={{ marginTop: '16px', display: 'flex', flexWrap: 'wrap', gap: '16px' }}>
+
+                        {/* 매수 날짜 카드 */}
+                        <div style={{ flex: '1 1 300px', background: '#fff', borderRadius: '12px', padding: '16px', border: '1px solid var(--glass-border)', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
+                            <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontWeight: 700, marginBottom: '10px', textTransform: 'uppercase' }}>
+                                📅 매수 날짜: {calcBuyDate} (초기 투자)
+                            </div>
+                            <div style={{ display: 'flex', gap: '12px' }}>
+                                {[{ coin: calcCoin1, price: calcResult.buyP1, qty: calcResult.qty1 }, { coin: calcCoin2, price: calcResult.buyP2, qty: calcResult.qty2 }].map(({ coin, price, qty }) => (
+                                    <div key={coin} style={{ flex: 1, background: 'rgba(255,77,77,0.05)', borderRadius: '8px', padding: '12px', textAlign: 'center', border: '1px solid rgba(255,77,77,0.15)' }}>
+                                        <div style={{ fontWeight: 800, color: 'var(--primary)', fontSize: '1rem', marginBottom: '4px' }}>{coin}</div>
+                                        <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: '6px' }}>{formatCurrency(price)} KRW</div>
+                                        <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--text-main)' }}>
+                                            {qty >= 1 ? formatCurrency(qty) : qty.toFixed(8)} 개
+                                        </div>
+                                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+                                            {(calcResult.amount / 1_0000_0000).toFixed(0)}억 투자
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                            <div style={{ marginTop: '12px', textAlign: 'center', fontWeight: 700, fontSize: '0.9rem', color: 'var(--text-muted)', background: 'rgba(99,102,241,0.08)', borderRadius: '8px', padding: '8px' }}>
+                                초기 비율: <span style={{ color: 'var(--primary)' }}>50 : 50</span>
+                            </div>
+                        </div>
+
+                        {/* 화살표 */}
+                        <div style={{ display: 'flex', alignItems: 'center', fontSize: '1.5rem', color: 'var(--text-muted)', flexShrink: 0, padding: '0 4px' }}>→</div>
+
+                        {/* 평가 날짜 카드 */}
+                        <div style={{ flex: '1 1 300px', background: '#fff', borderRadius: '12px', padding: '16px', border: '1px solid var(--glass-border)', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
+                            <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontWeight: 700, marginBottom: '10px', textTransform: 'uppercase' }}>
+                                📅 평가 날짜: {calcEvalDate} (현재 환산)
+                            </div>
+                            <div style={{ display: 'flex', gap: '12px' }}>
+                                {[{ coin: calcCoin1, evalPrice: calcResult.evalP1, evalV: calcResult.evalV1, qty: calcResult.qty1, ratio: calcResult.ratio1 },
+                                  { coin: calcCoin2, evalPrice: calcResult.evalP2, evalV: calcResult.evalV2, qty: calcResult.qty2, ratio: calcResult.ratio2 }].map(({ coin, evalPrice, evalV, qty, ratio }) => (
+                                    <div key={coin} style={{
+                                        flex: 1, borderRadius: '8px', padding: '12px', textAlign: 'center',
+                                        background: evalV != null ? (evalV >= calcResult.amount ? 'rgba(16,185,129,0.07)' : 'rgba(239,68,68,0.07)') : 'rgba(0,0,0,0.03)',
+                                        border: evalV != null ? `1px solid ${evalV >= calcResult.amount ? 'rgba(16,185,129,0.25)' : 'rgba(239,68,68,0.25)'}` : '1px solid var(--glass-border)'
+                                    }}>
+                                        <div style={{ fontWeight: 800, color: 'var(--primary)', fontSize: '1rem', marginBottom: '4px' }}>{coin}</div>
+                                        <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: '4px' }}>
+                                            {evalPrice > 0 ? `${formatCurrency(evalPrice)} KRW` : '—'}
+                                        </div>
+                                        <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: '6px' }}>
+                                            {qty >= 1 ? formatCurrency(qty) : qty.toFixed(8)} 개
+                                        </div>
+                                        {evalV != null ? (
+                                            <>
+                                                <div style={{ fontWeight: 700, fontSize: '0.95rem', color: evalV >= calcResult.amount ? '#10b981' : '#ef4444' }}>
+                                                    {formatCurrency(evalV)} 원
+                                                </div>
+                                                <div style={{ fontSize: '0.78rem', marginTop: '3px', color: evalV >= calcResult.amount ? '#10b981' : '#ef4444' }}>
+                                                    {evalV >= calcResult.amount ? '▲' : '▼'} {(((evalV - calcResult.amount) / calcResult.amount) * 100).toFixed(1)}%
+                                                </div>
+                                                {ratio != null && (
+                                                    <div style={{ marginTop: '6px', fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-main)', background: 'rgba(255,255,255,0.7)', borderRadius: '4px', padding: '3px 6px' }}>
+                                                        비중 {ratio.toFixed(1)}%
+                                                    </div>
+                                                )}
+                                            </>
+                                        ) : (
+                                            <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>시세 없음</div>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                            {calcResult.ratioStr && (
+                                <div style={{ marginTop: '12px', textAlign: 'center', fontWeight: 700, fontSize: '0.9rem', background: 'rgba(16,185,129,0.08)', borderRadius: '8px', padding: '8px', border: '1px solid rgba(16,185,129,0.2)' }}>
+                                    평가 비율:&nbsp;
+                                    <span style={{ color: 'var(--primary)' }}>{calcCoin1}</span>
+                                    <span style={{ color: 'var(--text-main)', margin: '0 6px' }}>vs</span>
+                                    <span style={{ color: '#3b82f6' }}>{calcCoin2}</span>
+                                    <span style={{ marginLeft: '10px', fontSize: '1.05rem', letterSpacing: '0.05em' }}>{calcResult.ratioStr}</span>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )}
+
+                {(!calcBuyDate || !calcEvalDate) && (
+                    <div style={{ marginTop: '12px', padding: '12px', background: 'rgba(0,0,0,0.03)', borderRadius: '8px', fontSize: '0.82rem', color: 'var(--text-muted)', textAlign: 'center' }}>
+                        💡 매수 날짜와 평가 날짜를 모두 선택하면 계산 결과가 나타납니다.
+                    </div>
+                )}
+                {calcBuyDate && calcEvalDate && !calcResult && (
+                    <div style={{ marginTop: '12px', padding: '12px', background: 'rgba(255,100,0,0.05)', borderRadius: '8px', fontSize: '0.82rem', color: '#ef4444', textAlign: 'center' }}>
+                        ⚠️ 선택한 날짜에 두 코인의 시세 데이터가 없습니다. 위 테이블에서 해당 날짜 시세를 먼저 등록해주세요.
+                    </div>
+                )}
+            </div>
+
+            {/* 피벗 테이블 */}
+            <div style={{ overflowX: 'auto', maxHeight: '70vh', overflowY: 'auto' }}>
+                <table className="data-table" style={{ width: '100%', borderCollapse: 'collapse', minWidth: 900 }}>
                     <thead>
                         <tr>
-                            <th style={{ padding: '16px', textAlign: 'left', color: 'var(--text-muted)', fontWeight: 600, borderBottom: '2px solid rgba(255,255,255,0.05)' }}>일자 (Date)</th>
-                            <th style={{ padding: '16px', textAlign: 'right', color: 'var(--text-muted)', fontWeight: 600, borderBottom: '2px solid rgba(255,255,255,0.05)' }}>가격 (Price)</th>
-                            <th style={{ padding: '16px', width: '120px', borderBottom: '2px solid rgba(255,255,255,0.05)' }}></th>
+                            <th style={{ ...thStyle, textAlign: 'left', position: 'sticky', left: 0, zIndex: 2, background: '#f4f4f4' }}>
+                                일자 (Date)
+                            </th>
+                            {SUPPORTED_MARKET_COINS.map(c => (
+                                <th key={c} style={thStyle}>{c}</th>
+                            ))}
                         </tr>
                     </thead>
                     <tbody>
-                        {data.length === 0 ? (
+                        {filteredDates.length === 0 ? (
                             <tr>
-                                <td colSpan={3} style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>No BTC market data found.</td>
+                                <td colSpan={SUPPORTED_MARKET_COINS.length + 1} style={{ padding: '50px', textAlign: 'center', color: 'var(--text-muted)' }}>
+                                    등록된 시세 데이터가 없습니다. 상단의 <b>[전체 코인 일괄 동기화]</b> 버튼을 눌러 Upbit 시세를 가져오세요.
+                                </td>
                             </tr>
                         ) : (
-                            data.map((item) => (
-                                <tr key={item.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.02)', transition: 'background 0.2s' }}>
-                                    <td style={{ padding: '16px', fontWeight: 500 }}>{item.date}</td>
-                                    <td style={{ padding: '16px', textAlign: 'right' }}>
-                                        {editingId === item.id ? (
-                                            <input
-                                                type="text"
-                                                value={editPrice}
-                                                onChange={(e) => setEditPrice(e.target.value)}
-                                                autoFocus
-                                                style={{
-                                                    background: 'rgba(255,255,255,0.1)',
-                                                    color: 'var(--primary)',
-                                                    border: '1px solid var(--primary)',
-                                                    padding: '8px 12px',
-                                                    borderRadius: '8px',
-                                                    textAlign: 'right',
-                                                    width: '180px',
-                                                    fontWeight: 700,
-                                                    fontSize: '1rem'
-                                                }}
-                                            />
-                                        ) : (
-                                            <div
-                                                onClick={() => handleEdit(item)}
-                                                style={{ fontWeight: 700, color: 'var(--primary)', cursor: 'pointer', display: 'inline-block' }}
-                                                title="클릭하여 수정"
-                                            >
-                                                {formatCurrency(parseFloat(item.price.replace(/,/g, '')))} <span style={{ fontSize: '0.8rem', opacity: 0.7 }}>KRW</span>
-                                            </div>
-                                        )}
+                            filteredDates.map(date => (
+                                <tr key={date} style={{ borderBottom: '1px solid var(--glass-border)' }}>
+                                    <td style={{
+                                        padding: '11px 16px',
+                                        fontWeight: 600,
+                                        fontSize: '0.88rem',
+                                        color: 'var(--text-main)',
+                                        whiteSpace: 'nowrap',
+                                        position: 'sticky',
+                                        left: 0,
+                                        background: '#fff',
+                                        zIndex: 1,
+                                        borderRight: '1px solid var(--glass-border)'
+                                    }}>
+                                        {date}
                                     </td>
-                                    <td style={{ padding: '16px', textAlign: 'right' }}>
-                                        {editingId === item.id ? (
-                                            <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-                                                <button
-                                                    onClick={() => handleSave(item.id)}
-                                                    disabled={saving}
-                                                    style={{ background: 'var(--primary)', color: 'black', border: 'none', padding: '6px 12px', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer', fontSize: '0.85rem' }}
-                                                >
-                                                    {saving ? '...' : '저장'}
-                                                </button>
-                                                <button
-                                                    onClick={handleCancel}
-                                                    style={{ background: 'rgba(255,255,255,0.1)', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer', fontSize: '0.85rem' }}
-                                                >
-                                                    취소
-                                                </button>
-                                            </div>
-                                        ) : null}
-                                    </td>
+                                    {SUPPORTED_MARKET_COINS.map(coin => {
+                                        const cell = pivotMap[date]?.[coin];
+                                        const isEditing = editing?.date === date && editing?.coin === coin;
+                                        return (
+                                            <td key={coin} style={{ padding: '8px 14px', textAlign: 'right', whiteSpace: 'nowrap' }}>
+                                                {isEditing ? (
+                                                    <div style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end', alignItems: 'center' }}>
+                                                        <input
+                                                            type="text"
+                                                            value={editing.price}
+                                                            onChange={e => setEditing({ ...editing, price: e.target.value })}
+                                                            autoFocus
+                                                            className="input-control"
+                                                            style={{ width: '120px', textAlign: 'right', fontSize: '0.82rem', padding: '4px 8px' }}
+                                                        />
+                                                        <button onClick={handleSave} disabled={saving} className="btn btn-primary" style={{ color: '#fff', padding: '4px 8px', fontSize: '0.75rem' }}>
+                                                            {saving ? '...' : '저장'}
+                                                        </button>
+                                                        <button onClick={() => setEditing(null)} className="btn btn-secondary" style={{ padding: '4px 8px', fontSize: '0.75rem' }}>취소</button>
+                                                    </div>
+                                                ) : cell ? (
+                                                    <div
+                                                        onClick={() => setEditing({ date, coin, id: cell.id, price: cell.price })}
+                                                        title="클릭하여 수정"
+                                                        style={{
+                                                            cursor: 'pointer',
+                                                            fontWeight: 700,
+                                                            color: parseFloat(cell.price) > 0 ? 'var(--primary)' : 'var(--text-muted)',
+                                                            fontSize: '0.88rem'
+                                                        }}
+                                                    >
+                                                        {parseFloat(cell.price) > 0
+                                                            ? formatCurrency(parseFloat(cell.price))
+                                                            : <span style={{ opacity: 0.4, fontSize: '0.78rem' }}>0</span>
+                                                        }
+                                                    </div>
+                                                ) : (
+                                                    <span style={{ color: 'var(--text-muted)', opacity: 0.3, fontSize: '0.78rem' }}>—</span>
+                                                )}
+                                            </td>
+                                        );
+                                    })}
                                 </tr>
                             ))
                         )}
