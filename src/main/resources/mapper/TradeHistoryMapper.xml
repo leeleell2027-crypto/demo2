@@ -44,7 +44,12 @@
             END as settlementAmount,
             t.ordered_at as orderedAt
         FROM trade_history t
-        LEFT JOIN trade_btc_history b ON DATE_FORMAT(t.executed_at, '%Y-%m-%d') = b.ordered_at AND (b.coin = 'BTC' OR b.coin IS NULL)
+        LEFT JOIN (
+            SELECT ordered_at, MAX(btc_price) as btc_price
+            FROM trade_btc_history
+            WHERE coin = 'BTC' OR coin IS NULL
+            GROUP BY ordered_at
+        ) b ON DATE_FORMAT(t.executed_at, '%Y-%m-%d') = b.ordered_at
         ORDER BY t.executed_at DESC
     </select>
 
@@ -78,7 +83,12 @@
             END as settlementAmount,
             t.ordered_at as orderedAt
         FROM trade_history t
-        LEFT JOIN trade_btc_history b ON DATE_FORMAT(t.executed_at, '%Y-%m-%d') = b.ordered_at AND (b.coin = 'BTC' OR b.coin IS NULL)
+        LEFT JOIN (
+            SELECT ordered_at, MAX(btc_price) as btc_price
+            FROM trade_btc_history
+            WHERE coin = 'BTC' OR coin IS NULL
+            GROUP BY ordered_at
+        ) b ON DATE_FORMAT(t.executed_at, '%Y-%m-%d') = b.ordered_at
         <where>
             <if test="startDate != null and startDate != ''">
                 AND executed_at &gt;= #{startDate}
@@ -87,7 +97,7 @@
                 AND executed_at &lt;= #{endDate}
             </if>
             <if test="coin != null and coin != ''">
-                AND coin = #{coin}
+                AND t.coin = #{coin}
             </if>
             <if test="side != null and side != '' and side != '전체'">
                 AND side = #{side}
@@ -147,7 +157,12 @@
                     ELSE 0 
                 END as qty
             FROM trade_history t
-            LEFT JOIN trade_btc_history b ON DATE_FORMAT(t.executed_at, '%Y-%m-%d') = b.ordered_at AND (b.coin = 'BTC' OR b.coin IS NULL)
+            LEFT JOIN (
+                SELECT ordered_at, MAX(btc_price) as btc_price
+                FROM trade_btc_history
+                WHERE coin = 'BTC' OR coin IS NULL
+                GROUP BY ordered_at
+            ) b ON DATE_FORMAT(t.executed_at, '%Y-%m-%d') = b.ordered_at
             <where>
                 <if test="endDate != null and endDate != ''">
                     AND t.executed_at &lt;= CONCAT(#{endDate}, ' 23:59:59')
@@ -169,7 +184,12 @@
                     ELSE 0 
                 END as qty
             FROM trade_history t
-            LEFT JOIN trade_btc_history b ON DATE_FORMAT(t.executed_at, '%Y-%m-%d') = b.ordered_at AND (b.coin = 'BTC' OR b.coin IS NULL)
+            LEFT JOIN (
+                SELECT ordered_at, MAX(btc_price) as btc_price
+                FROM trade_btc_history
+                WHERE coin = 'BTC' OR coin IS NULL
+                GROUP BY ordered_at
+            ) b ON DATE_FORMAT(t.executed_at, '%Y-%m-%d') = b.ordered_at
             <where>
                 AND (t.market = 'BTC' OR t.market = 'btc') AND t.coin != 'BTC'
                 <if test="endDate != null and endDate != ''">
